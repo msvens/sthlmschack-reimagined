@@ -78,6 +78,10 @@ export class BaseApiService {
     return date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
   }
 
+  protected formatDateToString(date: Date): string {
+    return this.formatDate(date);
+  }
+
   protected getCurrentDate(): string {
     return this.formatDate(new Date());
   }

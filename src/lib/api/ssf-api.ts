@@ -8,15 +8,15 @@ export class SsfApiService extends BaseApiService {
 
   /**
    * Get player information by SSF ID and date
-   * @param ssfId - The Swedish Chess Federation player ID
+   * @param ssfId - The Swedish Chess Federation player ID (number)
    * @param date - Optional date (defaults to current date)
    * @returns Player information
    */
   async getPlayerInfo(
-    ssfId: string,
-    date?: string
+    ssfId: number,
+    date?: Date
   ): Promise<ApiResponse<PlayerInfo>> {
-    const targetDate = date || this.getCurrentDate();
+    const targetDate = date ? this.formatDateToString(date) : this.getCurrentDate();
     const endpoint = `/player/${ssfId}/date/${targetDate}`;
     
     return this.get<PlayerInfo>(endpoint);
@@ -27,8 +27,8 @@ export class SsfApiService extends BaseApiService {
    * @param date - Optional date (defaults to current date)
    * @returns Player information for SSF ID 642062
    */
-  async getSpecificPlayerInfo(date?: string): Promise<ApiResponse<PlayerInfo>> {
-    return this.getPlayerInfo('642062', date);
+  async getSpecificPlayerInfo(date?: Date): Promise<ApiResponse<PlayerInfo>> {
+    return this.getPlayerInfo(642062, date);
   }
 
   /**
