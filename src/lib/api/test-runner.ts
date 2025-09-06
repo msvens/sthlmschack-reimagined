@@ -5,12 +5,13 @@
  * Run with: npx tsx src/lib/api/test-runner.ts
  */
 
-import { SsfApiService } from './ssf-api';
+import { PlayerService, ResultsService } from './index';
 
 async function main() {
   console.log('🚀 Stockholm Chess API Test Runner\n');
-  
-  const api = new SsfApiService();
+
+  const playerService = new PlayerService();
+  const resultsService = new ResultsService();
   
   // Test constants
   const PLAYER_ID = 642062; // Olle Svensson
@@ -21,7 +22,7 @@ async function main() {
     console.log('─'.repeat(50));
     
     // Test current date
-    const playerCurrent = await api.getSpecificPlayerInfo();
+    const playerCurrent = await playerService.getPlayerInfo(PLAYER_ID);
     if (playerCurrent.data) {
       console.log(`✅ Player: ${playerCurrent.data.firstName} ${playerCurrent.data.lastName}`);
       console.log(`   Club: ${playerCurrent.data.club}`);
@@ -31,10 +32,10 @@ async function main() {
       console.log('❌ Failed to fetch player info');
       console.log('   Error:', playerCurrent.error);
     }
-    
+
     // Test specific date
     const specificDate = new Date('2024-01-01');
-    const playerSpecific = await api.getPlayerInfo(PLAYER_ID, specificDate);
+    const playerSpecific = await playerService.getPlayerInfo(PLAYER_ID, specificDate);
     console.log(`\n📅 Historical data (${specificDate.toISOString().split('T')[0]}):`);
     if (playerSpecific.data && playerSpecific.data.elo) {
       console.log(`   Rating: ${playerSpecific.data.elo.rating || 'N/A'}`);
@@ -45,28 +46,28 @@ async function main() {
     console.log('\n2️⃣ Testing Tournament Results API...');
     console.log('─'.repeat(50));
     
-    const tournamentResults = await api.getTournamentResults(TOURNAMENT_ID);
+    const tournamentResults = await resultsService.getTournamentResults(TOURNAMENT_ID);
     if (tournamentResults.data) {
       console.log(`✅ Tournament ${TOURNAMENT_ID} has ${tournamentResults.data.length} participants`);
-      
+
       // Show top 3 players
       const top3 = tournamentResults.data
         .sort((a, b) => a.place - b.place)
         .slice(0, 3);
-      
+
       console.log('\n🏆 Top 3 Players:');
-      top3.forEach((result, index) => {
+      top3.forEach((result: { playerInfo: { firstName: string; lastName: string }; points: number }, index: number) => {
         console.log(`   ${index + 1}. ${result.playerInfo.firstName} ${result.playerInfo.lastName} - ${result.points} pts`);
       });
     } else {
       console.log('❌ Failed to fetch tournament results');
       console.log('   Error:', tournamentResults.error);
     }
-    
+
     console.log('\n3️⃣ Testing Round Results API...');
     console.log('─'.repeat(50));
-    
-    const roundResults = await api.getTournamentRoundResults(TOURNAMENT_ID);
+
+    const roundResults = await resultsService.getTournamentRoundResults(TOURNAMENT_ID);
     if (roundResults.data) {
       console.log(`✅ Tournament has ${roundResults.data.length} rounds`);
       
@@ -87,28 +88,29 @@ async function main() {
     
     // Test date formatting
     const testDate = new Date('2024-03-15T10:30:00Z');
-    const formatted = api['formatDateToString'](testDate);
+    const formatted = playerService['formatDateToString'](testDate);
     console.log(`✅ Date formatting: ${testDate.toISOString()} → ${formatted}`);
-    
+
     // Test current date
-    const currentDate = api['getCurrentDate']();
+    const currentDate = playerService['getCurrentDate']();
     console.log(`✅ Current date: ${currentDate}`);
-    
+
     console.log('\n🎉 All tests completed successfully!');
     console.log('\n💡 Usage in your components:');
     console.log(`
-import { SsfApiService } from '@/lib/api';
+import { PlayerService, ResultsService } from '@/lib/api';
 
-const api = new SsfApiService();
+const playerService = new PlayerService();
+const resultsService = new ResultsService();
 
 // Get player info
-const player = await api.getPlayerInfo(${PLAYER_ID});
+const player = await playerService.getPlayerInfo(${PLAYER_ID});
 
 // Get tournament results  
-const results = await api.getTournamentResults('${TOURNAMENT_ID}');
+const results = await resultsService.getTournamentResults('${TOURNAMENT_ID}');
 
 // Get round results
-const rounds = await api.getTournamentRoundResults('${TOURNAMENT_ID}');
+const rounds = await resultsService.getTournamentRoundResults('${TOURNAMENT_ID}');
     `);
     
   } catch (error) {

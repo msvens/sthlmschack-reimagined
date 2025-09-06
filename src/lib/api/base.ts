@@ -56,14 +56,14 @@ export class BaseApiService {
     return this.request<T>(endpoint, { method: 'GET' });
   }
 
-  protected async post<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  protected async post<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
     });
   }
 
-  protected async put<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  protected async put<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: body ? JSON.stringify(body) : undefined,
