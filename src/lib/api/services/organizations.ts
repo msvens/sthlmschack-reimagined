@@ -1,10 +1,10 @@
 import { BaseApiService } from '../base';
-import { SSF_API_BASE_URL } from '../constants';
+import { SSF_API_BASE_URL, SSF_LOCAL_API_BASE_URL } from '../constants';
 import type { FederationDTO, DistrictDTO, ClubDTO, ApiResponse } from '../types';
 
 export class OrganizationService extends BaseApiService {
-  constructor() {
-    super(SSF_API_BASE_URL);
+  constructor(baseUrl: string = SSF_LOCAL_API_BASE_URL) {
+    super(baseUrl);
   }
 
   // Organization API methods
@@ -47,18 +47,18 @@ export class OrganizationService extends BaseApiService {
    */
   async getClub(clubId: number): Promise<ApiResponse<ClubDTO>> {
     const endpoint = `/organisation/club/${clubId}`;
-
+    
     return this.get<ClubDTO>(endpoint);
   }
 
   /**
    * Check if a club name already exists (excluding a specific club ID)
    * @param name - Club name to check
-   * @param excludeId - Club ID to exclude from the check
+   * @param id - Club ID to exclude from the check
    * @returns Boolean indicating if the name exists
    */
-  async checkClubNameExists(name: string, excludeId: number): Promise<ApiResponse<boolean>> {
-    const endpoint = `/organisation/club/exists/${encodeURIComponent(name)}/${excludeId}`;
+  async checkClubNameExists(name: string, id: number): Promise<ApiResponse<boolean>> {
+    const endpoint = `/organisation/club/exists/${encodeURIComponent(name)}/${id}`;
 
     return this.get<boolean>(endpoint);
   }

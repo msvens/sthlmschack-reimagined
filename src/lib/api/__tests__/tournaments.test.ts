@@ -3,20 +3,23 @@
  * Tests real API calls with known data points
  */
 
-import {ApiResponse, findTournamentGroup, TournamentDto, TournamentService} from '../index';
-
-const TEST_TOURNAMENT_ID = 5650; //SS 4 Springare JGP 2025
-const TEST_TOURNAMENT_GROUP_ID = 16046; //SS 4 Springare JGP 2025, grupp C
-//const TEST_TOURNAMENT_CLASS_ID = 15816;
-const TEST_SEARCH_TERM = 'Sweden';
-const TEST_LOCATION_TERM = 'Stockholm';
+import {ApiResponse, TournamentDto, TournamentService} from '../index';
+import { SSF_API_BASE_URL } from '../constants';
+import { 
+  TEST_TOURNAMENT_ID,
+  TEST_TOURNAMENT_GROUP_ID,
+  TEST_TOURNAMENT_CLASS_ID,
+  TEST_SEARCH_TERM,
+  TEST_LOCATION_TERM,
+  EXPECTED_TOURNAMENT_NAME
+} from './test-data';
 
 
 describe('Tournament Service Integration Tests', () => {
   let tournamentService: TournamentService;
 
   beforeEach(() => {
-    tournamentService = new TournamentService();
+    tournamentService = new TournamentService(SSF_API_BASE_URL);
     // Suppress unused variable warning for now
     void tournamentService;
   });
@@ -27,7 +30,7 @@ describe('Tournament Service Integration Tests', () => {
         expect(response.status).toBe(200);
         expect(response.data).toBeDefined();
         expect(response.data?.id).toBe(TEST_TOURNAMENT_ID);
-        expect(response.data?.name).toBe('SS 4 Springare JGP 2025');
+        expect(response.data?.name).toBe(EXPECTED_TOURNAMENT_NAME);
     }, 10000);
 
     test('should fetch tournament by group ID', async () => {
@@ -35,23 +38,24 @@ describe('Tournament Service Integration Tests', () => {
         expect(response.status).toBe(200);
         expect(response.data).toBeDefined();
         expect(response.data?.id).toBe(TEST_TOURNAMENT_ID);
-        if(response.data) {
-            console.log(JSON.stringify(response.data, null, 2));
-            //expect(findTournamentGroup(response.data, TEST_TOURNAMENT_GROUP_ID)).toBeDefined();
-        }
 
     }, 10000);
 
     test('should fetch tournament by class ID', async () => {
-      // TODO: Implement when test class ID is available
-      expect(true).toBe(true); // Placeholder
+      const response = await tournamentService.getTournamentFromClass(TEST_TOURNAMENT_CLASS_ID);
+      expect(response.data).toBeDefined();
+      expect(response.data?.id).toBe(TEST_TOURNAMENT_ID);
     }, 10000);
   });
 
   describe('Tournament Search API', () => {
     test('should search tournaments by name', async () => {
-      // TODO: Implement when test search terms are available
-      expect(true).toBe(true); // Placeholder
+      const response = await tournamentService.searchTournaments(TEST_SEARCH_TERM);
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+      expect(response.data?.length).toBeGreaterThan(0);
+      expect(response.data?.[0].name).toBe("SM-gruppen");
+    
     }, 10000);
 
     test('should search tournaments by location', async () => {

@@ -9,9 +9,7 @@ import { PlayerInfoDto } from "./player";
  * Used in rating list endpoints
  */
 export enum RatingType {
-    /** Long games (classical time control) */
-    LONG_GAME = 1,
-    /** Standard games (alias for LONG_GAME) */
+    /** Standard games (classical time control) */
     STANDARD = 1,
     /** Rapid games */
     RAPID = 6,

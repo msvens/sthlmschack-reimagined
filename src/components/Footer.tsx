@@ -43,6 +43,7 @@ export function Footer() {
           <FooterLink href="/events">{t.footer.navigation.events}</FooterLink>
           <FooterLink href="/calendar">{t.footer.navigation.calendar}</FooterLink>
           <FooterLink href="/results">{t.footer.navigation.results}</FooterLink>
+          <FooterLink href="/players">{t.footer.navigation.players}</FooterLink>
           <FooterLink href="/about">{t.footer.navigation.about}</FooterLink>
         </div>
 

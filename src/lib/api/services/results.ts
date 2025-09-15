@@ -1,10 +1,10 @@
 import { BaseApiService } from '../base';
-import { SSF_API_BASE_URL } from '../constants';
+import { SSF_API_BASE_URL, SSF_LOCAL_API_BASE_URL } from '../constants';
 import type { TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, ApiResponse } from '../types';
 
 export class ResultsService extends BaseApiService {
-  constructor() {
-    super(SSF_API_BASE_URL);
+  constructor(baseUrl: string = SSF_LOCAL_API_BASE_URL) {
+    super(baseUrl);
   }
 
   // Tournament Results API methods
@@ -14,7 +14,7 @@ export class ResultsService extends BaseApiService {
    * @param groupId - Tournament group ID (e.g., 15816)
    * @returns Tournament results with player standings
    */
-  async getTournamentResults(groupId: string): Promise<ApiResponse<TournamentEndResultDto[]>> {
+  async getTournamentResults(groupId: number): Promise<ApiResponse<TournamentEndResultDto[]>> {
     const endpoint = `/tournamentresults/table/id/${groupId}`;
 
     return this.get<TournamentEndResultDto[]>(endpoint);
@@ -25,7 +25,7 @@ export class ResultsService extends BaseApiService {
    * @param groupId - Tournament group ID (e.g., 15816)
    * @returns Tournament round results with individual games
    */
-  async getTournamentRoundResults(groupId: string): Promise<ApiResponse<TournamentRoundResultDto[]>> {
+  async getTournamentRoundResults(groupId: number): Promise<ApiResponse<TournamentRoundResultDto[]>> {
     const endpoint = `/tournamentresults/roundresults/id/${groupId}`;
 
     return this.get<TournamentRoundResultDto[]>(endpoint);

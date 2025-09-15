@@ -10,6 +10,7 @@ export interface Translations {
       upcomingEvents: string;
       calendar: string;
       results: string;
+      players: string;
     };
     language: {
       english: string;
@@ -25,6 +26,7 @@ export interface Translations {
       events: string;
       calendar: string;
       results: string;
+      players: string;
       about: string;
     };
     external: {
@@ -53,6 +55,11 @@ export interface Translations {
         description: string;
         link: string;
       };
+      players: {
+        title: string;
+        description: string;
+        link: string;
+      };
     };
     about: {
       title: string;
@@ -76,6 +83,53 @@ export interface Translations {
       subtitle: string;
       placeholder: string;
     };
+    players: {
+      title: string;
+      subtitle: string;
+      search: {
+        byName: string;
+        byMemberId: string;
+        searchButton: string;
+        clearButton: string;
+        noResults: string;
+        searchPlaceholder: string;
+        memberIdPlaceholder: string;
+      };
+    };
+    playerDetail: {
+      loading: string;
+      error: string;
+      notFound: string;
+      backButton: string;
+      playerInfo: {
+        title: string;
+        memberId: string;
+        firstName: string;
+        lastName: string;
+        club: string;
+      };
+      eloRating: {
+        title: string;
+        standardRating: string;
+        rapidRating: string;
+        blitzRating: string;
+        fideTitle: string;
+        date: string;
+        kFactor: string;
+        noData: string;
+      };
+      laskRating: {
+        title: string;
+        rating: string;
+        date: string;
+        noData: string;
+      };
+      additionalInfo: {
+        title: string;
+        fideId: string;
+        birthDate: string;
+      };
+    };
   };
 }
 
@@ -90,6 +144,7 @@ const translations: Record<Language, Translations> = {
         upcomingEvents: 'Upcoming Events',
         calendar: 'Calendar',
         results: 'Results',
+        players: 'Players',
       },
       language: {
         english: 'English',
@@ -105,6 +160,7 @@ const translations: Record<Language, Translations> = {
         events: 'Events',
         calendar: 'Calendar',
         results: 'Results',
+        players: 'Players',
         about: 'About',
       },
       external: {
@@ -133,6 +189,11 @@ const translations: Record<Language, Translations> = {
           description: 'Check the latest results and standings from recent tournaments.',
           link: 'View Results',
         },
+        players: {
+          title: 'Players',
+          description: 'Search and explore chess players, their ratings, and tournament history.',
+          link: 'Browse Players',
+        },
       },
       about: {
         title: 'About Stockholm Chess Reimagined',
@@ -156,6 +217,53 @@ const translations: Record<Language, Translations> = {
         subtitle: 'Check the latest results and standings from recent chess tournaments.',
         placeholder: 'Tournament results coming soon. This page will display comprehensive results, standings, and player statistics from completed tournaments.',
       },
+      players: {
+        title: 'Players',
+        subtitle: 'Search and explore chess players, their ratings, and tournament history.',
+        search: {
+          byName: 'Search by Name',
+          byMemberId: 'Search by Member ID',
+          searchButton: 'Search',
+          clearButton: 'Clear',
+          noResults: 'No players found. Try a different search term.',
+          searchPlaceholder: 'Enter first or last name...',
+          memberIdPlaceholder: 'Enter member ID...',
+        },
+      },
+      playerDetail: {
+        loading: 'Loading player information...',
+        error: 'Failed to load player information',
+        notFound: 'Player not found',
+        backButton: 'Back to Players',
+        playerInfo: {
+          title: 'Player Information',
+          memberId: 'Member ID',
+          firstName: 'First Name',
+          lastName: 'Last Name',
+          club: 'Club',
+        },
+        eloRating: {
+          title: 'ELO Rating',
+          standardRating: 'Standard Rating',
+          rapidRating: 'Rapid Rating',
+          blitzRating: 'Blitz Rating',
+          fideTitle: 'Title',
+          date: 'Date',
+          kFactor: 'K-Factor',
+          noData: 'No ELO rating data available',
+        },
+        laskRating: {
+          title: 'LASK Rating',
+          rating: 'Rating',
+          date: 'Date',
+          noData: 'No LASK rating data available',
+        },
+        additionalInfo: {
+          title: 'Additional Information',
+          fideId: 'FIDE ID',
+          birthDate: 'Birth Date',
+        },
+      },
     },
   },
   sv: {
@@ -168,6 +276,7 @@ const translations: Record<Language, Translations> = {
         upcomingEvents: 'Kommande Evenemang',
         calendar: 'Kalender',
         results: 'Resultat',
+        players: 'Spelare',
       },
       language: {
         english: 'English',
@@ -183,6 +292,7 @@ const translations: Record<Language, Translations> = {
         events: 'Evenemang',
         calendar: 'Kalender',
         results: 'Resultat',
+        players: 'Spelare',
         about: 'Om',
       },
       external: {
@@ -211,6 +321,11 @@ const translations: Record<Language, Translations> = {
           description: 'Kolla de senaste resultaten och placeringarna från nyligen avslutade turneringar.',
           link: 'Visa Resultat',
         },
+        players: {
+          title: 'Spelare',
+          description: 'Sök och utforska schackspelare, deras rating och turneringshistorik.',
+          link: 'Bläddra Spelare',
+        },
       },
       about: {
         title: 'Om Stockholm Schack Omskapat',
@@ -233,6 +348,53 @@ const translations: Record<Language, Translations> = {
         title: 'Turneringsresultat',
         subtitle: 'Kolla de senaste resultaten och placeringarna från nyligen avslutade schackturneringar.',
         placeholder: 'Turneringsresultat kommer snart. Denna sida kommer att visa omfattande resultat, placeringar och spelarstatistik från avslutade turneringar.',
+      },
+      players: {
+        title: 'Spelare',
+        subtitle: 'Sök och utforska schackspelare, deras rating och turneringshistorik.',
+        search: {
+          byName: 'Sök efter Namn',
+          byMemberId: 'Sök efter Medlems-ID',
+          searchButton: 'Sök',
+          clearButton: 'Rensa',
+          noResults: 'Inga spelare hittades. Prova en annan sökterm.',
+          searchPlaceholder: 'Ange förnamn eller efternamn...',
+          memberIdPlaceholder: 'Ange medlems-ID...',
+        },
+      },
+      playerDetail: {
+        loading: 'Laddar spelarinformation...',
+        error: 'Misslyckades att ladda spelarinformation',
+        notFound: 'Spelare hittades inte',
+        backButton: 'Tillbaka till Spelare',
+        playerInfo: {
+          title: 'Spelarinformation',
+          memberId: 'Medlems-ID',
+          firstName: 'Förnamn',
+          lastName: 'Efternamn',
+          club: 'Klubb',
+        },
+        eloRating: {
+          title: 'ELO Rating',
+          standardRating: 'Standard Rating',
+          rapidRating: 'Rapid Rating',
+          blitzRating: 'Blitz Rating',
+          fideTitle: 'Titel',
+          date: 'Datum',
+          kFactor: 'K-Faktor',
+          noData: 'Ingen ELO ratingdata tillgänglig',
+        },
+        laskRating: {
+          title: 'LASK Rating',
+          rating: 'Rating',
+          date: 'Datum',
+          noData: 'Ingen LASK ratingdata tillgänglig',
+        },
+        additionalInfo: {
+          title: 'Ytterligare Information',
+          fideId: 'FIDE ID',
+          birthDate: 'Födelsedatum',
+        },
       },
     },
   },

@@ -1,10 +1,10 @@
 import { BaseApiService } from '../base';
-import { SSF_API_BASE_URL } from '../constants';
+import { SSF_API_BASE_URL, SSF_LOCAL_API_BASE_URL } from '../constants';
 import type { TeamRegistrationDto, ApiResponse } from '../types';
 
 export class RegistrationService extends BaseApiService {
-  constructor() {
-    super(SSF_API_BASE_URL);
+  constructor(baseUrl: string = SSF_LOCAL_API_BASE_URL) {
+    super(baseUrl);
   }
 
   // Tournament Team Registration API method

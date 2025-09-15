@@ -1,27 +1,29 @@
 import { BaseApiService } from '../base';
+import { SSF_API_BASE_URL, SSF_LOCAL_API_BASE_URL } from '../constants';
 import type { PlayerInfoDto, ApiResponse } from '../types';
 import { RatingType, PlayerCategory } from '../types';
 
 export class RatingsService extends BaseApiService {
-  constructor() {
-    super('https://member.schack.se/public/api/v1');
+  constructor(baseUrl: string = SSF_LOCAL_API_BASE_URL) {
+    super(baseUrl);
   }
 
   // Rating List API methods
 
   /**
    * Get Swedish Chess Federation rating list
-   * @param ratingDate - Date for the rating list (YYYY-MM-DD format)
+   * @param ratingDate - Date for the rating list
    * @param ratingType - Type of rating (Standard=1, Rapid=6, Blitz=7)
    * @param category - Player category (All=0, Juniors=1, Cadets=2, Veterans=4, Women=5, Minors=6, Youth=7)
    * @returns Array of players in the federation rating list
    */
   async getFederationRatingList(
-    ratingDate: string,
+    ratingDate: Date,
     ratingType: RatingType,
     category: PlayerCategory
   ): Promise<ApiResponse<PlayerInfoDto[]>> {
-    const endpoint = `/ratinglist/federation/date/${ratingDate}/ratingtype/${ratingType}/category/${category}`;
+    const formattedDate = this.formatDateToString(ratingDate);
+    const endpoint = `/ratinglist/federation/date/${formattedDate}/ratingtype/${ratingType}/category/${category}`;
 
     return this.get<PlayerInfoDto[]>(endpoint);
   }
@@ -29,18 +31,19 @@ export class RatingsService extends BaseApiService {
   /**
    * Get district rating list
    * @param districtId - District ID
-   * @param ratingDate - Date for the rating list (YYYY-MM-DD format)
+   * @param ratingDate - Date for the rating list
    * @param ratingType - Type of rating (Standard=1, Rapid=6, Blitz=7)
    * @param category - Player category (All=0, Juniors=1, Cadets=2, Veterans=4, Women=5, Minors=6, Youth=7)
    * @returns Array of players in the district rating list
    */
   async getDistrictRatingList(
     districtId: number,
-    ratingDate: string,
+    ratingDate: Date,
     ratingType: RatingType,
     category: PlayerCategory
   ): Promise<ApiResponse<PlayerInfoDto[]>> {
-    const endpoint = `/ratinglist/district/${districtId}/date/${ratingDate}/ratingtype/${ratingType}/category/${category}`;
+    const formattedDate = this.formatDateToString(ratingDate);
+    const endpoint = `/ratinglist/district/${districtId}/date/${formattedDate}/ratingtype/${ratingType}/category/${category}`;
 
     return this.get<PlayerInfoDto[]>(endpoint);
   }
@@ -48,19 +51,19 @@ export class RatingsService extends BaseApiService {
   /**
    * Get club rating list
    * @param clubId - Club ID
-   * @param ratingDate - Date for the rating list (YYYY-MM-DD format)
+   * @param ratingDate - Date for the rating list
    * @param ratingType - Type of rating (Standard=1, Rapid=6, Blitz=7)
    * @param category - Player category (All=0, Juniors=1, Cadets=2, Veterans=4, Women=5, Minors=6, Youth=7)
    * @returns Array of players in the club rating list
    */
   async getClubRatingList(
     clubId: number,
-    ratingDate: string,
+    ratingDate: Date,
     ratingType: RatingType,
     category: PlayerCategory
   ): Promise<ApiResponse<PlayerInfoDto[]>> {
-    const endpoint = `/ratinglist/club/${clubId}/date/${ratingDate}/ratingtype/${ratingType}/category/${category}`;
-
+    const formattedDate = this.formatDateToString(ratingDate);
+    const endpoint = `/ratinglist/club/${clubId}/date/${formattedDate}/ratingtype/${ratingType}/category/${category}`;
     return this.get<PlayerInfoDto[]>(endpoint);
   }
 
@@ -74,7 +77,7 @@ export class RatingsService extends BaseApiService {
     ratingType: RatingType = RatingType.STANDARD,
     category: PlayerCategory = PlayerCategory.ALL
   ): Promise<ApiResponse<PlayerInfoDto[]>> {
-    const currentDate = this.getCurrentDate();
+    const currentDate = new Date();
     return this.getFederationRatingList(currentDate, ratingType, category);
   }
 
@@ -90,7 +93,7 @@ export class RatingsService extends BaseApiService {
     ratingType: RatingType = RatingType.STANDARD,
     category: PlayerCategory = PlayerCategory.ALL
   ): Promise<ApiResponse<PlayerInfoDto[]>> {
-    const currentDate = this.getCurrentDate();
+    const currentDate = new Date();
     return this.getClubRatingList(clubId, currentDate, ratingType, category);
   }
 }

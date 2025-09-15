@@ -5,15 +5,21 @@
 
 import { PlayerService } from '../index';
 import { PlayerInfoDto } from '../types';
-
-// Test constants
-const TEST_PLAYER_ID = 642062; // Olle Svensson
+import { SSF_API_BASE_URL } from '../constants';
+import { 
+  TEST_PLAYER_ID,
+  TEST_PLAYER_DATE,
+  TEST_PLAYER_FIDE_ID,
+  EXPECTED_PLAYER_FIRST_NAME,
+  EXPECTED_PLAYER_LAST_NAME,
+  EXPECTED_CLUB_NAME
+} from './test-data';
 
 describe('Player Service Integration Tests', () => {
   let playerService: PlayerService;
 
   beforeEach(() => {
-    playerService = new PlayerService();
+    playerService = new PlayerService(SSF_API_BASE_URL);
   });
 
   describe('Player Information API', () => {
@@ -26,17 +32,16 @@ describe('Player Service Integration Tests', () => {
       if (response.data) {
         const player: PlayerInfoDto = response.data;
         expect(player.id).toBe(TEST_PLAYER_ID);
-        expect(player.firstName).toBe('Olle');
-        expect(player.lastName).toBe('Svensson');
-        expect(player.club).toBe('SK Rockaden Sthlm');
+        expect(player.firstName).toBe(EXPECTED_PLAYER_FIRST_NAME);
+        expect(player.lastName).toBe(EXPECTED_PLAYER_LAST_NAME);
+        expect(player.club).toBe(EXPECTED_CLUB_NAME);
         expect(typeof player.elo.rating).toBe('number');
         expect(player.lask).toBeDefined(); // Now returns MemberLASKRatingDTO, not null
       }
     }, 10000); // 10 second timeout for API calls
 
     test('should fetch player info with specific date', async () => {
-      const testDate = new Date('2024-01-01');
-      const response = await playerService.getPlayerInfo(TEST_PLAYER_ID, testDate);
+      const response = await playerService.getPlayerInfo(TEST_PLAYER_ID, TEST_PLAYER_DATE);
 
       expect(response.status).toBe(200);
       expect(response.data).toBeDefined();
@@ -44,12 +49,52 @@ describe('Player Service Integration Tests', () => {
       if (response.data) {
         const player: PlayerInfoDto = response.data;
         expect(player.id).toBe(TEST_PLAYER_ID);
+        expect(player.firstName).toBe(EXPECTED_PLAYER_FIRST_NAME);
+        expect(player.lastName).toBe(EXPECTED_PLAYER_LAST_NAME);
+        expect(player.club).toBe(EXPECTED_CLUB_NAME);
+        // For historical dates, elo might be null
+        if (player.elo) {
+          expect(typeof player.elo.rating).toBe('number');
+        }
+        expect(player.lask).toBeDefined(); // Now returns MemberLASKRatingDTO, not null
       }
     }, 10000);
 
     test('should get player info by FIDE ID', async () => {
-      // TODO: Add test with known FIDE ID
-      expect(true).toBe(true); // Placeholder
+      const response = await playerService.getPlayerByFIDEId(TEST_PLAYER_FIDE_ID);
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+
+      if (response.data) {
+        const player: PlayerInfoDto = response.data;
+        expect(player.id).toBe(TEST_PLAYER_ID);
+        expect(player.firstName).toBe(EXPECTED_PLAYER_FIRST_NAME);
+        expect(player.lastName).toBe(EXPECTED_PLAYER_LAST_NAME);
+        expect(player.club).toBe(EXPECTED_CLUB_NAME);
+        expect(typeof player.elo.rating).toBe('number');
+        expect(player.lask).toBeDefined(); // Now returns MemberLASKRatingDTO, not null
+      }
+    }, 10000);
+
+    test('should get player info by FIDE ID with specific date', async () => {
+      const response = await playerService.getPlayerByFIDEId(TEST_PLAYER_FIDE_ID, TEST_PLAYER_DATE);
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+
+      if (response.data) {
+        const player: PlayerInfoDto = response.data;
+        expect(player.id).toBe(TEST_PLAYER_ID);
+        expect(player.firstName).toBe(EXPECTED_PLAYER_FIRST_NAME);
+        expect(player.lastName).toBe(EXPECTED_PLAYER_LAST_NAME);
+        expect(player.club).toBe(EXPECTED_CLUB_NAME);
+        // For historical dates, elo might be null
+        if (player.elo) {
+          expect(typeof player.elo.rating).toBe('number');
+        }
+        expect(player.lask).toBeDefined(); // Now returns MemberLASKRatingDTO, not null
+      }
     }, 10000);
 
     test('should handle invalid player ID gracefully', async () => {

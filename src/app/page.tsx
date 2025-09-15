@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { PageSpacing } from "@/components/layout/PageSpacing";
 import { useLanguage } from "@/context/LanguageContext";
 import { getTranslation } from "@/lib/translations";
@@ -24,7 +25,7 @@ export default function Home() {
         </div>
 
         {/* Quick Navigation Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           <div className="p-6 rounded-lg border hover:shadow-lg transition-shadow" style={{ backgroundColor: 'var(--color-mui-background-paper)', borderColor: 'var(--color-mui-divider)' }}>
             <div className="mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
               <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,6 +75,23 @@ export default function Home() {
             <a href="/results" className="hover:underline font-medium" style={{ color: 'var(--color-mui-text-primary)' }}>
               {t.home.cards.results.link} →
             </a>
+          </div>
+
+          <div className="p-6 rounded-lg border hover:shadow-lg transition-shadow" style={{ backgroundColor: 'var(--color-mui-background-paper)', borderColor: 'var(--color-mui-divider)' }}>
+            <div className="mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
+              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--color-mui-text-primary)' }}>
+              {t.home.cards.players.title}
+            </h3>
+            <p className="mb-4" style={{ color: 'var(--color-mui-text-secondary)' }}>
+              {t.home.cards.players.description}
+            </p>
+            <Link href="/players" className="hover:underline font-medium" style={{ color: 'var(--color-mui-text-primary)' }}>
+              {t.home.cards.players.link} →
+            </Link>
           </div>
         </div>
 

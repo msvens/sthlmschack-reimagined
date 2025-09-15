@@ -25,7 +25,6 @@ export class BaseApiService {
         },
         ...options,
       };
-
       const response = await fetch(url, config);
       const data = await response.json();
 

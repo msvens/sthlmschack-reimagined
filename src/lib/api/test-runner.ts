@@ -15,7 +15,7 @@ async function main() {
   
   // Test constants
   const PLAYER_ID = 642062; // Olle Svensson
-  const TOURNAMENT_ID = '15816';
+  const TOURNAMENT_ID = 15816;
   
   try {
     console.log('1️⃣ Testing Player Info API...');
@@ -107,10 +107,10 @@ const resultsService = new ResultsService();
 const player = await playerService.getPlayerInfo(${PLAYER_ID});
 
 // Get tournament results  
-const results = await resultsService.getTournamentResults('${TOURNAMENT_ID}');
+const results = await resultsService.getTournamentResults(${TOURNAMENT_ID});
 
 // Get round results
-const rounds = await resultsService.getTournamentRoundResults('${TOURNAMENT_ID}');
+const rounds = await resultsService.getTournamentRoundResults(${TOURNAMENT_ID});
     `);
     
   } catch (error) {

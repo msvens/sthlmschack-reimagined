@@ -6,3 +6,4 @@
 export const DEFAULT_TIMEOUT = 10000;
 export const API_VERSION = 'v1';
 export const SSF_API_BASE_URL = 'https://member.schack.se/public/api/' + API_VERSION;
+export const SSF_LOCAL_API_BASE_URL = '/api/chess/' + API_VERSION;

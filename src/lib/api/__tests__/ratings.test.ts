@@ -5,44 +5,101 @@
 
 import { RatingsService } from '../index';
 import { RatingType, PlayerCategory } from '../types';
+import { SSF_API_BASE_URL } from '../constants';
+import { 
+  TEST_RATING_TYPE, 
+  TEST_RATING_CATEGORY, 
+  TEST_RATING_DATE,
+  TEST_FEDERATION_ID,
+  TEST_DISTRICT_ID,
+  TEST_CLUB_ID
+} from './test-data';
 
 describe('Ratings Service Integration Tests', () => {
   let ratingsService: RatingsService;
 
   beforeEach(() => {
-    ratingsService = new RatingsService();
+    ratingsService = new RatingsService(SSF_API_BASE_URL);
     // Suppress unused variable warning for now
     void ratingsService;
   });
 
   describe('Federation Rating Lists API', () => {
     test('should fetch federation rating list', async () => {
-      // TODO: Implement when test date and parameters are available
-      expect(true).toBe(true); // Placeholder
+      const response = await ratingsService.getFederationRatingList(
+        TEST_RATING_DATE,
+        TEST_RATING_TYPE, 
+        TEST_RATING_CATEGORY, 
+        
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+
+      if (response.data) {
+        expect(Array.isArray(response.data)).toBe(true);
+        
+        if (response.data.length > 0) {
+          const firstPlayer = response.data[0];
+          expect(typeof firstPlayer.id).toBe('number');
+          expect(typeof firstPlayer.firstName).toBe('string');
+          expect(typeof firstPlayer.lastName).toBe('string');
+          expect(firstPlayer.elo).toBeDefined();
+          expect(firstPlayer.lask).toBeDefined();
+        }
+      }
     }, 10000);
 
-    test('should fetch current federation rating list', async () => {
-      // TODO: Implement when ready to test current ratings
-      expect(true).toBe(true); // Placeholder
-    }, 10000);
   });
 
   describe('District Rating Lists API', () => {
     test('should fetch district rating list', async () => {
-      // TODO: Implement when test district ID is available
-      expect(true).toBe(true); // Placeholder
+      const response = await ratingsService.getDistrictRatingList(
+        TEST_DISTRICT_ID,
+        TEST_RATING_DATE,
+        TEST_RATING_TYPE, 
+        TEST_RATING_CATEGORY
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+
+      if (response.data) {
+        expect(Array.isArray(response.data)).toBe(true);
+      }
     }, 10000);
   });
 
   describe('Club Rating Lists API', () => {
     test('should fetch club rating list', async () => {
-      // TODO: Implement when test club ID is available
-      expect(true).toBe(true); // Placeholder
+      const response = await ratingsService.getClubRatingList(
+        TEST_CLUB_ID,
+        TEST_RATING_DATE,
+        TEST_RATING_TYPE, 
+        TEST_RATING_CATEGORY, 
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+
+      if (response.data) {
+        expect(Array.isArray(response.data)).toBe(true);
+      }
     }, 10000);
 
     test('should fetch current club rating list', async () => {
-      // TODO: Implement when test club ID is available
-      expect(true).toBe(true); // Placeholder
+      const response = await ratingsService.getCurrentClubRatingList(
+        TEST_CLUB_ID,
+        TEST_RATING_TYPE, 
+        TEST_RATING_CATEGORY
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+
+      if (response.data) {
+        expect(Array.isArray(response.data)).toBe(true);
+      }
     }, 10000);
   });
 
