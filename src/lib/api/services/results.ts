@@ -1,5 +1,5 @@
 import { BaseApiService } from '../base';
-import { SSF_API_BASE_URL, SSF_LOCAL_API_BASE_URL } from '../constants';
+import { SSF_LOCAL_API_BASE_URL } from '../constants';
 import type { TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, ApiResponse } from '../types';
 
 export class ResultsService extends BaseApiService {
