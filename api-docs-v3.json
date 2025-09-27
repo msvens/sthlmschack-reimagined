@@ -637,6 +637,50 @@
         }
       }
     },
+    "/public/api/v1/player/fornamn/{fornamn}/efternamn/{efternamn}": {
+      "get": {
+        "tags": [
+          "player-public-controller"
+        ],
+        "summary": "Sök spelare",
+        "operationId": "searchPlayer",
+        "parameters": [
+          {
+            "name": "fornamn",
+            "in": "path",
+            "description": "fornamn",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "efternamn",
+            "in": "path",
+            "description": "efternamn",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlayerInfoDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/public/api/v1/player/fideid/{id}/date/{date}": {
       "get": {
         "tags": [

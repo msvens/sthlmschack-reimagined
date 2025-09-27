@@ -1,5 +1,5 @@
 import { BaseApiService } from '../base';
-import { SSF_API_BASE_URL, SSF_LOCAL_API_BASE_URL } from '../constants';
+import { SSF_LOCAL_API_BASE_URL } from '../constants';
 import type { PlayerInfoDto, ApiResponse } from '../types';
 
 export class PlayerService extends BaseApiService {
@@ -39,5 +39,20 @@ export class PlayerService extends BaseApiService {
     const endpoint = `/player/fideid/${fideId}/date/${targetDate}`;
 
     return this.get<PlayerInfoDto>(endpoint);
+  }
+
+  /**
+   * Search for players by first name and last name
+   * @param fornamn - The first name (Swedish: förnamn)
+   * @param efternamn - The last name (Swedish: efternamn)
+   * @returns Array of matching players
+   */
+  async searchPlayer(
+    fornamn: string,
+    efternamn: string
+  ): Promise<ApiResponse<PlayerInfoDto[]>> {
+    const endpoint = `/player/fornamn/${encodeURIComponent(fornamn)}/efternamn/${encodeURIComponent(efternamn)}`;
+
+    return this.get<PlayerInfoDto[]>(endpoint);
   }
 }
