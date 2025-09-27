@@ -27,9 +27,9 @@
   --color-mui-background-default: #121212;
   --color-mui-background-hover: #2c2c2c;
   --color-mui-divider: rgba(255, 255, 255, 0.15);
-  --color-mui-text-primary: #ffffff;
-  --color-mui-text-secondary: rgba(255, 255, 255, 0.85);
-  --color-mui-text-disabled: rgba(255, 255, 255, 0.5);
+  --color-mui-text-primary: rgba(255, 255, 255, 0.87);
+  --color-mui-text-secondary: rgba(255, 255, 255, 0.60);
+  --color-mui-text-disabled: rgba(255, 255, 255, 0.38);
 }
 
 body {
