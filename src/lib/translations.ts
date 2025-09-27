@@ -129,6 +129,14 @@ export interface Translations {
         fideId: string;
         birthDate: string;
       };
+      tournamentHistory: {
+        title: string;
+        loading: string;
+        error: string;
+        noTournaments: string;
+        place: string;
+        points: string;
+      };
     };
   };
 }
@@ -263,6 +271,14 @@ const translations: Record<Language, Translations> = {
           fideId: 'FIDE ID',
           birthDate: 'Birth Date',
         },
+        tournamentHistory: {
+          title: 'Tournament History',
+          loading: 'Loading tournaments...',
+          error: 'Failed to load tournament history',
+          noTournaments: 'No tournament history found.',
+          place: 'Place',
+          points: 'Points',
+        },
       },
     },
   },
@@ -394,6 +410,14 @@ const translations: Record<Language, Translations> = {
           title: 'Ytterligare Information',
           fideId: 'FIDE ID',
           birthDate: 'Födelsedatum',
+        },
+        tournamentHistory: {
+          title: 'Turneringshistorik',
+          loading: 'Laddar turneringar...',
+          error: 'Misslyckades att ladda turneringshistorik',
+          noTournaments: 'Ingen turneringshistorik hittades.',
+          place: 'Placering',
+          points: 'Poäng',
         },
       },
     },
