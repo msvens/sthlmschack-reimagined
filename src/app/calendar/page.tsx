@@ -1,6 +1,7 @@
 'use client';
 
 import { PageSpacing } from "@/components/layout/PageSpacing";
+import { Card } from "@/components/layout/Card";
 import { useLanguage } from "@/context/LanguageContext";
 import { getTranslation } from "@/lib/translations";
 
@@ -19,11 +20,11 @@ export default function CalendarPage() {
           {t.pages.calendar.subtitle}
         </p>
         
-        <div className="p-8 rounded-lg border" style={{ backgroundColor: 'var(--color-mui-background-paper)', borderColor: 'var(--color-mui-divider)' }}>
+        <Card padding="lg">
           <p className="text-center" style={{ color: 'var(--color-mui-text-disabled)' }}>
             {t.pages.calendar.placeholder}
           </p>
-        </div>
+        </Card>
       </div>
     </>
   );

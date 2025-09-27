@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { PageSpacing } from '@/components/layout/PageSpacing';
+import { Card } from '@/components/layout/Card';
 
 export default function PlayersPage() {
   const { language } = useLanguage();
@@ -63,13 +64,7 @@ export default function PlayersPage() {
           {/* Search Forms */}
           <div className="space-y-8 mb-12">
             {/* Search by Name */}
-            <div 
-              className="p-6 rounded-lg border"
-              style={{ 
-                backgroundColor: 'var(--color-mui-background-paper)',
-                borderColor: 'var(--color-mui-divider)'
-              }}
-            >
+            <Card>
               <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
                 {t.pages.players.search.byName}
               </h3>
@@ -80,7 +75,7 @@ export default function PlayersPage() {
                   onChange={(e) => setNameSearch(e.target.value)}
                   placeholder={t.pages.players.search.searchPlaceholder}
                   className="flex-1 px-4 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ 
+                  style={{
                     backgroundColor: 'var(--color-mui-background-default)',
                     borderColor: 'var(--color-mui-divider)',
                     color: 'var(--color-mui-text-primary)'
@@ -90,7 +85,7 @@ export default function PlayersPage() {
                   type="submit"
                   disabled={isSearching || !nameSearch.trim()}
                   className="px-6 py-2 rounded font-medium transition-colors disabled:opacity-50"
-                  style={{ 
+                  style={{
                     backgroundColor: 'var(--color-mui-primary-main)',
                     color: 'var(--color-mui-primary-contrast)'
                   }}
@@ -101,16 +96,10 @@ export default function PlayersPage() {
               <p className="text-sm mt-2" style={{ color: 'var(--color-mui-text-secondary)' }}>
                 Name search functionality coming soon. This will search through player names and show results.
               </p>
-            </div>
+            </Card>
 
             {/* Search by Member ID */}
-            <div 
-              className="p-6 rounded-lg border"
-              style={{ 
-                backgroundColor: 'var(--color-mui-background-paper)',
-                borderColor: 'var(--color-mui-divider)'
-              }}
-            >
+            <Card>
               <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
                 {t.pages.players.search.byMemberId}
               </h3>
@@ -121,7 +110,7 @@ export default function PlayersPage() {
                   onChange={(e) => setMemberIdSearch(e.target.value)}
                   placeholder={t.pages.players.search.memberIdPlaceholder}
                   className="flex-1 px-4 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ 
+                  style={{
                     backgroundColor: 'var(--color-mui-background-default)',
                     borderColor: 'var(--color-mui-divider)',
                     color: 'var(--color-mui-text-primary)'
@@ -131,7 +120,7 @@ export default function PlayersPage() {
                   type="submit"
                   disabled={isSearching || !memberIdSearch.trim()}
                   className="px-6 py-2 rounded font-medium transition-colors disabled:opacity-50"
-                  style={{ 
+                  style={{
                     backgroundColor: 'var(--color-mui-primary-main)',
                     color: 'var(--color-mui-primary-contrast)'
                   }}
@@ -142,7 +131,7 @@ export default function PlayersPage() {
               <p className="text-sm mt-2" style={{ color: 'var(--color-mui-text-secondary)' }}>
                 Enter a member ID to go directly to that player&apos;s page.
               </p>
-            </div>
+            </Card>
 
             {/* Clear Button */}
             <div className="text-center">
@@ -161,13 +150,7 @@ export default function PlayersPage() {
           </div>
 
           {/* Example Member IDs */}
-          <div 
-            className="p-6 rounded-lg border"
-            style={{ 
-              backgroundColor: 'var(--color-mui-background-paper)',
-              borderColor: 'var(--color-mui-divider)'
-            }}
-          >
+          <Card>
             <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
               Example Member IDs to try:
             </h3>
@@ -175,7 +158,7 @@ export default function PlayersPage() {
               <button
                 onClick={() => setMemberIdSearch('642062')}
                 className="px-3 py-1 rounded text-sm border transition-colors"
-                style={{ 
+                style={{
                   backgroundColor: 'var(--color-mui-background-default)',
                   borderColor: 'var(--color-mui-divider)',
                   color: 'var(--color-mui-text-primary)'
@@ -186,7 +169,7 @@ export default function PlayersPage() {
               <button
                 onClick={() => setMemberIdSearch('1786741')}
                 className="px-3 py-1 rounded text-sm border transition-colors"
-                style={{ 
+                style={{
                   backgroundColor: 'var(--color-mui-background-default)',
                   borderColor: 'var(--color-mui-divider)',
                   color: 'var(--color-mui-text-primary)'
@@ -195,7 +178,7 @@ export default function PlayersPage() {
                 1786741 (FIDE ID)
               </button>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
       </>
