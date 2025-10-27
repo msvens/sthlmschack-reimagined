@@ -1,29 +1,65 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { PageSpacing } from '@/components/layout/PageSpacing';
 import { Card } from '@/components/layout/Card';
+import { DropdownMenu, DropdownMenuItem } from '@/components/layout/DropdownMenu';
+import { PlayerService } from '@/lib/api';
+import { PlayerInfoDto } from '@/lib/api/types';
 
 export default function PlayersPage() {
   const { language } = useLanguage();
   const router = useRouter();
-  const t = getTranslation(language); 
-  const [nameSearch, setNameSearch] = useState('');
+  const t = getTranslation(language);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [memberIdSearch, setMemberIdSearch] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<PlayerInfoDto[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const nameSearchRef = useRef<HTMLFormElement>(null);
+  const playerService = new PlayerService();
 
   const handleNameSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nameSearch.trim()) return;
-    
+    if (!firstName.trim() || !lastName.trim()) return;
+
     setIsSearching(true);
-    // For now, we'll just show a placeholder message
-    // In the future, this will integrate with the PlayerService API
-    console.log('Searching for player by name:', nameSearch);
-    setIsSearching(false);
+    setShowDropdown(false);
+
+    try {
+      const response = await playerService.searchPlayer(firstName.trim(), lastName.trim());
+
+      if (response.status === 200 && response.data) {
+        const results = response.data;
+
+        if (results.length === 1) {
+          // Single result - navigate directly
+          router.push(`/players/${results[0].id}`);
+        } else if (results.length > 1) {
+          // Multiple results - show dropdown
+          setSearchResults(results);
+          setShowDropdown(true);
+        } else {
+          // No results
+          setSearchResults([]);
+          setShowDropdown(false);
+        }
+      } else {
+        console.error('Search failed:', response.error);
+        setSearchResults([]);
+        setShowDropdown(false);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+      setShowDropdown(false);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleMemberIdSearch = async (e: React.FormEvent) => {
@@ -42,9 +78,23 @@ export default function PlayersPage() {
   };
 
   const clearSearches = () => {
-    setNameSearch('');
+    setFirstName('');
+    setLastName('');
     setMemberIdSearch('');
+    setSearchResults([]);
+    setShowDropdown(false);
   };
+
+  const handlePlayerSelect = (item: DropdownMenuItem) => {
+    router.push(`/players/${item.id}`);
+    setShowDropdown(false);
+  };
+
+  const dropdownItems: DropdownMenuItem[] = searchResults.map(player => ({
+    id: player.id,
+    primary: `${player.firstName} ${player.lastName}`,
+    secondary: player.club || undefined
+  }));
 
   return (
     <>
@@ -64,16 +114,28 @@ export default function PlayersPage() {
           {/* Search Forms */}
           <div className="space-y-8 mb-12">
             {/* Search by Name */}
-            <Card>
+            <div className="relative">
               <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
                 {t.pages.players.search.byName}
               </h3>
-              <form onSubmit={handleNameSearch} className="flex gap-4">
+              <form ref={nameSearchRef} onSubmit={handleNameSearch} className="flex gap-4">
                 <input
                   type="text"
-                  value={nameSearch}
-                  onChange={(e) => setNameSearch(e.target.value)}
-                  placeholder={t.pages.players.search.searchPlaceholder}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First name"
+                  className="flex-1 px-4 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{
+                    backgroundColor: 'var(--color-mui-background-default)',
+                    borderColor: 'var(--color-mui-divider)',
+                    color: 'var(--color-mui-text-primary)'
+                  }}
+                />
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Last name"
                   className="flex-1 px-4 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500"
                   style={{
                     backgroundColor: 'var(--color-mui-background-default)',
@@ -83,7 +145,7 @@ export default function PlayersPage() {
                 />
                 <button
                   type="submit"
-                  disabled={isSearching || !nameSearch.trim()}
+                  disabled={isSearching || !firstName.trim() || !lastName.trim()}
                   className="px-6 py-2 rounded font-medium transition-colors disabled:opacity-50"
                   style={{
                     backgroundColor: 'var(--color-mui-primary-main)',
@@ -94,12 +156,27 @@ export default function PlayersPage() {
                 </button>
               </form>
               <p className="text-sm mt-2" style={{ color: 'var(--color-mui-text-secondary)' }}>
-                Name search functionality coming soon. This will search through player names and show results.
+                Enter both first and last name to search for players.
               </p>
-            </Card>
+
+              <DropdownMenu
+                items={dropdownItems}
+                isVisible={showDropdown}
+                onItemClick={handlePlayerSelect}
+                onClose={() => setShowDropdown(false)}
+                anchorElement={nameSearchRef.current}
+                maxItems={5}
+              />
+            </div>
+
+            {/* Divider */}
+            <div
+              className="h-px w-full"
+              style={{ backgroundColor: 'var(--color-mui-divider)' }}
+            />
 
             {/* Search by Member ID */}
-            <Card>
+            <div>
               <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
                 {t.pages.players.search.byMemberId}
               </h3>
@@ -131,7 +208,7 @@ export default function PlayersPage() {
               <p className="text-sm mt-2" style={{ color: 'var(--color-mui-text-secondary)' }}>
                 Enter a member ID to go directly to that player&apos;s page.
               </p>
-            </Card>
+            </div>
 
             {/* Clear Button */}
             <div className="text-center">
