@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Table, TableColumn } from '@/components/layout/Table';
+import { Table, TableColumn } from '@/components/Table';
 import { TournamentEndResultDto } from '@/lib/api/types';
 
 export interface FinalResultsTableProps {

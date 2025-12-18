@@ -6,7 +6,6 @@ import { useState } from 'react';
 import {
   CalendarIcon,
   TrophyIcon,
-  ClockIcon,
   Bars3Icon,
   GlobeAltIcon,
   SunIcon,
@@ -19,7 +18,6 @@ import { getTranslation } from '@/lib/translations';
 import { IconButton } from './IconButton';
 
 const navigation = [
-  { name: 'upcomingEvents', href: '/events', icon: ClockIcon },
   { name: 'calendar', href: '/calendar', icon: CalendarIcon },
   { name: 'results', href: '/results', icon: TrophyIcon },
   { name: 'players', href: '/players', icon: UserIcon },
@@ -53,12 +51,12 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b shadow-sm" style={{ backgroundColor: 'var(--color-mui-background-paper)', borderColor: 'var(--color-mui-divider)' }}>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="px-1 mx-auto max-w-full py-2">
         <div className="flex justify-between h-12">
           {/* App Name - Left aligned (matching mphotos-ui exactly) */}
           <div className="flex items-center flex-shrink-0 pl-1">
-            <Link href="/" className="text-base font-light leading-tight tracking-widest uppercase" style={{ color: 'var(--color-mui-text-primary)' }}>
+            <Link href="/" className="text-base font-light leading-tight tracking-widest uppercase text-gray-900 dark:text-white">
               <span className="block">Stockholm</span>
               <span className="block">Chess</span>
             </Link>
@@ -66,7 +64,7 @@ export default function Navbar() {
           
           {/* Navigation Icons and Controls - Right aligned (matching mphotos-ui exactly) */}
           <div className="flex items-center pr-1">
-            {/* Navigation Icons - Center */}
+            {/* Navigation Icons - Desktop: all items, Mobile: only results + players */}
             <div className="hidden md:flex md:space-x-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href;
@@ -81,66 +79,78 @@ export default function Navbar() {
                       icon={item.icon}
                       size="large"
                       className={isActive
-                        ? 'bg-transparent hover:bg-opacity-20'
-                        : 'bg-transparent hover:bg-opacity-20'
+                        ? 'text-gray-900 dark:text-white bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
+                        : 'text-gray-600 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
                       }
-                      style={{
-                        color: isActive ? 'var(--color-mui-text-primary)' : 'var(--color-mui-text-secondary)',
-                        backgroundColor: 'transparent'
-                      }}
                     />
                     <span className="sr-only">{t.navbar.navigation[item.name as keyof typeof t.navbar.navigation]}</span>
                   </Link>
                 );
               })}
             </div>
-            
-            {/* Theme Toggle */}
-            <div className="ml-2">
+
+            {/* Mobile: Show only results + players */}
+            <div className="flex md:hidden space-x-1">
+              {navigation.slice(-2).map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="inline-flex items-center justify-center"
+                    title={t.navbar.navigation[item.name as keyof typeof t.navbar.navigation]}
+                  >
+                    <IconButton
+                      icon={item.icon}
+                      size="large"
+                      className={isActive
+                        ? 'text-gray-900 dark:text-white bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
+                        : 'text-gray-600 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }
+                    />
+                    <span className="sr-only">{t.navbar.navigation[item.name as keyof typeof t.navbar.navigation]}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Theme Toggle - Desktop only */}
+            <div className="ml-2 hidden md:block">
               <IconButton
                 icon={theme === 'dark' ? SunIcon : MoonIcon}
                 onClick={toggleTheme}
                 size="large"
                 title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-                className="bg-transparent hover:bg-opacity-20"
-                style={{
-                  color: 'var(--color-mui-text-secondary)',
-                  backgroundColor: 'transparent'
-                }}
+                className="text-gray-600 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
               />
             </div>
 
-            {/* Language Switcher */}
-            <div className="relative ml-2">
+            {/* Language Switcher - Desktop only */}
+            <div className="relative ml-2 hidden md:block">
               <IconButton
                 icon={GlobeAltIcon}
                 onClick={toggleLanguageMenu}
                 size="large"
                 title={`Current: ${languages.find(l => l.code === language)?.flag} ${languages.find(l => l.code === language)?.code.toUpperCase()}`}
-                className="bg-transparent hover:bg-opacity-20"
-                style={{
-                  color: 'var(--color-mui-text-secondary)',
-                  backgroundColor: 'transparent'
-                }}
+                className="text-gray-600 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
               />
 
               {/* Language Dropdown */}
-              <div 
-                className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border transition-all duration-200 ${
+              <div
+                className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-bg transition-all duration-200 ${
                   isLanguageMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
                 }`}
-                style={{ backgroundColor: 'var(--color-mui-background-paper)', borderColor: 'var(--color-mui-divider)' }}
               >
                 <div className="py-1">
                   {languages.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => handleLanguageChange(lang.code as 'en' | 'sv')}
-                      className="w-full text-left px-4 py-2 text-sm transition-colors"
-                      style={{
-                        color: language === lang.code ? 'var(--color-mui-text-primary)' : 'var(--color-mui-text-secondary)',
-                        backgroundColor: language === lang.code ? 'var(--color-mui-background-hover)' : 'transparent'
-                      }}
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                        language === lang.code
+                          ? 'text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
                     >
                       <span className="mr-3">{lang.flag}</span>
                       {t.navbar.language[lang.name as keyof typeof t.navbar.language]}
@@ -156,11 +166,7 @@ export default function Navbar() {
                 icon={Bars3Icon}
                 onClick={toggleMenu}
                 size="large"
-                className="bg-transparent hover:bg-opacity-20"
-                style={{
-                  color: 'var(--color-mui-text-secondary)',
-                  backgroundColor: 'transparent'
-                }}
+                className="text-gray-600 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
               />
             </div>
           </div>
@@ -177,15 +183,15 @@ export default function Navbar() {
       />
 
       {/* Mobile menu */}
-      <div 
-        className={`md:hidden fixed top-12 right-0 h-[calc(100vh-48px)] w-56 shadow-lg transition-all duration-200 ease-in-out z-50 ${
-          isMenuOpen 
-            ? 'opacity-100 translate-x-0' 
+      <div
+        className={`md:hidden fixed top-12 right-0 h-[calc(100vh-48px)] w-56 bg-white dark:bg-dark-bg border-l border-gray-200 dark:border-gray-700 shadow-lg transition-all duration-200 ease-in-out z-50 ${
+          isMenuOpen
+            ? 'opacity-100 translate-x-0'
             : 'opacity-0 translate-x-4 pointer-events-none'
         }`}
-        style={{ backgroundColor: 'var(--color-mui-background-paper)', borderLeft: '1px solid var(--color-mui-divider)' }}
       >
         <div className="py-2">
+          {/* Show all navigation items (including duplicates of results + players) */}
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -193,10 +199,9 @@ export default function Navbar() {
                 key={item.name}
                 href={item.href}
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center px-4 py-3 transition-colors"
-                style={{
-                  color: isActive ? 'var(--color-mui-text-primary)' : 'var(--color-mui-text-secondary)'
-                }}
+                className={`flex items-center px-4 py-3 transition-colors ${
+                  isActive ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'
+                }`}
               >
                 <item.icon className="w-8 h-8 stroke-[1.25]" aria-hidden="true" />
                 <span className="ml-4 text-lg font-light">
@@ -207,8 +212,8 @@ export default function Navbar() {
           })}
           
           {/* Theme toggle in mobile menu */}
-          <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--color-mui-divider)' }}>
-            <div className="px-4 py-2 text-sm font-medium uppercase tracking-wide" style={{ color: 'var(--color-mui-text-disabled)' }}>
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="px-4 py-2 text-sm font-medium uppercase tracking-wide text-gray-400 dark:text-gray-600">
               Theme
             </div>
             <button
@@ -216,8 +221,7 @@ export default function Navbar() {
                 toggleTheme();
                 setIsMenuOpen(false);
               }}
-              className="w-full text-left flex items-center px-4 py-3 transition-colors"
-              style={{ color: 'var(--color-mui-text-secondary)' }}
+              className="w-full text-left flex items-center px-4 py-3 transition-colors text-gray-600 dark:text-gray-400"
             >
               {theme === 'dark' ? (
                 <SunIcon className="w-8 h-8 stroke-[1.25] mr-4" aria-hidden="true" />
@@ -231,8 +235,8 @@ export default function Navbar() {
           </div>
           
           {/* Language options in mobile menu */}
-          <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--color-mui-divider)' }}>
-            <div className="px-4 py-2 text-sm font-medium uppercase tracking-wide" style={{ color: 'var(--color-mui-text-disabled)' }}>
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="px-4 py-2 text-sm font-medium uppercase tracking-wide text-gray-400 dark:text-gray-600">
               Language
             </div>
             {languages.map((lang) => (
@@ -242,10 +246,9 @@ export default function Navbar() {
                   handleLanguageChange(lang.code as 'en' | 'sv');
                   setIsMenuOpen(false);
                 }}
-                className="w-full text-left flex items-center px-4 py-3 transition-colors"
-                style={{
-                  color: language === lang.code ? 'var(--color-mui-text-primary)' : 'var(--color-mui-text-secondary)'
-                }}
+                className={`w-full text-left flex items-center px-4 py-3 transition-colors ${
+                  language === lang.code ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'
+                }`}
               >
                 <span className="mr-4 text-lg">{lang.flag}</span>
                 <span className="text-lg font-light">

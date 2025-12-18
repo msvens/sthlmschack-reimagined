@@ -11,10 +11,9 @@ interface FooterLinkProps {
 
 function FooterLink({ href, children }: FooterLinkProps) {
   return (
-    <Link 
-      href={href} 
-      className="uppercase mx-4 text-xs transition-colors"
-      style={{ color: 'var(--color-mui-text-secondary)' }}
+    <Link
+      href={href}
+      className="uppercase mx-4 text-xs transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
     >
       {children}
     </Link>
@@ -26,14 +25,14 @@ export function Footer() {
   const t = getTranslation(language);
 
   return (
-    <footer className="w-full border-t" style={{ backgroundColor: 'var(--color-mui-background-paper)', borderColor: 'var(--color-mui-divider)' }}>
+    <footer className="w-full border-t bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center">
         {/* Left side - Project info */}
         <div className="mb-4 md:mb-0">
-          <div className="text-sm" style={{ color: 'var(--color-mui-text-primary)' }}>
+          <div className="text-sm text-gray-900 dark:text-white">
             {t.footer.projectInfo.title}
           </div>
-          <div className="text-xs mt-1" style={{ color: 'var(--color-mui-text-secondary)' }}>
+          <div className="text-xs mt-1 text-gray-600 dark:text-gray-400">
             {t.footer.projectInfo.subtitle}
           </div>
         </div>
@@ -49,23 +48,21 @@ export function Footer() {
 
         {/* Right side - External links */}
         <div className="mt-4 md:mt-0 text-center md:text-right">
-          <div className="text-xs mb-2" style={{ color: 'var(--color-mui-text-secondary)' }}>
+          <div className="text-xs mb-2 text-gray-600 dark:text-gray-400">
             {t.footer.external.poweredBy}
           </div>
           <div className="flex space-x-4">
-            <Link 
-              href="https://www.stockholmsschack.se/" 
-              className="text-xs transition-colors"
-              style={{ color: 'var(--color-mui-text-secondary)' }}
+            <Link
+              href="https://www.stockholmsschack.se/"
+              className="text-xs transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               target="_blank"
               rel="noopener noreferrer"
             >
               Stockholm Schackförbund
             </Link>
-            <Link 
-              href="https://schack.se/" 
-              className="text-xs transition-colors"
-              style={{ color: 'var(--color-mui-text-secondary)' }}
+            <Link
+              href="https://schack.se/"
+              className="text-xs transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               target="_blank"
               rel="noopener noreferrer"
             >

@@ -8,7 +8,7 @@ import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentE
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { FinalResultsTable } from '@/components/results/FinalResultsTable';
-import { SelectableList, SelectableListItem } from '@/components/layout/SelectableList';
+import { SelectableList, SelectableListItem } from '@/components/SelectableList';
 
 export default function TournamentResultsPage() {
   const params = useParams();
@@ -156,7 +156,7 @@ export default function TournamentResultsPage() {
         <PageSpacing />
         <div className="min-h-screen py-8">
           <div className="max-w-7xl mx-auto text-center">
-            <div className="text-lg" style={{ color: 'var(--color-mui-text-secondary)' }}>
+            <div className="text-lg text-gray-600 dark:text-gray-400">
               Loading tournament results...
             </div>
           </div>
@@ -171,17 +171,11 @@ export default function TournamentResultsPage() {
         <PageSpacing />
         <div className="min-h-screen py-8">
           <div className="max-w-7xl mx-auto text-center">
-            <div
-              className="p-8 rounded-lg border"
-              style={{
-                backgroundColor: 'var(--color-mui-background-paper)',
-                borderColor: 'var(--color-mui-divider)'
-              }}
-            >
-              <h1 className="text-2xl font-semibold mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
+            <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
+              <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
                 Error Loading Tournament
               </h1>
-              <p className="text-lg mb-6" style={{ color: 'var(--color-mui-text-secondary)' }}>
+              <p className="text-lg mb-6 text-gray-600 dark:text-gray-400">
                 {error}
               </p>
             </div>
@@ -197,7 +191,7 @@ export default function TournamentResultsPage() {
         <PageSpacing />
         <div className="min-h-screen py-8">
           <div className="max-w-7xl mx-auto text-center">
-            <div className="text-lg" style={{ color: 'var(--color-mui-text-secondary)' }}>
+            <div className="text-lg text-gray-600 dark:text-gray-400">
               Tournament not found
             </div>
           </div>
@@ -223,10 +217,10 @@ export default function TournamentResultsPage() {
         <div className="max-w-7xl mx-auto px-4">
           {/* Tournament Header */}
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-light mb-2" style={{ color: 'var(--color-mui-text-primary)' }}>
+            <h1 className="text-2xl md:text-3xl font-light mb-2 text-gray-900 dark:text-white">
               {tournament.name}
             </h1>
-            <div className="flex flex-wrap gap-4 text-sm" style={{ color: 'var(--color-mui-text-secondary)' }}>
+            <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
               <span>{tournament.start} - {tournament.end}</span>
               {tournament.city && <span>{tournament.city}</span>}
             </div>
@@ -252,10 +246,10 @@ export default function TournamentResultsPage() {
                   {/* Main Results Table */}
                   <div className="mb-6">
                     <div className="mb-4">
-                      <h3 className="text-lg font-semibold" style={{ color: 'var(--color-mui-text-primary)' }}>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Final Results - {selectedGroup.group.name}
                         {selectedGroup.class.className !== selectedGroup.group.name && (
-                          <span className="text-sm font-normal ml-2" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                          <span className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-400">
                             ({selectedGroup.class.className})
                           </span>
                         )}
@@ -271,22 +265,16 @@ export default function TournamentResultsPage() {
                   </div>
 
                   {/* Round-by-Round Results */}
-                  <div
-                    className="rounded-lg border overflow-hidden"
-                    style={{
-                      backgroundColor: 'var(--color-mui-background-paper)',
-                      borderColor: 'var(--color-mui-divider)'
-                    }}
-                  >
-                    <div className="p-4 border-b" style={{ borderColor: 'var(--color-mui-divider)' }}>
-                      <h3 className="text-lg font-semibold" style={{ color: 'var(--color-mui-text-primary)' }}>
+                  <div className="rounded-lg border overflow-hidden bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Round-by-Round Results
                       </h3>
                     </div>
 
                     {!resultsLoading && !resultsError && roundResults.length === 0 && (
                       <div className="p-6 text-center">
-                        <div style={{ color: 'var(--color-mui-text-secondary)' }}>
+                        <div className="text-gray-600 dark:text-gray-400">
                           No round results available for this group
                         </div>
                       </div>
@@ -316,22 +304,16 @@ export default function TournamentResultsPage() {
                           return (
                             <>
                               {/* Round Tab Navigation */}
-                              <div className="flex overflow-x-auto" style={{ borderBottom: `1px solid var(--color-mui-divider)` }}>
+                              <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700">
                                 {rounds.map(roundNumber => (
                                   <button
                                     key={roundNumber}
                                     onClick={() => setSelectedRound(roundNumber)}
                                     className={`flex-shrink-0 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-                                      selectedRound === roundNumber ? 'border-b-2' : ''
+                                      selectedRound === roundNumber
+                                        ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+                                        : 'text-gray-600 dark:text-gray-400'
                                     }`}
-                                    style={{
-                                      color: selectedRound === roundNumber
-                                        ? 'var(--color-mui-primary)'
-                                        : 'var(--color-mui-text-secondary)',
-                                      borderColor: selectedRound === roundNumber
-                                        ? 'var(--color-mui-primary)'
-                                        : 'transparent'
-                                    }}
                                   >
                                     Round {roundNumber}
                                   </button>
@@ -344,29 +326,23 @@ export default function TournamentResultsPage() {
                                   <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                       <thead>
-                                        <tr
-                                          className="border-b"
-                                          style={{
-                                            borderColor: 'var(--color-mui-divider)',
-                                            backgroundColor: 'var(--color-mui-background-default)'
-                                          }}
-                                        >
-                                          <th className="text-left p-3 font-medium whitespace-nowrap" style={{ color: 'var(--color-mui-text-primary)' }}>
+                                        <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                                          <th className="text-left p-3 font-medium whitespace-nowrap text-gray-900 dark:text-white">
                                             Table
                                           </th>
-                                          <th className="text-left p-3 font-medium" style={{ color: 'var(--color-mui-text-primary)' }}>
+                                          <th className="text-left p-3 font-medium text-gray-900 dark:text-white">
                                             White Player
                                           </th>
-                                          <th className="text-center p-3 font-medium whitespace-nowrap" style={{ color: 'var(--color-mui-text-primary)' }}>
+                                          <th className="text-center p-3 font-medium whitespace-nowrap text-gray-900 dark:text-white">
                                             ELO
                                           </th>
-                                          <th className="text-left p-3 font-medium" style={{ color: 'var(--color-mui-text-primary)' }}>
+                                          <th className="text-left p-3 font-medium text-gray-900 dark:text-white">
                                             Black Player
                                           </th>
-                                          <th className="text-center p-3 font-medium whitespace-nowrap" style={{ color: 'var(--color-mui-text-primary)' }}>
+                                          <th className="text-center p-3 font-medium whitespace-nowrap text-gray-900 dark:text-white">
                                             ELO
                                           </th>
-                                          <th className="text-center p-3 font-medium whitespace-nowrap" style={{ color: 'var(--color-mui-text-primary)' }}>
+                                          <th className="text-center p-3 font-medium whitespace-nowrap text-gray-900 dark:text-white">
                                             Result
                                           </th>
                                         </tr>
@@ -375,28 +351,27 @@ export default function TournamentResultsPage() {
                                         {resultsByRound[selectedRound].map((result, index) => (
                                           <tr
                                             key={`${result.homeId}-${result.awayId}-${index}`}
-                                            className="border-b hover:bg-opacity-50 transition-colors"
+                                            className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                                             style={{
-                                              borderColor: 'var(--color-mui-divider)',
-                                              backgroundColor: index % 2 === 0 ? 'transparent' : 'var(--color-mui-background-default)'
+                                              backgroundColor: index % 2 === 0 ? 'transparent' : 'rgba(0, 0, 0, 0.02)'
                                             }}
                                           >
-                                            <td className="p-3" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                                            <td className="p-3 text-gray-600 dark:text-gray-400">
                                               {result.board || (index + 1)}
                                             </td>
-                                            <td className="p-3" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                                            <td className="p-3 text-gray-600 dark:text-gray-400">
                                               Player {result.homeId}
                                             </td>
-                                            <td className="p-3 text-center" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                                            <td className="p-3 text-center text-gray-600 dark:text-gray-400">
                                               0
                                             </td>
-                                            <td className="p-3" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                                            <td className="p-3 text-gray-600 dark:text-gray-400">
                                               Player {result.awayId}
                                             </td>
-                                            <td className="p-3 text-center" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                                            <td className="p-3 text-center text-gray-600 dark:text-gray-400">
                                               0
                                             </td>
-                                            <td className="p-3 text-center font-medium" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                                            <td className="p-3 text-center font-medium text-gray-600 dark:text-gray-400">
                                               {result.homeResult !== undefined && result.awayResult !== undefined
                                                 ? `${result.homeResult} - ${result.awayResult}`
                                                 : '-'
@@ -417,14 +392,8 @@ export default function TournamentResultsPage() {
                   </div>
                 </>
               ) : (
-                <div
-                  className="p-6 rounded-lg border text-center"
-                  style={{
-                    backgroundColor: 'var(--color-mui-background-paper)',
-                    borderColor: 'var(--color-mui-divider)'
-                  }}
-                >
-                  <p style={{ color: 'var(--color-mui-text-secondary)' }}>
+                <div className="p-6 rounded-lg border text-center bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
+                  <p className="text-gray-600 dark:text-gray-400">
                     Please select a group to view results
                   </p>
                 </div>

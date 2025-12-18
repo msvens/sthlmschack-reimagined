@@ -55,17 +55,7 @@ export function IconButton({
         transition-all duration-150
         ${buttonSize}
         ${className}`}
-      style={{
-        color: 'var(--color-mui-text-primary)',
-        backgroundColor: 'transparent',
-        ...style
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = 'var(--color-mui-background-hover)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = 'transparent';
-      }}
+      style={style}
     >
       <Icon className={`${iconSize} ${iconClassName}`} />
     </button>

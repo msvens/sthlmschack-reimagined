@@ -139,7 +139,7 @@ yarn dev
 - `yarn lint` - Run ESLint for code quality
 
 ### Quick Start
-Open [http://localhost:3005](http://localhost:3005) with your browser to see the result.
+Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
 
 You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
 
@@ -154,6 +154,13 @@ This project is currently in active development. Contributions and feedback are 
 - Accessibility enhancements
 - Performance optimizations
 - Swedish language content and localization
+
+## API Documentation
+
+This project integrates with the Svenska Schackförbundet API:
+
+- **API Specification**: [https://member.schack.se/memdb/v3/api-docs](https://member.schack.se/memdb/v3/api-docs)
+- **Swagger UI (Testing)**: [https://member.schack.se/swagger-ui/index.html](https://member.schack.se/swagger-ui/index.html)
 
 ## Learn More
 

@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { PageSpacing } from '@/components/layout/PageSpacing';
-import { Card } from '@/components/layout/Card';
-import { DropdownMenu, DropdownMenuItem } from '@/components/layout/DropdownMenu';
+import { Card } from '@/components/Card';
+import { DropdownMenu, DropdownMenuItem } from '@/components/DropdownMenu';
+import { Button } from '@/components/Button';
+import { TextField } from '@/components/TextField';
 import { PlayerService } from '@/lib/api';
 import { PlayerInfoDto } from '@/lib/api/types';
 
@@ -103,10 +105,10 @@ export default function PlayersPage() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-light tracking-wide mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
+            <h1 className="text-4xl font-light tracking-wide mb-4 text-gray-900 dark:text-white">
               {t.pages.players.title}
             </h1>
-            <p className="text-lg font-light" style={{ color: 'var(--color-mui-text-secondary)' }}>
+            <p className="text-lg font-light text-gray-600 dark:text-gray-400">
               {t.pages.players.subtitle}
             </p>
           </div>
@@ -115,47 +117,33 @@ export default function PlayersPage() {
           <div className="space-y-8 mb-12">
             {/* Search by Name */}
             <div className="relative">
-              <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
                 {t.pages.players.search.byName}
               </h3>
               <form ref={nameSearchRef} onSubmit={handleNameSearch} className="flex gap-4">
-                <input
-                  type="text"
+                <TextField
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="First name"
-                  className="flex-1 px-4 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{
-                    backgroundColor: 'var(--color-mui-background-default)',
-                    borderColor: 'var(--color-mui-divider)',
-                    color: 'var(--color-mui-text-primary)'
-                  }}
+                  fullWidth
                 />
-                <input
-                  type="text"
+                <TextField
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="Last name"
-                  className="flex-1 px-4 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{
-                    backgroundColor: 'var(--color-mui-background-default)',
-                    borderColor: 'var(--color-mui-divider)',
-                    color: 'var(--color-mui-text-primary)'
-                  }}
+                  fullWidth
                 />
-                <button
+                <Button
                   type="submit"
                   disabled={isSearching || !firstName.trim() || !lastName.trim()}
-                  className="px-6 py-2 rounded font-medium transition-colors disabled:opacity-50"
-                  style={{
-                    backgroundColor: 'var(--color-mui-primary-main)',
-                    color: 'var(--color-mui-primary-contrast)'
-                  }}
+                  color="primary"
+                  variant="outlined"
+                  className="px-6"
                 >
                   {isSearching ? '...' : t.pages.players.search.searchButton}
-                </button>
+                </Button>
               </form>
-              <p className="text-sm mt-2" style={{ color: 'var(--color-mui-text-secondary)' }}>
+              <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
                 Enter both first and last name to search for players.
               </p>
 
@@ -170,90 +158,69 @@ export default function PlayersPage() {
             </div>
 
             {/* Divider */}
-            <div
-              className="h-px w-full"
-              style={{ backgroundColor: 'var(--color-mui-divider)' }}
-            />
+            <div className="h-px w-full bg-gray-200 dark:bg-gray-700" />
 
             {/* Search by Member ID */}
             <div>
-              <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
                 {t.pages.players.search.byMemberId}
               </h3>
               <form onSubmit={handleMemberIdSearch} className="flex gap-4">
-                <input
-                  type="text"
+                <TextField
                   value={memberIdSearch}
                   onChange={(e) => setMemberIdSearch(e.target.value)}
                   placeholder={t.pages.players.search.memberIdPlaceholder}
-                  className="flex-1 px-4 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{
-                    backgroundColor: 'var(--color-mui-background-default)',
-                    borderColor: 'var(--color-mui-divider)',
-                    color: 'var(--color-mui-text-primary)'
-                  }}
+                  fullWidth
                 />
-                <button
+                <Button
                   type="submit"
                   disabled={isSearching || !memberIdSearch.trim()}
-                  className="px-6 py-2 rounded font-medium transition-colors disabled:opacity-50"
-                  style={{
-                    backgroundColor: 'var(--color-mui-primary-main)',
-                    color: 'var(--color-mui-primary-contrast)'
-                  }}
+                  color="primary"
+                  variant="outlined"
+                  className="px-6"
                 >
                   {isSearching ? '...' : t.pages.players.search.searchButton}
-                </button>
+                </Button>
               </form>
-              <p className="text-sm mt-2" style={{ color: 'var(--color-mui-text-secondary)' }}>
+              <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
                 Enter a member ID to go directly to that player&apos;s page.
               </p>
             </div>
 
             {/* Clear Button */}
             <div className="text-center">
-              <button
+              <Button
                 onClick={clearSearches}
-                className="px-4 py-2 rounded border transition-colors"
-                style={{ 
-                  backgroundColor: 'transparent',
-                  borderColor: 'var(--color-mui-divider)',
-                  color: 'var(--color-mui-text-secondary)'
-                }}
+                variant="outlined"
+                color="default"
               >
                 {t.pages.players.search.clearButton}
-              </button>
+              </Button>
             </div>
           </div>
 
           {/* Example Member IDs */}
           <Card>
-            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
               Example Member IDs to try:
             </h3>
             <div className="flex flex-wrap gap-2">
-              <button
+              <Button
                 onClick={() => setMemberIdSearch('642062')}
-                className="px-3 py-1 rounded text-sm border transition-colors"
-                style={{
-                  backgroundColor: 'var(--color-mui-background-default)',
-                  borderColor: 'var(--color-mui-divider)',
-                  color: 'var(--color-mui-text-primary)'
-                }}
+                variant="outlined"
+                color="default"
+                className="px-3 py-1 text-sm"
               >
                 642062 (Olle Svensson)
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setMemberIdSearch('1786741')}
-                className="px-3 py-1 rounded text-sm border transition-colors"
-                style={{
-                  backgroundColor: 'var(--color-mui-background-default)',
-                  borderColor: 'var(--color-mui-divider)',
-                  color: 'var(--color-mui-text-primary)'
-                }}
+                variant="outlined"
+                color="default"
+                className="px-3 py-1 text-sm"
               >
                 1786741 (FIDE ID)
-              </button>
+              </Button>
             </div>
           </Card>
         </div>

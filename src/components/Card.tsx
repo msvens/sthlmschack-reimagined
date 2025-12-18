@@ -24,7 +24,7 @@ export function Card({
     lg: 'p-8'
   };
 
-  const baseClasses = 'rounded-lg border';
+  const baseClasses = 'rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700';
   const hoverClasses = hover || clickable ? 'hover:shadow-lg transition-shadow' : '';
   const clickableClasses = clickable ? 'cursor-pointer' : '';
 
@@ -36,16 +36,10 @@ export function Card({
     className
   ].filter(Boolean).join(' ');
 
-  const cardStyle = {
-    backgroundColor: 'var(--color-mui-background-paper)',
-    borderColor: 'var(--color-mui-divider)'
-  };
-
   if (clickable && onClick) {
     return (
       <div
         className={combinedClassName}
-        style={cardStyle}
         onClick={onClick}
         role="button"
         tabIndex={0}
@@ -61,7 +55,7 @@ export function Card({
   }
 
   return (
-    <div className={combinedClassName} style={cardStyle}>
+    <div className={combinedClassName}>
       {children}
     </div>
   );

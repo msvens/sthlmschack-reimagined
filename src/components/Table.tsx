@@ -98,7 +98,7 @@ export function Table<T = Record<string, unknown>>({
     return (
       <div className="overflow-x-auto">
         <div className="p-6 text-center">
-          <div style={{ color: 'var(--color-mui-text-secondary)' }}>
+          <div className="text-gray-600 dark:text-gray-400">
             {loadingMessage}
           </div>
         </div>
@@ -111,7 +111,7 @@ export function Table<T = Record<string, unknown>>({
     return (
       <div className="overflow-x-auto">
         <div className="p-6 text-center">
-          <div style={{ color: 'var(--color-mui-error-main)' }}>
+          <div className="text-red-600 dark:text-red-400">
             {error}
           </div>
         </div>
@@ -124,7 +124,7 @@ export function Table<T = Record<string, unknown>>({
     return (
       <div className="overflow-x-auto">
         <div className="p-6 text-center">
-          <div style={{ color: 'var(--color-mui-text-secondary)' }}>
+          <div className="text-gray-600 dark:text-gray-400">
             {emptyMessage}
           </div>
         </div>
@@ -136,11 +136,11 @@ export function Table<T = Record<string, unknown>>({
     <div className={`overflow-x-auto ${className}`} style={style}>
       <table className="w-full text-sm">
         <thead>
-          <tr style={{ borderBottom: `1px solid var(--color-mui-divider)` }}>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
             {columns.map((column) => (
               <th
                 key={column.id}
-                className={`${paddingClass} font-medium ${
+                className={`${paddingClass} font-medium text-gray-900 dark:text-white ${
                   column.align === 'center'
                     ? 'text-center'
                     : column.align === 'right'
@@ -148,7 +148,6 @@ export function Table<T = Record<string, unknown>>({
                     : 'text-left'
                 } ${column.noWrap ? 'whitespace-nowrap' : ''}`}
                 style={{
-                  color: 'var(--color-mui-text-primary)',
                   width: column.width,
                   ...column.headerStyle
                 }}
@@ -162,20 +161,17 @@ export function Table<T = Record<string, unknown>>({
           {data.map((row, index) => (
             <tr
               key={getKey(row, index)}
-              className={`${
-                hover ? 'hover:bg-black/5 hover:dark:bg-white/10 transition-colors' : ''
+              className={`border-b border-gray-200 dark:border-gray-700 ${
+                hover ? 'hover:bg-gray-100 dark:hover:bg-gray-700/30 transition-colors' : ''
               } ${onRowClick ? 'cursor-pointer' : ''} ${
-                striped && index % 2 === 1 ? 'bg-black/[0.02] dark:bg-white/10' : ''
+                striped && index % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/30' : ''
               }`}
-              style={{
-                borderBottom: `1px solid var(--color-mui-divider)`
-              }}
               onClick={onRowClick ? () => onRowClick(row, index) : undefined}
             >
               {columns.map((column) => (
                 <td
                   key={column.id}
-                  className={`${paddingClass} ${
+                  className={`${paddingClass} text-gray-600 dark:text-gray-400 ${
                     column.align === 'center'
                       ? 'text-center'
                       : column.align === 'right'
@@ -183,7 +179,6 @@ export function Table<T = Record<string, unknown>>({
                       : 'text-left'
                   } ${column.noWrap ? 'whitespace-nowrap' : ''}`}
                   style={{
-                    color: 'var(--color-mui-text-secondary)',
                     ...column.cellStyle
                   }}
                 >

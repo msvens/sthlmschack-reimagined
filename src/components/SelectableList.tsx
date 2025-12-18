@@ -56,7 +56,7 @@ export function SelectableList({
   return (
     <div className={`p-2 ${className}`}>
       {title && (
-        <h2 className={`text-sm font-semibold mb-3 ${breakpoint}:mb-2`} style={{ color: 'var(--color-mui-text-primary)' }}>
+        <h2 className={`text-sm font-semibold mb-3 ${breakpoint}:mb-2 text-gray-900 dark:text-white`}>
           {title}
         </h2>
       )}
@@ -66,25 +66,11 @@ export function SelectableList({
           <button
             key={item.id}
             onClick={() => onSelect(item.id)}
-            className={`${classes.item} text-left px-3 py-2 transition-colors text-xs border-b rounded ${
+            className={`${classes.item} text-left px-3 py-2 transition-colors text-xs border-b rounded text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 ${
               selectedId === item.id
                 ? 'font-medium border-current'
-                : 'border-transparent hover:bg-opacity-50'
+                : 'border-transparent'
             }`}
-            style={{
-              color: 'var(--color-mui-text-secondary)',
-              backgroundColor: 'transparent'
-            }}
-            onMouseEnter={(e) => {
-              // Light mode: dark overlay, Dark mode: light overlay
-              const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-              e.currentTarget.style.backgroundColor = isDarkMode
-                ? 'rgba(255, 255, 255, 0.08)'
-                : 'rgba(0, 0, 0, 0.04)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
             title={item.tooltip}
           >
             <div className="font-medium">{item.label}</div>

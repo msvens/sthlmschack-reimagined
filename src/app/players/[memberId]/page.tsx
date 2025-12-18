@@ -118,7 +118,7 @@ export default function PlayerPage() {
       <PageSpacing />
         <div className="min-h-screen py-8">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="text-lg" style={{ color: 'var(--color-mui-text-secondary)' }}>
+            <div className="text-lg text-gray-600 dark:text-gray-400">
               {t.pages.playerDetail.loading}
             </div>
           </div>
@@ -133,33 +133,23 @@ export default function PlayerPage() {
       <PageSpacing/>
         <div className="min-h-screen py-8">
           <div className="max-w-4xl mx-auto text-center">
-            <div 
-              className="p-8 rounded-lg border"
-              style={{ 
-                backgroundColor: 'var(--color-mui-background-paper)',
-                borderColor: 'var(--color-mui-divider)'
-              }}
-            >
-              <h1 className="text-2xl font-semibold mb-4" style={{ color: 'var(--color-mui-text-primary)' }}>
+            <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
+              <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
                 {t.pages.playerDetail.error}
               </h1>
-              <p className="text-lg mb-6" style={{ color: 'var(--color-mui-text-secondary)' }}>
+              <p className="text-lg mb-6 text-gray-600 dark:text-gray-400">
                 {error}
               </p>
               <button
                 onClick={() => router.push('/players')}
-                className="px-6 py-2 rounded font-medium transition-colors"
-                style={{ 
-                  backgroundColor: 'var(--color-mui-primary-main)',
-                  color: 'var(--color-mui-primary-contrast)'
-                }}
+                className="px-6 py-2 rounded font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
               >
 {t.pages.playerDetail.backButton}
               </button>
             </div>
           </div>
         </div>
-      
+
       </>
     );
   }
@@ -170,7 +160,7 @@ export default function PlayerPage() {
       <PageSpacing/>
         <div className="min-h-screen py-8">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="text-lg" style={{ color: 'var(--color-mui-text-secondary)' }}>
+            <div className="text-lg text-gray-600 dark:text-gray-400">
               {t.pages.playerDetail.notFound}
             </div>
           </div>
@@ -188,52 +178,45 @@ export default function PlayerPage() {
           <div className="mb-4">
             <button
               onClick={() => router.push('/players')}
-              className="flex items-center text-sm transition-colors"
-              style={{ color: 'var(--color-mui-text-secondary)' }}
+              className="flex items-center text-sm transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             >
               ← {t.pages.playerDetail.backButton}
             </button>
           </div>
 
           {/* Player Header */}
-          <div
-            className="p-4 md:p-6 rounded-lg border mb-4 md:mb-6"
-            style={{
-              backgroundColor: 'var(--color-mui-background-paper)',
-              borderColor: 'var(--color-mui-divider)'
-            }}
-          >
+          <div className="p-4 md:p-6 rounded-lg border mb-4 md:mb-6 bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-3xl font-light mb-2" style={{ color: 'var(--color-mui-text-primary)' }}>
+                <h1 className="text-3xl font-light mb-2 text-gray-900 dark:text-white">
                   {player.firstName} {player.lastName}
                 </h1>
-                <p className="text-lg" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                <p className="text-lg text-gray-600 dark:text-gray-400">
                   {t.pages.playerDetail.playerInfo.memberId}: {player.id}
                 </p>
                 {player.club && (
-                  <p className="text-lg" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                  <p className="text-lg text-gray-600 dark:text-gray-400">
                     {t.pages.playerDetail.playerInfo.club}: {player.club}
                   </p>
                 )}
               </div>
-              
+
               {/* Ratings */}
               <div className="mt-4 md:mt-0">
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
-                    <div className="text-2xl font-semibold" style={{ color: 'var(--color-mui-text-primary)' }}>
+                    <div className="text-2xl font-semibold text-gray-900 dark:text-white">
                       {formatRating(player.elo?.rating)}
                     </div>
-                    <div className="text-sm" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
                       {t.pages.playerDetail.eloRating.title}
                     </div>
                   </div>
                   <div>
-                    <div className="text-2xl font-semibold" style={{ color: 'var(--color-mui-text-primary)' }}>
+                    <div className="text-2xl font-semibold text-gray-900 dark:text-white">
                       {formatRating(player.lask?.rating)}
                     </div>
-                    <div className="text-sm" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
                       {t.pages.playerDetail.laskRating.title}
                     </div>
                   </div>
@@ -245,69 +228,57 @@ export default function PlayerPage() {
           {/* Player Details */}
           <div className="grid md:grid-cols-2 gap-4 md:gap-6">
             {/* ELO Rating Details */}
-            <div
-              className="p-4 md:p-5 rounded-lg border"
-              style={{
-                backgroundColor: 'var(--color-mui-background-paper)',
-                borderColor: 'var(--color-mui-divider)'
-              }}
-            >
-              <h2 className="text-lg md:text-xl font-semibold mb-3" style={{ color: 'var(--color-mui-text-primary)' }}>
+            <div className="p-4 md:p-5 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg md:text-xl font-semibold mb-3 text-gray-900 dark:text-white">
                 {t.pages.playerDetail.eloRating.title}
               </h2>
               {player.elo ? (
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span style={{ color: 'var(--color-mui-text-secondary)' }}>{t.pages.playerDetail.eloRating.standardRating}:</span>
-                    <span style={{ color: 'var(--color-mui-text-primary)' }}>
+                    <span className="text-gray-600 dark:text-gray-400">{t.pages.playerDetail.eloRating.standardRating}:</span>
+                    <span className="text-gray-900 dark:text-white">
                       {player.elo.rating && player.elo.rating > 0 ? player.elo.rating : '-'}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color: 'var(--color-mui-text-secondary)' }}>{t.pages.playerDetail.eloRating.rapidRating}:</span>
-                    <span style={{ color: 'var(--color-mui-text-primary)' }}>
+                    <span className="text-gray-600 dark:text-gray-400">{t.pages.playerDetail.eloRating.rapidRating}:</span>
+                    <span className="text-gray-900 dark:text-white">
                       {player.elo.rapidRating && player.elo.rapidRating > 0 ? player.elo.rapidRating : '-'}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color: 'var(--color-mui-text-secondary)' }}>{t.pages.playerDetail.eloRating.blitzRating}:</span>
-                    <span style={{ color: 'var(--color-mui-text-primary)' }}>
+                    <span className="text-gray-600 dark:text-gray-400">{t.pages.playerDetail.eloRating.blitzRating}:</span>
+                    <span className="text-gray-900 dark:text-white">
                       {player.elo.blitzRating && player.elo.blitzRating > 0 ? player.elo.blitzRating : '-'}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color: 'var(--color-mui-text-secondary)' }}>{t.pages.playerDetail.eloRating.fideTitle}:</span>
-                    <span style={{ color: 'var(--color-mui-text-primary)' }}>{player.elo.title || 'N/A'}</span>
+                    <span className="text-gray-600 dark:text-gray-400">{t.pages.playerDetail.eloRating.fideTitle}:</span>
+                    <span className="text-gray-900 dark:text-white">{player.elo.title || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color: 'var(--color-mui-text-secondary)' }}>{t.pages.playerDetail.eloRating.date}:</span>
-                    <span style={{ color: 'var(--color-mui-text-primary)' }}>{player.elo.date || 'N/A'}</span>
+                    <span className="text-gray-600 dark:text-gray-400">{t.pages.playerDetail.eloRating.date}:</span>
+                    <span className="text-gray-900 dark:text-white">{player.elo.date || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color: 'var(--color-mui-text-secondary)' }}>{t.pages.playerDetail.eloRating.kFactor}:</span>
-                    <span style={{ color: 'var(--color-mui-text-primary)' }}>{player.elo.k || 'N/A'}</span>
+                    <span className="text-gray-600 dark:text-gray-400">{t.pages.playerDetail.eloRating.kFactor}:</span>
+                    <span className="text-gray-900 dark:text-white">{player.elo.k || 'N/A'}</span>
                   </div>
                 </div>
               ) : (
-                <p style={{ color: 'var(--color-mui-text-secondary)' }}>{t.pages.playerDetail.eloRating.noData}</p>
+                <p className="text-gray-600 dark:text-gray-400">{t.pages.playerDetail.eloRating.noData}</p>
               )}
             </div>
 
             {/* Additional Information */}
-            <div
-              className="p-4 md:p-5 rounded-lg border"
-              style={{
-                backgroundColor: 'var(--color-mui-background-paper)',
-                borderColor: 'var(--color-mui-divider)'
-              }}
-            >
-              <h2 className="text-lg md:text-xl font-semibold mb-3" style={{ color: 'var(--color-mui-text-primary)' }}>
+            <div className="p-4 md:p-5 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg md:text-xl font-semibold mb-3 text-gray-900 dark:text-white">
                 {t.pages.playerDetail.additionalInfo.title}
               </h2>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span style={{ color: 'var(--color-mui-text-secondary)' }}>{t.pages.playerDetail.additionalInfo.fideId}:</span>
-                  <span style={{ color: 'var(--color-mui-text-primary)' }}>
+                  <span className="text-gray-600 dark:text-gray-400">{t.pages.playerDetail.additionalInfo.fideId}:</span>
+                  <span className="text-gray-900 dark:text-white">
                     {player.fideid ? (
                       <a
                         href={`https://ratings.fide.com/profile/${player.fideid}`}
@@ -323,8 +294,8 @@ export default function PlayerPage() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span style={{ color: 'var(--color-mui-text-secondary)' }}>{t.pages.playerDetail.additionalInfo.birthDate}:</span>
-                  <span style={{ color: 'var(--color-mui-text-primary)' }}>
+                  <span className="text-gray-600 dark:text-gray-400">{t.pages.playerDetail.additionalInfo.birthDate}:</span>
+                  <span className="text-gray-900 dark:text-white">
                     {player.birthdate || 'N/A'}
                   </span>
                 </div>
@@ -334,20 +305,14 @@ export default function PlayerPage() {
 
 
           {/* Tournament History */}
-          <div
-            className="p-4 md:p-5 rounded-lg border mt-4 md:mt-6"
-            style={{
-              backgroundColor: 'var(--color-mui-background-paper)',
-              borderColor: 'var(--color-mui-divider)'
-            }}
-          >
-            <h2 className="text-lg md:text-xl font-semibold mb-3" style={{ color: 'var(--color-mui-text-primary)' }}>
+          <div className="p-4 md:p-5 rounded-lg border mt-4 md:mt-6 bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg md:text-xl font-semibold mb-3 text-gray-900 dark:text-white">
               {t.pages.playerDetail.tournamentHistory.title}
             </h2>
 
             {tournamentsLoading && (
               <div className="text-center py-4">
-                <div style={{ color: 'var(--color-mui-text-secondary)' }}>
+                <div className="text-gray-600 dark:text-gray-400">
                   {t.pages.playerDetail.tournamentHistory.loading}
                 </div>
               </div>
@@ -355,7 +320,7 @@ export default function PlayerPage() {
 
             {tournamentsError && (
               <div className="text-center py-4">
-                <div style={{ color: 'var(--color-mui-error-main)' }}>
+                <div className="text-red-600 dark:text-red-400">
                   {t.pages.playerDetail.tournamentHistory.error}
                 </div>
               </div>
@@ -363,7 +328,7 @@ export default function PlayerPage() {
 
             {!tournamentsLoading && !tournamentsError && tournaments.length === 0 && (
               <div className="text-center py-4">
-                <div style={{ color: 'var(--color-mui-text-secondary)' }}>
+                <div className="text-gray-600 dark:text-gray-400">
                   {t.pages.playerDetail.tournamentHistory.noTournaments}
                 </div>
               </div>
@@ -375,29 +340,29 @@ export default function PlayerPage() {
                   <Link
                     key={`${tournamentData.tournament.id}-${tournamentData.result.groupId}`}
                     href={`/results/${tournamentData.tournament.id}?groupId=${tournamentData.result.groupId}`}
-                    className="block py-3 transition-colors hover:bg-opacity-50"
+                    className="block py-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                     style={{
-                      borderBottom: index < tournaments.length - 1 ? `1px solid var(--color-mui-divider)` : 'none'
+                      borderBottom: index < tournaments.length - 1 ? '1px solid' : 'none'
                     }}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className="font-medium mb-1" style={{ color: 'var(--color-mui-text-primary)' }}>
+                        <h3 className="font-medium mb-1 text-gray-900 dark:text-white">
                           {tournamentData.tournament.name}
                         </h3>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
                           <span>{formatDateRange(tournamentData.tournament.start, tournamentData.tournament.end)}</span>
                           {tournamentData.tournament.city && <span>{tournamentData.tournament.city}</span>}
                         </div>
                       </div>
                       <div className="text-right ml-4 flex-shrink-0">
                         {tournamentData.result.place && (
-                          <div className="text-sm font-medium" style={{ color: 'var(--color-mui-text-primary)' }}>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {t.pages.playerDetail.tournamentHistory.place}: {tournamentData.result.place}
                           </div>
                         )}
                         {tournamentData.result.points !== undefined && (
-                          <div className="text-sm" style={{ color: 'var(--color-mui-text-secondary)' }}>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
                             {t.pages.playerDetail.tournamentHistory.points}: {tournamentData.result.points}
                           </div>
                         )}

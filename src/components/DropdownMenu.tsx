@@ -109,9 +109,8 @@ export function DropdownMenu({
   return (
     <div
       ref={dropdownRef}
-      className={`shadow-lg overflow-hidden ${className}`}
+      className={`shadow-lg overflow-hidden bg-gray-100 dark:bg-gray-800 ${className}`}
       style={{
-        backgroundColor: 'var(--color-mui-background-hover)',
         boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.3), 0 4px 8px -2px rgba(0, 0, 0, 0.15)',
         display: 'inline-block',
         width: 'fit-content'
@@ -121,7 +120,7 @@ export function DropdownMenu({
         className="overflow-y-auto"
         style={{
           scrollbarWidth: 'thin',
-          scrollbarColor: 'var(--color-mui-divider) transparent',
+          scrollbarColor: '#d1d5db transparent',
           maxHeight: items.length > maxItems ? '240px' : 'auto'
         }}
       >
@@ -129,29 +128,14 @@ export function DropdownMenu({
           <button
             key={item.id}
             onClick={() => onItemClick(item)}
-            className="block px-3 py-2 text-left hover:bg-opacity-50 transition-colors focus:outline-none focus:bg-opacity-50 relative whitespace-nowrap text-sm"
-            style={{
-              backgroundColor: 'transparent',
-              color: 'var(--color-mui-text-primary)',
-              width: '100%'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
+            className="block px-3 py-2 text-left text-gray-900 dark:text-white hover:bg-white/10 dark:hover:bg-white/10 transition-colors focus:outline-none relative whitespace-nowrap text-sm w-full"
           >
-            <div style={{ color: 'var(--color-mui-text-primary)' }}>
+            <div>
               {item.secondary ? `${item.primary} (${item.secondary})` : item.primary}
             </div>
             {index < items.length - 1 && (
               <div
-                className="absolute left-0 right-0 h-px bottom-0"
-                style={{
-                  backgroundColor: 'var(--color-mui-divider)',
-                  opacity: 0.3
-                }}
+                className="absolute left-0 right-0 h-px bottom-0 bg-gray-200 dark:bg-gray-700 opacity-30"
               />
             )}
           </button>
@@ -159,12 +143,7 @@ export function DropdownMenu({
 
         {items.length > maxItems && (
           <div
-            className="px-3 py-2 text-xs text-center"
-            style={{
-              color: 'var(--color-mui-text-secondary)',
-              backgroundColor: 'var(--color-mui-background-default)',
-              opacity: 0.8
-            }}
+            className="px-3 py-2 text-xs text-center text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-dark-bg opacity-80"
           >
             +{items.length - maxItems} more results
           </div>
