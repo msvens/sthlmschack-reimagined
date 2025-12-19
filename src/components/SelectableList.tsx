@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export interface SelectableListItem {
   /** Unique identifier for the item */
@@ -22,10 +22,14 @@ export interface SelectableListProps {
   onSelect: (id: string | number) => void;
   /** Optional title for the list */
   title?: string;
+  /** Show title outside the component */
+  showTitle?: boolean;
   /** Custom container className */
   className?: string;
-  /** Responsive breakpoint - when to switch from horizontal to vertical */
-  breakpoint?: 'sm' | 'md' | 'lg';
+  /** Display variant */
+  variant?: 'vertical' | 'horizontal' | 'dropdown';
+  /** Compact mode - smaller padding and font size */
+  compact?: boolean;
 }
 
 export function SelectableList({
@@ -33,43 +37,165 @@ export function SelectableList({
   selectedId,
   onSelect,
   title,
+  showTitle = true,
   className = '',
-  breakpoint = 'md'
+  variant = 'vertical',
+  compact = false
 }: SelectableListProps) {
-  const responsiveClasses = {
-    sm: {
-      container: 'flex sm:flex-col gap-2 sm:gap-1 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0',
-      item: 'flex-shrink-0 sm:flex-shrink sm:w-full whitespace-nowrap sm:whitespace-normal'
-    },
-    md: {
-      container: 'flex md:flex-col gap-2 md:gap-1 overflow-x-auto md:overflow-visible pb-2 md:pb-0',
-      item: 'flex-shrink-0 md:flex-shrink md:w-full whitespace-nowrap md:whitespace-normal'
-    },
-    lg: {
-      container: 'flex lg:flex-col gap-2 lg:gap-1 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0',
-      item: 'flex-shrink-0 lg:flex-shrink lg:w-full whitespace-nowrap lg:whitespace-normal'
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get selected item
+  const selectedItem = items.find((item) => item.id === selectedId);
+
+  // Click outside handler for dropdown
+  useEffect(() => {
+    if (variant !== 'dropdown' || !isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [variant, isOpen]);
+
+  const handleItemSelect = (id: string | number) => {
+    onSelect(id);
+    if (variant === 'dropdown') {
+      setIsOpen(false);
     }
   };
 
-  const classes = responsiveClasses[breakpoint];
+  // Dropdown variant
+  if (variant === 'dropdown') {
+    const triggerPadding = compact ? 'px-3 py-2' : 'px-4 py-3';
+    const itemPadding = compact ? 'px-3 py-1.5' : 'px-4 py-3';
+    const fontSize = compact ? 'text-xs' : 'text-sm';
 
+    return (
+      <div className={className}>
+        {/* Title outside the box */}
+        {title && showTitle && (
+          <h2 className="text-xs font-semibold mb-2 text-gray-500 dark:text-gray-400">
+            {title}
+          </h2>
+        )}
+
+        {/* Dropdown container with relative positioning */}
+        <div ref={dropdownRef} className="relative">
+          {/* Trigger button - takes up normal space */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className={`w-full ${triggerPadding} text-left flex items-center justify-between border shadow-lg transition-colors bg-white/60 dark:bg-dark-bg/60 backdrop-blur-sm border-gray-200 dark:border-gray-700 hover:bg-gray-50/60 dark:hover:bg-gray-800/60 ${
+              isOpen
+                ? 'rounded-t-lg border-b-0'
+                : 'rounded-lg'
+            }`}
+          >
+            <div className="flex-1 min-w-0">
+              <div className={`${fontSize} font-medium truncate text-gray-900 dark:text-white`}>
+                {selectedItem?.label || 'Select an option'}
+              </div>
+            </div>
+            <svg
+              className={`ml-2 h-5 w-5 flex-shrink-0 transition-transform text-gray-400 ${
+                isOpen ? 'rotate-180' : ''
+              }`}
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+
+          {/* Expanded items list - absolutely positioned overlay */}
+          {isOpen && (
+            <div className="absolute z-50 left-0 right-0 top-full rounded-b-lg border border-t-0 shadow-lg overflow-hidden bg-white/60 dark:bg-dark-bg/60 backdrop-blur-sm border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="max-h-80 overflow-y-auto">
+                {items.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleItemSelect(item.id)}
+                    className={`w-full text-left ${itemPadding} transition-colors hover:bg-gray-100/60 dark:hover:bg-gray-800/60 ${
+                      selectedId === item.id
+                        ? 'bg-gray-50/60 dark:bg-gray-900/60 font-medium text-gray-900 dark:text-white'
+                        : 'text-gray-600 dark:text-gray-400'
+                    }`}
+                    title={item.tooltip}
+                  >
+                    <div className={fontSize}>{item.label}</div>
+                    {item.subtitle && (
+                      <div className="text-xs opacity-70 mt-1">{item.subtitle}</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Horizontal variant
+  if (variant === 'horizontal') {
+    return (
+      <div className={`p-2 ${className}`}>
+        {title && (
+          <h2 className="text-sm font-semibold mb-3 text-gray-900 dark:text-white">
+            {title}
+          </h2>
+        )}
+
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {items.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleItemSelect(item.id)}
+              className={`flex-shrink-0 text-left px-3 py-2 transition-colors text-xs border-b rounded whitespace-nowrap hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                selectedId === item.id
+                  ? 'font-medium border-current text-gray-900 dark:text-white'
+                  : 'border-transparent text-gray-600 dark:text-gray-400'
+              }`}
+              title={item.tooltip}
+            >
+              <div className="font-medium">{item.label}</div>
+              {item.subtitle && (
+                <div className="text-xs opacity-70 mt-1">{item.subtitle}</div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Vertical variant (default)
   return (
     <div className={`p-2 ${className}`}>
       {title && (
-        <h2 className={`text-sm font-semibold mb-3 ${breakpoint}:mb-2 text-gray-900 dark:text-white`}>
+        <h2 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">
           {title}
         </h2>
       )}
 
-      <div className={classes.container}>
+      <div className="flex flex-col gap-1">
         {items.map((item) => (
           <button
             key={item.id}
-            onClick={() => onSelect(item.id)}
-            className={`${classes.item} text-left px-3 py-2 transition-colors text-xs border-b rounded text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 ${
+            onClick={() => handleItemSelect(item.id)}
+            className={`w-full text-left px-3 py-2 transition-colors text-xs border-b rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
               selectedId === item.id
-                ? 'font-medium border-current'
-                : 'border-transparent'
+                ? 'font-medium border-current text-gray-900 dark:text-white'
+                : 'border-transparent text-gray-600 dark:text-gray-400'
             }`}
             title={item.tooltip}
           >

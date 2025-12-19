@@ -242,19 +242,31 @@ export default function TournamentResultsPage() {
 
           {/* Responsive Flex Layout */}
           <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-            {/* Group Selection - Mobile: Full width top, Desktop: Left sidebar */}
-            <div className="w-full md:w-56 md:flex-shrink-0">
+            {/* Group Selection - Desktop: Left sidebar */}
+            <div className="hidden md:block w-56 flex-shrink-0">
               <SelectableList
                 items={getSelectableGroups()}
                 selectedId={selectedGroupId}
                 onSelect={(id) => setSelectedGroupId(Number(id))}
                 title={t.pages.tournamentResults.groups}
-                breakpoint="md"
+                variant="vertical"
               />
             </div>
 
             {/* Main Content Area */}
             <div className="flex-1 min-w-0">
+              {/* Group Selection - Mobile: Dropdown at top */}
+              <div className="md:hidden mb-4">
+                <SelectableList
+                  items={getSelectableGroups()}
+                  selectedId={selectedGroupId}
+                  onSelect={(id) => setSelectedGroupId(Number(id))}
+                  title={t.pages.tournamentResults.groups}
+                  variant="dropdown"
+                  compact
+                />
+              </div>
+
               {selectedGroup ? (
                 <>
                   {/* Main Results Table */}
