@@ -136,7 +136,6 @@ export default function PlayersPage() {
                 <Button
                   type="submit"
                   disabled={isSearching || !firstName.trim() || !lastName.trim()}
-                  color="primary"
                   variant="outlined"
                   className="px-6"
                 >
@@ -175,7 +174,6 @@ export default function PlayersPage() {
                 <Button
                   type="submit"
                   disabled={isSearching || !memberIdSearch.trim()}
-                  color="primary"
                   variant="outlined"
                   className="px-6"
                 >
@@ -212,14 +210,6 @@ export default function PlayersPage() {
                 className="px-3 py-1 text-sm"
               >
                 642062 (Olle Svensson)
-              </Button>
-              <Button
-                onClick={() => setMemberIdSearch('1786741')}
-                variant="outlined"
-                color="default"
-                className="px-3 py-1 text-sm"
-              >
-                1786741 (FIDE ID)
               </Button>
             </div>
           </Card>
