@@ -1,19 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { useLanguage } from '@/context/LanguageContext';
-import { getTranslation } from '@/lib/translations';
 
 interface FooterLinkProps {
   href: string;
   children: React.ReactNode;
+  external?: boolean;
 }
 
-function FooterLink({ href, children }: FooterLinkProps) {
+function FooterLink({ href, children, external = false }: FooterLinkProps) {
+  const externalProps = external
+    ? { target: '_blank', rel: 'noopener noreferrer' }
+    : {};
+
   return (
     <Link
       href={href}
-      className="uppercase mx-4 text-xs transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      className="uppercase mx-2 text-[10px] text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+      {...externalProps}
     >
       {children}
     </Link>
@@ -21,55 +25,12 @@ function FooterLink({ href, children }: FooterLinkProps) {
 }
 
 export function Footer() {
-  const { language } = useLanguage();
-  const t = getTranslation(language);
-
   return (
-    <footer className="w-full border-t bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center">
-        {/* Left side - Project info */}
-        <div className="mb-4 md:mb-0">
-          <div className="text-sm text-gray-900 dark:text-white">
-            {t.footer.projectInfo.title}
-          </div>
-          <div className="text-xs mt-1 text-gray-600 dark:text-gray-400">
-            {t.footer.projectInfo.subtitle}
-          </div>
-        </div>
-
-        {/* Center - Navigation links */}
-        <div className="flex flex-wrap justify-center">
-          <FooterLink href="/events">{t.footer.navigation.events}</FooterLink>
-          <FooterLink href="/calendar">{t.footer.navigation.calendar}</FooterLink>
-          <FooterLink href="/results">{t.footer.navigation.results}</FooterLink>
-          <FooterLink href="/players">{t.footer.navigation.players}</FooterLink>
-          <FooterLink href="/about">{t.footer.navigation.about}</FooterLink>
-        </div>
-
-        {/* Right side - External links */}
-        <div className="mt-4 md:mt-0 text-center md:text-right">
-          <div className="text-xs mb-2 text-gray-600 dark:text-gray-400">
-            {t.footer.external.poweredBy}
-          </div>
-          <div className="flex space-x-4">
-            <Link
-              href="https://www.stockholmsschack.se/"
-              className="text-xs transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Stockholm Schackförbund
-            </Link>
-            <Link
-              href="https://schack.se/"
-              className="text-xs transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Svenska Schackförbundet
-            </Link>
-          </div>
-        </div>
+    <footer className="w-full">
+      <div className="max-w-7xl mx-auto px-4 pt-6 pb-2 flex justify-center items-center">
+        <FooterLink href="/about">About</FooterLink>
+        <FooterLink href="https://schack.se/" external>schack.se</FooterLink>
+        <FooterLink href="https://www.stockholmsschack.se/" external>stockholmsschack.se</FooterLink>
       </div>
     </footer>
   );

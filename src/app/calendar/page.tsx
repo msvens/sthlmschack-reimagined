@@ -1,6 +1,6 @@
 'use client';
 
-import { PageSpacing } from "@/components/layout/PageSpacing";
+import { PageLayout } from "@/components/layout/PageLayout";
 import { Card } from "@/components/Card";
 import { useLanguage } from "@/context/LanguageContext";
 import { getTranslation } from "@/lib/translations";
@@ -10,9 +10,7 @@ export default function CalendarPage() {
   const t = getTranslation(language);
 
   return (
-    <>
-      <PageSpacing />
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <PageLayout>
         <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
           {t.pages.calendar.title}
         </h1>
@@ -25,7 +23,6 @@ export default function CalendarPage() {
             {t.pages.calendar.placeholder}
           </p>
         </Card>
-      </div>
-    </>
+    </PageLayout>
   );
 }

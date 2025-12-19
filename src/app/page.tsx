@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PageSpacing } from "@/components/layout/PageSpacing";
+import { PageLayout } from "@/components/layout/PageLayout";
 import { Card } from "@/components/Card";
 import { useLanguage } from "@/context/LanguageContext";
 import { getTranslation } from "@/lib/translations";
@@ -11,9 +11,7 @@ export default function Home() {
   const t = getTranslation(language);
 
   return (
-    <>
-      <PageSpacing />
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <PageLayout>
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900 dark:text-white">
@@ -100,7 +98,6 @@ export default function Home() {
             {t.home.about.paragraph2}
           </p>
         </Card>
-      </div>
-    </>
+    </PageLayout>
   );
 }

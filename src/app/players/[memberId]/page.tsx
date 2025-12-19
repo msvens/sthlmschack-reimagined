@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { PageSpacing } from '@/components/layout/PageSpacing';
+import { PageLayout } from '@/components/layout/PageLayout';
 import { PlayerService, getPlayerTournaments, PlayerTournamentData } from '@/lib/api';
 import { PlayerInfoDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
@@ -114,67 +114,54 @@ export default function PlayerPage() {
 
   if (loading) {
     return (
-        <>
-      <PageSpacing />
-        <div className="min-h-screen py-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="text-lg text-gray-600 dark:text-gray-400">
-              {t.pages.playerDetail.loading}
-            </div>
+      <PageLayout fullScreen maxWidth="4xl">
+        <div className="text-center">
+          <div className="text-lg text-gray-600 dark:text-gray-400">
+            {t.pages.playerDetail.loading}
           </div>
         </div>
-        </>
+      </PageLayout>
     );
   }
 
   if (error) {
     return (
-        <>
-      <PageSpacing/>
-        <div className="min-h-screen py-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
-              <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
-                {t.pages.playerDetail.error}
-              </h1>
-              <p className="text-lg mb-6 text-gray-600 dark:text-gray-400">
-                {error}
-              </p>
-              <button
-                onClick={() => router.push('/players')}
-                className="px-6 py-2 rounded font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
-              >
-{t.pages.playerDetail.backButton}
-              </button>
-            </div>
+      <PageLayout fullScreen maxWidth="4xl">
+        <div className="text-center">
+          <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
+            <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
+              {t.pages.playerDetail.error}
+            </h1>
+            <p className="text-lg mb-6 text-gray-600 dark:text-gray-400">
+              {error}
+            </p>
+            <button
+              onClick={() => router.push('/players')}
+              className="px-6 py-2 rounded font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
+            >
+              {t.pages.playerDetail.backButton}
+            </button>
           </div>
         </div>
-
-      </>
+      </PageLayout>
     );
   }
 
   if (!player) {
     return (
-        <>
-      <PageSpacing/>
-        <div className="min-h-screen py-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="text-lg text-gray-600 dark:text-gray-400">
-              {t.pages.playerDetail.notFound}
-            </div>
+      <PageLayout fullScreen maxWidth="4xl">
+        <div className="text-center">
+          <div className="text-lg text-gray-600 dark:text-gray-400">
+            {t.pages.playerDetail.notFound}
           </div>
         </div>
-      </>
+      </PageLayout>
     );
   }
 
   return (
-    <>
-    <PageSpacing/>
-      <div className="min-h-screen py-4 md:py-6">
-        <div className="max-w-4xl mx-auto px-4">
-          {/* Back Button */}
+    <PageLayout fullScreen maxWidth="4xl">
+      {/* Back Button */}
           <div className="mb-4">
             <button
               onClick={() => router.push('/players')}
@@ -373,8 +360,6 @@ export default function PlayerPage() {
               </div>
             )}
           </div>
-        </div>
-      </div>
-    </>
+    </PageLayout>
   );
 }

@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
-import { PageSpacing } from '@/components/layout/PageSpacing';
+import { PageLayout } from '@/components/layout/PageLayout';
 import { Card } from '@/components/Card';
 import { DropdownMenu, DropdownMenuItem } from '@/components/DropdownMenu';
 import { Button } from '@/components/Button';
@@ -99,11 +99,8 @@ export default function PlayersPage() {
   }));
 
   return (
-    <>
-    <PageSpacing />
-      <div className="min-h-screen py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
+    <PageLayout fullScreen maxWidth="4xl">
+      {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-light tracking-wide mb-4 text-gray-900 dark:text-white">
               {t.pages.players.title}
@@ -213,8 +210,6 @@ export default function PlayersPage() {
               </Button>
             </div>
           </Card>
-        </div>
-      </div>
-      </>
+    </PageLayout>
   );
 }

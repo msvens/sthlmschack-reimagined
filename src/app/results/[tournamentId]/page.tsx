@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { PageSpacing } from '@/components/layout/PageSpacing';
+import { PageLayout } from '@/components/layout/PageLayout';
 import { TournamentService, ResultsService } from '@/lib/api';
 import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
@@ -179,51 +179,42 @@ export default function TournamentResultsPage() {
 
   if (loading) {
     return (
-      <>
-        <PageSpacing />
-        <div className="min-h-screen py-8">
-          <div className="max-w-7xl mx-auto text-center">
-            <div className="text-lg text-gray-600 dark:text-gray-400">
-              Loading tournament results...
-            </div>
+      <PageLayout fullScreen>
+        <div className="text-center">
+          <div className="text-lg text-gray-600 dark:text-gray-400">
+            Loading tournament results...
           </div>
         </div>
-      </>
+      </PageLayout>
     );
   }
 
   if (error) {
     return (
-      <>
-        <PageSpacing />
-        <div className="min-h-screen py-8">
-          <div className="max-w-7xl mx-auto text-center">
-            <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
-              <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
-                Error Loading Tournament
-              </h1>
-              <p className="text-lg mb-6 text-gray-600 dark:text-gray-400">
-                {error}
-              </p>
-            </div>
+      <PageLayout fullScreen>
+        <div className="text-center">
+          <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
+            <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
+              Error Loading Tournament
+            </h1>
+            <p className="text-lg mb-6 text-gray-600 dark:text-gray-400">
+              {error}
+            </p>
           </div>
         </div>
-      </>
+      </PageLayout>
     );
   }
 
   if (!tournament) {
     return (
-      <>
-        <PageSpacing />
-        <div className="min-h-screen py-8">
-          <div className="max-w-7xl mx-auto text-center">
-            <div className="text-lg text-gray-600 dark:text-gray-400">
-              Tournament not found
-            </div>
+      <PageLayout fullScreen>
+        <div className="text-center">
+          <div className="text-lg text-gray-600 dark:text-gray-400">
+            Tournament not found
           </div>
         </div>
-      </>
+      </PageLayout>
     );
   }
 
@@ -237,11 +228,8 @@ export default function TournamentResultsPage() {
   };
 
   return (
-    <>
-      <PageSpacing />
-      <div className="min-h-screen py-4 md:py-6">
-        <div className="max-w-7xl mx-auto px-4">
-          {/* Tournament Header */}
+    <PageLayout fullScreen>
+      {/* Tournament Header */}
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-light mb-2 text-gray-900 dark:text-white">
               {tournament.name}
@@ -354,7 +342,7 @@ export default function TournamentResultsPage() {
                                     {
                                       id: 'table',
                                       header: t.pages.tournamentResults.roundByRound.table,
-                                      accessor: (row, index) => row.board || (index + 1),
+                                      accessor: (row) => row.board || '-',
                                       align: 'left',
                                       noWrap: true
                                     },
@@ -436,8 +424,6 @@ export default function TournamentResultsPage() {
               )}
             </div>
           </div>
-        </div>
-      </div>
-    </>
+    </PageLayout>
   );
 }

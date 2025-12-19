@@ -7,6 +7,7 @@ export interface CardProps {
   hover?: boolean;
   clickable?: boolean;
   onClick?: () => void;
+  border?: boolean;
 }
 
 export function Card({
@@ -15,7 +16,8 @@ export function Card({
   padding = 'md',
   hover = false,
   clickable = false,
-  onClick
+  onClick,
+  border = true
 }: CardProps) {
   const paddingClasses = {
     none: '',
@@ -24,7 +26,9 @@ export function Card({
     lg: 'p-8'
   };
 
-  const baseClasses = 'rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700';
+  const baseClasses = border
+    ? 'rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700'
+    : 'bg-white dark:bg-dark-bg';
   const hoverClasses = hover || clickable ? 'hover:shadow-lg transition-shadow' : '';
   const clickableClasses = clickable ? 'cursor-pointer' : '';
 
