@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export interface TableColumn<T = Record<string, unknown>> {
   /** Unique identifier for the column */
@@ -19,6 +19,16 @@ export interface TableColumn<T = Record<string, unknown>> {
   headerStyle?: React.CSSProperties;
   /** Custom cell styling */
   cellStyle?: React.CSSProperties;
+}
+
+export type TableDensity = 'compact' | 'normal' | 'comfortable';
+
+export interface DensityThresholds {
+  /** Row count threshold for comfortable density (below this) */
+  comfortable: number;
+  /** Row count threshold for normal density (below this, above comfortable) */
+  normal: number;
+  /** Above normal threshold = compact */
 }
 
 export interface TableProps<T = Record<string, unknown>> {
@@ -46,7 +56,17 @@ export interface TableProps<T = Record<string, unknown>> {
   getRowKey?: (row: T, index: number) => string | number;
   /** Optional row click handler */
   onRowClick?: (row: T, index: number) => void;
-  /** Compact table variant */
+  /**
+   * Table density - controls padding and font size.
+   * If not provided, auto-density is enabled (compact on mobile, row-count based on desktop)
+   */
+  density?: TableDensity;
+  /**
+   * Thresholds for auto-density selection on desktop.
+   * Default: comfortable <= 10 rows, normal <= 20 rows, compact > 20 rows
+   */
+  densityThresholds?: DensityThresholds;
+  /** @deprecated Use density prop instead */
   size?: 'small' | 'medium';
 }
 
@@ -63,9 +83,73 @@ export function Table<T = Record<string, unknown>>({
   style,
   getRowKey,
   onRowClick,
+  density,
+  densityThresholds = {
+    comfortable: 10,
+    normal: 20
+  },
   size = 'medium'
 }: TableProps<T>) {
-  const paddingClass = size === 'small' ? 'p-2' : 'p-3';
+  // Track if we're on mobile
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Determine effective density
+  const getEffectiveDensity = (): TableDensity => {
+    // If density is explicitly set, use it
+    if (density) {
+      return density;
+    }
+
+    // Mobile is always compact
+    if (isMobile) {
+      return 'compact';
+    }
+
+    // Desktop: auto-density based on row count
+    const rowCount = data.length;
+    if (rowCount <= densityThresholds.comfortable) {
+      return 'comfortable';
+    } else if (rowCount <= densityThresholds.normal) {
+      return 'normal';
+    } else {
+      return 'compact';
+    }
+  };
+
+  const effectiveDensity = getEffectiveDensity();
+
+  // Map density to classes
+  const densityClasses = {
+    compact: {
+      padding: 'py-1 px-2',
+      fontSize: 'text-xs',
+      lineHeight: 'leading-tight'
+    },
+    normal: {
+      padding: 'p-2',
+      fontSize: 'text-sm',
+      lineHeight: 'leading-normal'
+    },
+    comfortable: {
+      padding: 'p-3',
+      fontSize: 'text-sm',
+      lineHeight: 'leading-relaxed'
+    }
+  };
+
+  const paddingClass = densityClasses[effectiveDensity].padding;
+  const fontSizeClass = densityClasses[effectiveDensity].fontSize;
+  const lineHeightClass = densityClasses[effectiveDensity].lineHeight;
 
   // Helper function to get cell content
   const getCellContent = (row: T, column: TableColumn<T>): React.ReactNode => {
@@ -134,7 +218,7 @@ export function Table<T = Record<string, unknown>>({
 
   return (
     <div className={`overflow-x-auto ${className}`} style={style}>
-      <table className="w-full text-sm">
+      <table className={`w-full ${fontSizeClass} ${lineHeightClass}`}>
         <thead>
           <tr className="border-b border-gray-200 dark:border-gray-700">
             {columns.map((column) => (

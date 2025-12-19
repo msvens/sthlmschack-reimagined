@@ -138,6 +138,38 @@ export interface Translations {
         points: string;
       };
     };
+    tournamentResults: {
+      loading: string;
+      error: string;
+      notFound: string;
+      groups: string;
+      finalResults: string;
+      finalResultsTable: {
+        pos: string;
+        name: string;
+        club: string;
+        ranking: string;
+        gp: string;
+        won: string;
+        draw: string;
+        lost: string;
+        points: string;
+        qp: string;
+        noResults: string;
+        loadingResults: string;
+      };
+      roundByRound: {
+        title: string;
+        white: string;
+        black: string;
+        table: string;
+        elo: string;
+        result: string;
+        noResults: string;
+        round: string;
+      };
+      selectGroup: string;
+    };
   };
 }
 
@@ -280,6 +312,38 @@ const translations: Record<Language, Translations> = {
           points: 'Points',
         },
       },
+      tournamentResults: {
+        loading: 'Loading tournament results...',
+        error: 'Error Loading Tournament',
+        notFound: 'Tournament not found',
+        groups: 'Groups',
+        finalResults: 'Final Results',
+        finalResultsTable: {
+          pos: 'Pos',
+          name: 'Name',
+          club: 'Club',
+          ranking: 'Ranking',
+          gp: 'GP',
+          won: '+',
+          draw: '=',
+          lost: '-',
+          points: 'Points',
+          qp: 'QP',
+          noResults: 'No results available for this group',
+          loadingResults: 'Loading results...',
+        },
+        roundByRound: {
+          title: 'Rounds',
+          white: 'White',
+          black: 'Black',
+          table: 'Table',
+          elo: 'ELO',
+          result: 'Result',
+          noResults: 'No round results available for this group',
+          round: 'Round',
+        },
+        selectGroup: 'Please select a group to view results',
+      },
     },
   },
   sv: {
@@ -419,6 +483,38 @@ const translations: Record<Language, Translations> = {
           place: 'Placering',
           points: 'Poäng',
         },
+      },
+      tournamentResults: {
+        loading: 'Laddar turneringsresultat...',
+        error: 'Fel vid laddning av turnering',
+        notFound: 'Turnering hittades inte',
+        groups: 'Grupper',
+        finalResults: 'Slutresultat',
+        finalResultsTable: {
+          pos: 'Plac',
+          name: 'Namn',
+          club: 'Klubb',
+          ranking: 'Rating',
+          gp: 'SP',
+          won: '+',
+          draw: '=',
+          lost: '-',
+          points: 'Poäng',
+          qp: 'SB',
+          noResults: 'Inga resultat tillgängliga för denna grupp',
+          loadingResults: 'Laddar resultat...',
+        },
+        roundByRound: {
+          title: 'Ronder',
+          white: 'Vit',
+          black: 'Svart',
+          table: 'Bord',
+          elo: 'ELO',
+          result: 'Resultat',
+          noResults: 'Inga rondresultat tillgängliga för denna grupp',
+          round: 'Rond',
+        },
+        selectGroup: 'Vänligen välj en grupp för att se resultat',
       },
     },
   },

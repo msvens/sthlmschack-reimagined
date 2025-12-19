@@ -1,18 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { PageSpacing } from '@/components/layout/PageSpacing';
 import { TournamentService, ResultsService } from '@/lib/api';
-import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto } from '@/lib/api/types';
+import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { FinalResultsTable } from '@/components/results/FinalResultsTable';
 import { SelectableList, SelectableListItem } from '@/components/SelectableList';
+import { Link } from '@/components/Link';
+import { Table, TableColumn } from '@/components/Table';
 
 export default function TournamentResultsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { language } = useLanguage();
   const t = getTranslation(language);
 
@@ -150,6 +153,30 @@ export default function TournamentResultsPage() {
     }));
   };
 
+  // Create player lookup map from group results for O(1) lookups
+  const playerMap = useMemo(() => {
+    const map = new Map<number, PlayerInfoDto>();
+    groupResults.forEach(result => {
+      if (result.playerInfo) {
+        map.set(result.playerInfo.id, result.playerInfo);
+      }
+    });
+    return map;
+  }, [groupResults]);
+
+  // Helper to get player name from ID
+  const getPlayerName = (playerId: number): string => {
+    const player = playerMap.get(playerId);
+    if (!player) return `Player ${playerId}`;
+    return `${player.firstName} ${player.lastName}`;
+  };
+
+  // Helper to get player ELO from ID
+  const getPlayerElo = (playerId: number): string => {
+    const player = playerMap.get(playerId);
+    return player?.elo?.rating ? String(player.elo.rating) : '-';
+  };
+
   if (loading) {
     return (
       <>
@@ -202,12 +229,11 @@ export default function TournamentResultsPage() {
 
   const selectedGroup = getSelectedGroup();
 
-  // Handle row click in final results table
+  // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
-    const playerName = result.playerInfo
-      ? `${result.playerInfo.firstName} ${result.playerInfo.lastName}`
-      : 'Unknown Player';
-    alert(`Clicked on: ${playerName} (Place: ${result.place}, Points: ${result.points})`);
+    if (result.playerInfo?.id && tournamentId) {
+      router.push(`/results/${tournamentId}/${result.playerInfo.id}`);
+    }
   };
 
   return (
@@ -234,7 +260,7 @@ export default function TournamentResultsPage() {
                 items={getSelectableGroups()}
                 selectedId={selectedGroupId}
                 onSelect={(id) => setSelectedGroupId(Number(id))}
-                title="Groups"
+                title={t.pages.tournamentResults.groups}
                 breakpoint="md"
               />
             </div>
@@ -247,7 +273,7 @@ export default function TournamentResultsPage() {
                   <div className="mb-6">
                     <div className="mb-4">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Final Results - {selectedGroup.group.name}
+                        {t.pages.tournamentResults.finalResults} - {selectedGroup.group.name}
                         {selectedGroup.class.className !== selectedGroup.group.name && (
                           <span className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-400">
                             ({selectedGroup.class.className})
@@ -268,14 +294,14 @@ export default function TournamentResultsPage() {
                   <div className="rounded-lg border overflow-hidden bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
                     <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Round-by-Round Results
+                        {t.pages.tournamentResults.roundByRound.title}
                       </h3>
                     </div>
 
                     {!resultsLoading && !resultsError && roundResults.length === 0 && (
                       <div className="p-6 text-center">
                         <div className="text-gray-600 dark:text-gray-400">
-                          No round results available for this group
+                          {t.pages.tournamentResults.roundByRound.noResults}
                         </div>
                       </div>
                     )}
@@ -315,74 +341,84 @@ export default function TournamentResultsPage() {
                                         : 'text-gray-600 dark:text-gray-400'
                                     }`}
                                   >
-                                    Round {roundNumber}
+                                    {t.pages.tournamentResults.roundByRound.round} {roundNumber}
                                   </button>
                                 ))}
                               </div>
 
                               {/* Selected Round Content */}
                               <div className="p-4">
-                                {selectedRound && resultsByRound[selectedRound] && (
-                                  <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                      <thead>
-                                        <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-                                          <th className="text-left p-3 font-medium whitespace-nowrap text-gray-900 dark:text-white">
-                                            Table
-                                          </th>
-                                          <th className="text-left p-3 font-medium text-gray-900 dark:text-white">
-                                            White Player
-                                          </th>
-                                          <th className="text-center p-3 font-medium whitespace-nowrap text-gray-900 dark:text-white">
-                                            ELO
-                                          </th>
-                                          <th className="text-left p-3 font-medium text-gray-900 dark:text-white">
-                                            Black Player
-                                          </th>
-                                          <th className="text-center p-3 font-medium whitespace-nowrap text-gray-900 dark:text-white">
-                                            ELO
-                                          </th>
-                                          <th className="text-center p-3 font-medium whitespace-nowrap text-gray-900 dark:text-white">
-                                            Result
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {resultsByRound[selectedRound].map((result, index) => (
-                                          <tr
-                                            key={`${result.homeId}-${result.awayId}-${index}`}
-                                            className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                            style={{
-                                              backgroundColor: index % 2 === 0 ? 'transparent' : 'rgba(0, 0, 0, 0.02)'
-                                            }}
-                                          >
-                                            <td className="p-3 text-gray-600 dark:text-gray-400">
-                                              {result.board || (index + 1)}
-                                            </td>
-                                            <td className="p-3 text-gray-600 dark:text-gray-400">
-                                              Player {result.homeId}
-                                            </td>
-                                            <td className="p-3 text-center text-gray-600 dark:text-gray-400">
-                                              0
-                                            </td>
-                                            <td className="p-3 text-gray-600 dark:text-gray-400">
-                                              Player {result.awayId}
-                                            </td>
-                                            <td className="p-3 text-center text-gray-600 dark:text-gray-400">
-                                              0
-                                            </td>
-                                            <td className="p-3 text-center font-medium text-gray-600 dark:text-gray-400">
-                                              {result.homeResult !== undefined && result.awayResult !== undefined
-                                                ? `${result.homeResult} - ${result.awayResult}`
-                                                : '-'
-                                              }
-                                            </td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                )}
+                                {selectedRound && resultsByRound[selectedRound] && (() => {
+                                  // Define columns for round-by-round table
+                                  const roundColumns: TableColumn<TournamentRoundResultDto>[] = [
+                                    {
+                                      id: 'table',
+                                      header: t.pages.tournamentResults.roundByRound.table,
+                                      accessor: (row, index) => row.board || (index + 1),
+                                      align: 'left',
+                                      noWrap: true
+                                    },
+                                    {
+                                      id: 'white',
+                                      header: t.pages.tournamentResults.roundByRound.white,
+                                      accessor: (row) => (
+                                        <Link
+                                          href={`/results/${tournamentId}/${row.homeId}`}
+                                          color="gray"
+                                        >
+                                          {getPlayerName(row.homeId)}
+                                        </Link>
+                                      ),
+                                      align: 'left'
+                                    },
+                                    {
+                                      id: 'whiteElo',
+                                      header: t.pages.tournamentResults.roundByRound.elo,
+                                      accessor: (row) => getPlayerElo(row.homeId),
+                                      align: 'center',
+                                      noWrap: true
+                                    },
+                                    {
+                                      id: 'black',
+                                      header: t.pages.tournamentResults.roundByRound.black,
+                                      accessor: (row) => (
+                                        <Link
+                                          href={`/results/${tournamentId}/${row.awayId}`}
+                                          color="gray"
+                                        >
+                                          {getPlayerName(row.awayId)}
+                                        </Link>
+                                      ),
+                                      align: 'left'
+                                    },
+                                    {
+                                      id: 'blackElo',
+                                      header: t.pages.tournamentResults.roundByRound.elo,
+                                      accessor: (row) => getPlayerElo(row.awayId),
+                                      align: 'center',
+                                      noWrap: true
+                                    },
+                                    {
+                                      id: 'result',
+                                      header: t.pages.tournamentResults.roundByRound.result,
+                                      accessor: (row) =>
+                                        row.homeResult !== undefined && row.awayResult !== undefined
+                                          ? `${row.homeResult} - ${row.awayResult}`
+                                          : '-',
+                                      align: 'center',
+                                      noWrap: true,
+                                      cellStyle: { fontWeight: 'medium' }
+                                    }
+                                  ];
+
+                                  return (
+                                    <Table
+                                      data={resultsByRound[selectedRound]}
+                                      columns={roundColumns}
+                                      getRowKey={(row, index) => `${row.homeId}-${row.awayId}-${index}`}
+                                    />
+                                  );
+                                })()}
                               </div>
                             </>
                           );
@@ -394,7 +430,7 @@ export default function TournamentResultsPage() {
               ) : (
                 <div className="p-6 rounded-lg border text-center bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
                   <p className="text-gray-600 dark:text-gray-400">
-                    Please select a group to view results
+                    {t.pages.tournamentResults.selectGroup}
                   </p>
                 </div>
               )}
