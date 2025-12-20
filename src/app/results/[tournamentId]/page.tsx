@@ -264,6 +264,7 @@ export default function TournamentResultsPage() {
                   title={t.pages.tournamentResults.groups}
                   variant="dropdown"
                   compact
+                  transparent
                 />
               </div>
 

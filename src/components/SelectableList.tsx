@@ -30,6 +30,8 @@ export interface SelectableListProps {
   variant?: 'vertical' | 'horizontal' | 'dropdown';
   /** Compact mode - smaller padding and font size */
   compact?: boolean;
+  /** Transparent background for dropdown (default: false) */
+  transparent?: boolean;
 }
 
 export function SelectableList({
@@ -40,7 +42,8 @@ export function SelectableList({
   showTitle = true,
   className = '',
   variant = 'vertical',
-  compact = false
+  compact = false,
+  transparent = false
 }: SelectableListProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -75,6 +78,20 @@ export function SelectableList({
     const itemPadding = compact ? 'px-3 py-1.5' : 'px-4 py-3';
     const fontSize = compact ? 'text-xs' : 'text-sm';
 
+    // Background classes based on transparent prop
+    const triggerBg = transparent
+      ? 'bg-white/90 dark:bg-dark-bg/90 hover:bg-gray-50/90 dark:hover:bg-gray-800/90'
+      : 'bg-white dark:bg-dark-bg hover:bg-gray-50 dark:hover:bg-gray-800';
+    const listBg = transparent
+      ? 'bg-white/90 dark:bg-dark-bg/90'
+      : 'bg-white dark:bg-dark-bg';
+    const itemHoverBg = transparent
+      ? 'hover:bg-gray-100/90 dark:hover:bg-gray-800/90'
+      : 'hover:bg-gray-100 dark:hover:bg-gray-800';
+    const itemSelectedBg = transparent
+      ? 'bg-gray-50/90 dark:bg-gray-900/90'
+      : 'bg-gray-50 dark:bg-gray-900';
+
     return (
       <div className={className}>
         {/* Title outside the box */}
@@ -89,7 +106,7 @@ export function SelectableList({
           {/* Trigger button - takes up normal space */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`w-full ${triggerPadding} text-left flex items-center justify-between border shadow-lg transition-colors bg-white/60 dark:bg-dark-bg/60 backdrop-blur-sm border-gray-200 dark:border-gray-700 hover:bg-gray-50/60 dark:hover:bg-gray-800/60 ${
+            className={`w-full ${triggerPadding} text-left flex items-center justify-between border shadow-lg transition-colors ${triggerBg} border-gray-200 dark:border-gray-700 ${
               isOpen
                 ? 'rounded-t-lg border-b-0'
                 : 'rounded-lg'
@@ -118,15 +135,15 @@ export function SelectableList({
 
           {/* Expanded items list - absolutely positioned overlay */}
           {isOpen && (
-            <div className="absolute z-50 left-0 right-0 top-full rounded-b-lg border border-t-0 shadow-lg overflow-hidden bg-white/60 dark:bg-dark-bg/60 backdrop-blur-sm border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className={`absolute z-50 left-0 right-0 top-full rounded-b-lg border border-t-0 shadow-lg overflow-hidden ${listBg} border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-200`}>
               <div className="max-h-80 overflow-y-auto">
                 {items.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => handleItemSelect(item.id)}
-                    className={`w-full text-left ${itemPadding} transition-colors hover:bg-gray-100/60 dark:hover:bg-gray-800/60 ${
+                    className={`w-full text-left ${itemPadding} transition-colors ${itemHoverBg} ${
                       selectedId === item.id
-                        ? 'bg-gray-50/60 dark:bg-gray-900/60 font-medium text-gray-900 dark:text-white'
+                        ? `${itemSelectedBg} font-medium text-gray-900 dark:text-white`
                         : 'text-gray-600 dark:text-gray-400'
                     }`}
                     title={item.tooltip}
