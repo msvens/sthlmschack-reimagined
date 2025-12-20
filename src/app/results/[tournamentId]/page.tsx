@@ -222,8 +222,8 @@ export default function TournamentResultsPage() {
 
   // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
-    if (result.playerInfo?.id && tournamentId) {
-      router.push(`/results/${tournamentId}/${result.playerInfo.id}`);
+    if (result.playerInfo?.id && tournamentId && selectedGroupId) {
+      router.push(`/results/${tournamentId}/${result.playerInfo.id}?groupId=${selectedGroupId}`);
     }
   };
 
@@ -364,7 +364,7 @@ export default function TournamentResultsPage() {
                                       header: t.pages.tournamentResults.roundByRound.white,
                                       accessor: (row) => (
                                         <Link
-                                          href={`/results/${tournamentId}/${row.homeId}`}
+                                          href={`/results/${tournamentId}/${row.homeId}?groupId=${selectedGroupId}`}
                                           color="gray"
                                         >
                                           {getPlayerName(row.homeId)}
@@ -384,11 +384,11 @@ export default function TournamentResultsPage() {
                                       header: t.pages.tournamentResults.roundByRound.black,
                                       accessor: (row) => (
                                         <Link
-                                          href={`/results/${tournamentId}/${row.awayId}`}
+                                          href={`/results/${tournamentId}/${row.awayId}?groupId=${selectedGroupId}`}
                                           color="gray"
                                         >
                                           {getPlayerName(row.awayId)}
-                                        </Link>
+                                          </Link>
                                       ),
                                       align: 'left'
                                     },
