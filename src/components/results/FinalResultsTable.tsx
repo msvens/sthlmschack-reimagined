@@ -57,7 +57,7 @@ export function FinalResultsTable({
       header: t.pages.tournamentResults.finalResultsTable.club,
       accessor: (row) => row.playerInfo?.club || '-',
       align: 'left',
-      cellClassName: 'max-w-[8ch] sm:max-w-none overflow-hidden'
+      cellClassName: 'max-w-[8ch] sm:max-w-none overflow-hidden whitespace-nowrap sm:whitespace-normal'
     },
     {
       id: 'ranking',
