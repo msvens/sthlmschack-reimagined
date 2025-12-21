@@ -209,10 +209,10 @@ export function SelectableList({
           <button
             key={item.id}
             onClick={() => handleItemSelect(item.id)}
-            className={`w-full text-left px-3 py-2 transition-colors text-xs border-b rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+            className={`w-full text-left px-3 py-2 transition-colors text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
               selectedId === item.id
-                ? 'font-medium border-current text-gray-900 dark:text-white'
-                : 'border-transparent text-gray-600 dark:text-gray-400'
+                ? 'font-medium bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                : 'text-gray-600 dark:text-gray-400'
             }`}
             title={item.tooltip}
           >

@@ -56,7 +56,8 @@ export function FinalResultsTable({
       id: 'club',
       header: t.pages.tournamentResults.finalResultsTable.club,
       accessor: (row) => row.playerInfo?.club || '-',
-      align: 'left'
+      align: 'left',
+      cellClassName: 'max-w-[8ch] sm:max-w-none overflow-hidden'
     },
     {
       id: 'ranking',
@@ -73,7 +74,9 @@ export function FinalResultsTable({
         return gamesPlayed || '-';
       },
       align: 'center',
-      noWrap: true
+      noWrap: true,
+      headerClassName: 'hidden sm:table-cell',
+      cellClassName: 'hidden sm:table-cell'
     },
     {
       id: 'won',

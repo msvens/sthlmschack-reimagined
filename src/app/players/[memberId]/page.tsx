@@ -140,16 +140,6 @@ export default function PlayerPage() {
 
   return (
     <PageLayout maxWidth="3xl">
-      {/* Back Button */}
-      <div className="mb-4">
-        <button
-          onClick={() => router.push('/players')}
-          className="flex items-center text-sm transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-        >
-          ← {t.pages.playerDetail.backButton}
-        </button>
-      </div>
-
       {/* Player Info - Compact, No Borders */}
       <div className="mb-6">
         <PlayerInfo

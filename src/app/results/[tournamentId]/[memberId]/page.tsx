@@ -256,16 +256,6 @@ export default function TournamentPlayerDetailPage() {
 
   return (
     <PageLayout maxWidth="3xl">
-      {/* Back Button */}
-      <div className="mb-4">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center text-sm transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-        >
-          ← {t.pages.playerDetail.backButton}
-        </button>
-      </div>
-
       {/* Tournament Context */}
       <div className="mb-6">
         <Link

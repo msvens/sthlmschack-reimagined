@@ -254,7 +254,7 @@ export default function TournamentResultsPage() {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 md:pr-2">
               {/* Group Selection - Mobile: Dropdown at top */}
               <div className="md:hidden mb-4">
                 <SelectableList
@@ -293,7 +293,7 @@ export default function TournamentResultsPage() {
 
                   {/* Round-by-Round Results */}
                   <div className="rounded-lg border overflow-hidden bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         {t.pages.tournamentResults.roundByRound.title}
                       </h3>
@@ -348,7 +348,7 @@ export default function TournamentResultsPage() {
                               </div>
 
                               {/* Selected Round Content */}
-                              <div className="p-4">
+                              <div className="p-4 md:p-6">
                                 {selectedRound && resultsByRound[selectedRound] && (() => {
                                   // Define columns for round-by-round table
                                   const roundColumns: TableColumn<TournamentRoundResultDto>[] = [

@@ -19,6 +19,10 @@ export interface TableColumn<T = Record<string, unknown>> {
   headerStyle?: React.CSSProperties;
   /** Custom cell styling */
   cellStyle?: React.CSSProperties;
+  /** Custom header CSS classes */
+  headerClassName?: string;
+  /** Custom cell CSS classes */
+  cellClassName?: string;
 }
 
 export type TableDensity = 'compact' | 'normal' | 'comfortable';
@@ -230,7 +234,7 @@ export function Table<T = Record<string, unknown>>({
                     : column.align === 'right'
                     ? 'text-right'
                     : 'text-left'
-                } ${column.noWrap ? 'whitespace-nowrap' : ''}`}
+                } ${column.noWrap ? 'whitespace-nowrap' : ''} ${column.headerClassName || ''}`}
                 style={{
                   width: column.width,
                   ...column.headerStyle
@@ -261,7 +265,7 @@ export function Table<T = Record<string, unknown>>({
                       : column.align === 'right'
                       ? 'text-right'
                       : 'text-left'
-                  } ${column.noWrap ? 'whitespace-nowrap' : ''}`}
+                  } ${column.noWrap ? 'whitespace-nowrap' : ''} ${column.cellClassName || ''}`}
                   style={{
                     ...column.cellStyle
                   }}
