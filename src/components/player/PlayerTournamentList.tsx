@@ -177,7 +177,7 @@ export function PlayerTournamentList({
       {tournaments.map((tournamentData, index) => (
         <Link
           key={`${tournamentData.tournament.id}-${tournamentData.result.groupId}`}
-          href={`/results/${tournamentData.tournament.id}?groupId=${tournamentData.result.groupId}`}
+          href={`/results/${tournamentData.tournament.id}/${tournamentData.result.groupId}`}
           className={`block ${classes.padding} px-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800`}
           style={{
             borderBottom: index < tournaments.length - 1 ? '1px solid' : 'none',
