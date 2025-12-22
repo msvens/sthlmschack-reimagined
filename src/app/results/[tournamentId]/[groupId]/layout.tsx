@@ -2,23 +2,25 @@
 
 import { ReactNode, useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService } from '@/lib/api';
+import { ResultsService, TournamentService, formatPlayerRating } from '@/lib/api';
 import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue } from '@/context/GroupResultsContext';
 
 export default function GroupResultsLayout({ children }: { children: ReactNode }) {
   const params = useParams();
+  const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
 
   const [groupResults, setGroupResults] = useState<TournamentEndResultDto[]>([]);
   const [roundResults, setRoundResults] = useState<TournamentRoundResultDto[]>([]);
+  const [thinkingTime, setThinkingTime] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch results data when groupId is available
+  // Fetch tournament data and results when IDs are available
   useEffect(() => {
-    if (!groupId || isNaN(groupId)) {
-      setError('Invalid group ID');
+    if (!tournamentId || !groupId || isNaN(tournamentId) || isNaN(groupId)) {
+      setError('Invalid tournament or group ID');
       setLoading(false);
       return;
     }
@@ -29,12 +31,18 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
         setError(null);
 
         const resultsService = new ResultsService();
+        const tournamentService = new TournamentService();
 
-        // Fetch both group results and round results in parallel
-        const [groupResponse, roundResponse] = await Promise.all([
+        // Fetch tournament data and results in parallel
+        const [tournamentResponse, groupResponse, roundResponse] = await Promise.all([
+          tournamentService.getTournament(tournamentId),
           resultsService.getTournamentResults(groupId),
           resultsService.getTournamentRoundResults(groupId)
         ]);
+
+        if (tournamentResponse.status === 200 && tournamentResponse.data) {
+          setThinkingTime(tournamentResponse.data.thinkingTime || null);
+        }
 
         if (groupResponse.status !== 200) {
           throw new Error(groupResponse.error || 'Failed to fetch group results');
@@ -58,7 +66,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     };
 
     fetchResults();
-  }, [groupId]);
+  }, [tournamentId, groupId]);
 
   // Create player lookup map from group results for O(1) lookups
   const playerMap = useMemo(() => {
@@ -78,10 +86,10 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     return `${player.firstName} ${player.lastName}`;
   };
 
-  // Helper to get player ELO from ID
+  // Helper to get player ELO from ID based on tournament time control
   const getPlayerElo = (playerId: number): string => {
     const player = playerMap.get(playerId);
-    return player?.elo?.rating ? String(player.elo.rating) : '-';
+    return formatPlayerRating(player?.elo, thinkingTime);
   };
 
   const contextValue: GroupResultsContextValue = {

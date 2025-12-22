@@ -7,7 +7,7 @@ import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { PlayerTournamentList } from '@/components/player/PlayerTournamentList';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { PlayerService, TournamentService, getPlayerTournaments, PlayerTournamentData } from '@/lib/api';
+import { PlayerService, TournamentService, getPlayerTournaments, PlayerTournamentData, formatPlayerRating, getPlayerRatingForTournament, calculateRatingChange, calculateTournamentStats } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -18,7 +18,6 @@ interface PlayerMatch {
   opponent: PlayerInfoDto;
   result: 'win' | 'draw' | 'loss';
   color: 'white' | 'black';
-  opponentRating: number | null;
   homeResult: number;
   awayResult: number;
 }
@@ -124,7 +123,6 @@ export default function TournamentPlayerDetailPage() {
             opponent,
             result,
             color: isHome ? 'white' : 'black',
-            opponentRating: opponent.elo?.rating || null,
             homeResult: roundResult.homeResult,
             awayResult: roundResult.awayResult
           });
@@ -200,6 +198,18 @@ export default function TournamentPlayerDetailPage() {
     );
   }
 
+  // Helper function to get K-factor with fallback
+  const getKFactor = (playerData: PlayerInfoDto): number => {
+    if (playerData.elo?.k) {
+      return playerData.elo.k;
+    }
+    // Default K-factor based on rating (FIDE rules approximation)
+    // K=10 for 2400+, K=20 for adults <2400, K=40 for juniors/new players
+    const rating = playerData.elo?.rating || playerData.elo?.rapidRating || playerData.elo?.blitzRating;
+    if (rating && rating >= 2400) return 10;
+    return 20; // Default for most adult players
+  };
+
   // Define columns for player matches table
   const matchColumns: TableColumn<PlayerMatch>[] = [
     {
@@ -218,7 +228,7 @@ export default function TournamentPlayerDetailPage() {
         return isPlayerWhite ? (
           `${whitePlayer.firstName} ${whitePlayer.lastName}`
         ) : (
-          <Link href={`/players/${row.opponent.id}`} color="gray">
+          <Link href={`/results/${tournamentId}/${groupId}/${row.opponent.id}`} color="gray">
             {whitePlayer.firstName} {whitePlayer.lastName}
           </Link>
         );
@@ -229,8 +239,8 @@ export default function TournamentPlayerDetailPage() {
       id: 'whiteElo',
       header: t.pages.tournamentResults.roundByRound.elo,
       accessor: (row) => {
-        const rating = row.color === 'white' ? player.elo?.rating : row.opponentRating;
-        return rating || '-';
+        const whitePlayerElo = row.color === 'white' ? player.elo : row.opponent.elo;
+        return formatPlayerRating(whitePlayerElo, tournament.thinkingTime);
       },
       align: 'center',
       noWrap: true
@@ -244,7 +254,7 @@ export default function TournamentPlayerDetailPage() {
         return isPlayerBlack ? (
           `${blackPlayer.firstName} ${blackPlayer.lastName}`
         ) : (
-          <Link href={`/players/${row.opponent.id}`} color="gray">
+          <Link href={`/results/${tournamentId}/${groupId}/${row.opponent.id}`} color="gray">
             {blackPlayer.firstName} {blackPlayer.lastName}
           </Link>
         );
@@ -255,8 +265,8 @@ export default function TournamentPlayerDetailPage() {
       id: 'blackElo',
       header: t.pages.tournamentResults.roundByRound.elo,
       accessor: (row) => {
-        const rating = row.color === 'black' ? player.elo?.rating : row.opponentRating;
-        return rating || '-';
+        const blackPlayerElo = row.color === 'black' ? player.elo : row.opponent.elo;
+        return formatPlayerRating(blackPlayerElo, tournament.thinkingTime);
       },
       align: 'center',
       noWrap: true
@@ -268,6 +278,30 @@ export default function TournamentPlayerDetailPage() {
       align: 'center',
       noWrap: true,
       cellStyle: { fontWeight: 'medium' }
+    },
+    {
+      id: 'eloChange',
+      header: language === 'sv' ? 'ELO +/-' : 'ELO +/-',
+      accessor: (row) => {
+        // Get appropriate ratings based on tournament type
+        const { rating: playerRating } = getPlayerRatingForTournament(player.elo, tournament.thinkingTime);
+        const { rating: opponentRating } = getPlayerRatingForTournament(row.opponent.elo, tournament.thinkingTime);
+        const kFactor = getKFactor(player);
+
+        // Can't calculate if either player has no rating
+        if (!playerRating || !opponentRating) {
+          return '-';
+        }
+
+        // Calculate rating change
+        const actualScore = row.result === 'win' ? 1.0 : row.result === 'draw' ? 0.5 : 0.0;
+        const change = calculateRatingChange(playerRating, opponentRating, actualScore, kFactor);
+
+        // Format with + or - sign
+        return change > 0 ? `+${change}` : String(change);
+      },
+      align: 'center',
+      noWrap: true
     }
   ];
 
@@ -309,14 +343,69 @@ export default function TournamentPlayerDetailPage() {
           <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
             {player.firstName} {player.lastName} - {language === 'sv' ? 'Partier' : 'Matches'}
           </h2>
-          <div className="rounded-lg border overflow-hidden bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
-            <Table
-              data={matches}
-              columns={matchColumns}
-              getRowKey={(row) => `${row.round}-${row.opponent.id}`}
-              emptyMessage={language === 'sv' ? 'Inga partier hittades' : 'No matches found'}
-            />
-          </div>
+          <Table
+            data={matches}
+            columns={matchColumns}
+            getRowKey={(row) => `${row.round}-${row.opponent.id}`}
+            emptyMessage={language === 'sv' ? 'Inga partier hittades' : 'No matches found'}
+          />
+
+          {/* Tournament Summary */}
+          {(() => {
+            // Calculate tournament statistics
+            if (!player.elo || matches.length === 0) {
+              return null;
+            }
+
+            const { rating: playerRating } = getPlayerRatingForTournament(player.elo, tournament.thinkingTime);
+            if (!playerRating) {
+              return null;
+            }
+
+            const kFactor = getKFactor(player);
+
+            const matchResults = matches.map(match => ({
+              opponentRating: getPlayerRatingForTournament(match.opponent.elo, tournament.thinkingTime).rating,
+              actualScore: match.result === 'win' ? 1.0 : match.result === 'draw' ? 0.5 : 0.0
+            }));
+
+            const stats = calculateTournamentStats(matchResults, playerRating, kFactor);
+
+            if (stats.gamesWithRatedOpponents === 0) {
+              return null;
+            }
+
+            return (
+              <div className="mt-3 p-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      {language === 'sv' ? 'Totalt' : 'Total'}
+                    </div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      {matches.length} {language === 'sv' ? 'av' : 'of'} {matches.length}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      {language === 'sv' ? 'ELO +/-' : 'ELO +/-'}
+                    </div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      {stats.totalChange > 0 ? `+${stats.totalChange}` : stats.totalChange}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      {language === 'sv' ? 'ELO prestation' : 'Performance Rating'}
+                    </div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      {stats.performanceRating}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 

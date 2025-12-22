@@ -15,3 +15,12 @@ export { RegistrationService } from './services/registration';
 // Export utility functions
 export { getPlayerTournaments, type PlayerTournamentData } from './utils/playerTournaments';
 export { sortTournamentResultsByDate, sortTournamentEndResultsByPlace, sortTournamentsByDate } from './utils/sortingUtils';
+export { getPlayerRatingForTournament, formatPlayerRating, type PlayerRating } from './utils/ratingUtils';
+export {
+  calculateExpectedScore,
+  calculateRatingChange,
+  calculatePerformanceRating,
+  calculateTournamentStats,
+  type MatchResult,
+  type TournamentRatingStats
+} from './utils/eloCalculations';
