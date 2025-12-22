@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { PlayerInfoDto } from '@/lib/api/types';
 
 export interface PlayerInfoProps {
@@ -16,6 +16,10 @@ export interface PlayerInfoProps {
       date: string;
       kFactor: string;
     };
+    laskRating: {
+      title: string;
+      rating: string;
+    };
     additionalInfo: {
       title: string;
       fideId: string;
@@ -29,67 +33,80 @@ export interface PlayerInfoProps {
 }
 
 export function PlayerInfo({ player, t }: PlayerInfoProps) {
+  const [imageError, setImageError] = useState(false);
+
   const formatRating = (rating: number | null | undefined) => {
     return rating && rating > 0 ? rating.toString() : 'N/A';
   };
 
-  return (
-    <div className="space-y-4">
-      {/* Player Header - Name and Primary Ratings */}
-      <div>
-        <h1 className="text-3xl font-light mb-3 text-gray-900 dark:text-white">
-          {player.firstName} {player.lastName}
-        </h1>
-        <div className="grid grid-cols-2 gap-4 mb-3">
-          <div>
-            <div className="text-2xl font-semibold text-gray-900 dark:text-white">
-              {formatRating(player.elo?.rating)}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {t.eloRating.title}
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-semibold text-gray-900 dark:text-white">
-              {formatRating(player.lask?.rating)}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              LASK Rating
-            </div>
-          </div>
-        </div>
-      </div>
+  const photoUrl = `https://resultat.schack.se/getPlayerPhoto?id=${player.id}`;
 
-      {/* Compact Details Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 text-sm">
-        {/* Left Column */}
-        <div className="space-y-1">
+  return (
+    <div>
+      {/* Player Name */}
+      <h1 className="text-3xl font-light mb-8 text-gray-900 dark:text-white">
+        {player.firstName} {player.lastName}
+      </h1>
+
+      {/* Info + Image container - full width with space between */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        {/* Mobile: Photo (left-aligned, before info) */}
+        {!imageError && (
+          <div className="sm:hidden">
+            <img
+              src={photoUrl}
+              alt={`${player.firstName} ${player.lastName}`}
+              className="max-w-[160px] max-h-[160px] object-contain rounded"
+              onError={() => setImageError(true)}
+            />
+          </div>
+        )}
+
+        {/* Player Information - constrained width */}
+        <div className="min-w-[320px] max-w-[480px] space-y-1 text-sm">
+          {/* ELO Rating - Bold and bright */}
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">{t.eloRating.title}:</span>
+            <span className="text-gray-900 dark:text-white font-bold">{formatRating(player.elo?.rating)}</span>
+          </div>
+
+          {/* LASK Rating - Always show */}
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">{t.laskRating.title}:</span>
+            <span className="text-gray-900 dark:text-white font-medium">{formatRating(player.lask?.rating)}</span>
+          </div>
+
+          {/* Member ID */}
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">{t.playerInfo.memberId}:</span>
             <span className="text-gray-900 dark:text-white font-medium">{player.id}</span>
           </div>
+
+          {/* Club */}
           {player.club && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.playerInfo.club}:</span>
               <span className="text-gray-900 dark:text-white font-medium">{player.club}</span>
             </div>
           )}
+
+          {/* Rapid Rating */}
           {player.elo?.rapidRating && player.elo.rapidRating > 0 && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.eloRating.rapidRating}:</span>
               <span className="text-gray-900 dark:text-white font-medium">{player.elo.rapidRating}</span>
             </div>
           )}
+
+          {/* Blitz Rating */}
           {player.elo?.blitzRating && player.elo.blitzRating > 0 && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.eloRating.blitzRating}:</span>
               <span className="text-gray-900 dark:text-white font-medium">{player.elo.blitzRating}</span>
             </div>
           )}
-        </div>
 
-        {/* Right Column */}
-        <div className="space-y-1">
+          {/* FIDE ID */}
           {player.fideid && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.additionalInfo.fideId}:</span>
@@ -105,25 +122,43 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
               </span>
             </div>
           )}
+
+          {/* Birth Date */}
           {player.birthdate && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.additionalInfo.birthDate}:</span>
               <span className="text-gray-900 dark:text-white font-medium">{player.birthdate}</span>
             </div>
           )}
+
+          {/* FIDE Title */}
           {player.elo?.title && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.eloRating.fideTitle}:</span>
               <span className="text-gray-900 dark:text-white font-medium">{player.elo.title}</span>
             </div>
           )}
-          {player.elo?.k && (
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">{t.eloRating.kFactor}:</span>
-              <span className="text-gray-900 dark:text-white font-medium">{player.elo.k}</span>
-            </div>
-          )}
+
+          {/* K-Factor - Always show */}
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">{t.eloRating.kFactor}:</span>
+            <span className="text-gray-900 dark:text-white font-medium">
+              {player.elo?.k && player.elo.k > 0 ? player.elo.k : 'N/A'}
+            </span>
+          </div>
         </div>
+
+        {/* Right: Player Photo (Desktop: >= sm) */}
+        {!imageError && (
+          <div className="hidden sm:block flex-shrink-0">
+            <img
+              src={photoUrl}
+              alt={`${player.firstName} ${player.lastName}`}
+              className="max-w-[240px] max-h-[240px] object-contain rounded"
+              onError={() => setImageError(true)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
