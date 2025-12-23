@@ -5,9 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { PlayerHistory } from '@/components/player/PlayerHistory';
+import { EloRatingChart, RatingDataPoint } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { PlayerService, TournamentService, getPlayerTournaments, PlayerTournamentData, formatPlayerRating, getPlayerRatingForTournament, calculateRatingChange, calculateTournamentStats } from '@/lib/api';
+import { PlayerService, TournamentService, getPlayerTournaments, getPlayerRatingHistory, PlayerTournamentData, formatPlayerRating, getPlayerRatingForTournament, calculateRatingChange, calculateTournamentStats } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -42,6 +43,10 @@ export default function TournamentPlayerDetailPage() {
   const [tournaments, setTournaments] = useState<PlayerTournamentData[]>([]);
   const [tournamentsLoading, setTournamentsLoading] = useState(false);
   const [tournamentsError, setTournamentsError] = useState<string | null>(null);
+
+  // Rating history state
+  const [ratingHistory, setRatingHistory] = useState<RatingDataPoint[]>([]);
+  const [ratingHistoryLoading, setRatingHistoryLoading] = useState(false);
 
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
@@ -149,7 +154,7 @@ export default function TournamentPlayerDetailPage() {
     setMatches(playerMatches);
   }, [memberId, tournamentPlayer, roundResults, playerMap, resultsLoading]);
 
-  // Fetch tournament history after player data is loaded
+  // Fetch tournament history and rating history after player data is loaded
   useEffect(() => {
     if (!player || !memberId) return;
 
@@ -173,7 +178,25 @@ export default function TournamentPlayerDetailPage() {
       }
     };
 
+    const fetchRatingHistory = async () => {
+      try {
+        setRatingHistoryLoading(true);
+
+        const response = await getPlayerRatingHistory(memberId, 12);
+
+        if (response.status === 200 && response.data) {
+          setRatingHistory(response.data);
+        }
+      } catch (err) {
+        console.error('Error fetching rating history:', err);
+      } finally {
+        setRatingHistoryLoading(false);
+      }
+    };
+
+    // Fetch in parallel
     fetchTournaments();
+    fetchRatingHistory();
   }, [player, memberId]);
 
   if (loading) {
@@ -430,6 +453,28 @@ export default function TournamentPlayerDetailPage() {
           player={player}
           t={t.pages.playerDetail}
         />
+      </div>
+
+      {/* ELO Rating History Chart */}
+      <div className="mt-8 mb-8">
+        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+          {language === 'sv' ? 'Rankingutveckling' : 'Rating History'}
+        </h2>
+        {ratingHistoryLoading ? (
+          <div className="flex items-center justify-center h-96 text-gray-600 dark:text-gray-400">
+            {language === 'sv' ? 'Laddar historik...' : 'Loading history...'}
+          </div>
+        ) : (
+          <EloRatingChart
+            data={ratingHistory}
+            labels={{
+              standard: language === 'sv' ? 'ELO' : 'ELO',
+              rapid: language === 'sv' ? 'Snabb-ELO' : 'Rapid ELO',
+              blitz: language === 'sv' ? 'Blixt-ELO' : 'Blitz ELO',
+              lask: 'LASK'
+            }}
+          />
+        )}
       </div>
 
       {/* Player History with Tabs */}

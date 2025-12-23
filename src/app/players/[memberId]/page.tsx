@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { PlayerHistory } from '@/components/player/PlayerHistory';
-import { PlayerService, getPlayerTournaments, PlayerTournamentData } from '@/lib/api';
+import { EloRatingChart, RatingDataPoint } from '@/components/player/EloRatingChart';
+import { PlayerService, getPlayerTournaments, getPlayerRatingHistory, PlayerTournamentData } from '@/lib/api';
 import { PlayerInfoDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -24,6 +25,10 @@ export default function PlayerPage() {
   const [tournaments, setTournaments] = useState<PlayerTournamentData[]>([]);
   const [tournamentsLoading, setTournamentsLoading] = useState(false);
   const [tournamentsError, setTournamentsError] = useState<string | null>(null);
+
+  // Rating history state
+  const [ratingHistory, setRatingHistory] = useState<RatingDataPoint[]>([]);
+  const [ratingHistoryLoading, setRatingHistoryLoading] = useState(false);
   
   const memberId = params.memberId ? parseInt(params.memberId as string) : null;
 
@@ -63,7 +68,7 @@ export default function PlayerPage() {
     fetchPlayer();
   }, [memberId]);
 
-  // Fetch tournaments after player data is loaded
+  // Fetch tournaments and rating history after player data is loaded
   useEffect(() => {
     if (!player || !memberId) return;
 
@@ -87,7 +92,25 @@ export default function PlayerPage() {
       }
     };
 
+    const fetchRatingHistory = async () => {
+      try {
+        setRatingHistoryLoading(true);
+
+        const response = await getPlayerRatingHistory(memberId, 12);
+
+        if (response.status === 200 && response.data) {
+          setRatingHistory(response.data);
+        }
+      } catch (err) {
+        console.error('Error fetching rating history:', err);
+      } finally {
+        setRatingHistoryLoading(false);
+      }
+    };
+
+    // Fetch in parallel
     fetchTournaments();
+    fetchRatingHistory();
   }, [player, memberId]);
 
 
@@ -146,6 +169,28 @@ export default function PlayerPage() {
           player={player}
           t={t.pages.playerDetail}
         />
+      </div>
+
+      {/* ELO Rating History Chart */}
+      <div className="mt-8 mb-8">
+        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+          {language === 'sv' ? 'Rankingutveckling' : 'Rating History'}
+        </h2>
+        {ratingHistoryLoading ? (
+          <div className="flex items-center justify-center h-96 text-gray-600 dark:text-gray-400">
+            {language === 'sv' ? 'Laddar historik...' : 'Loading history...'}
+          </div>
+        ) : (
+          <EloRatingChart
+            data={ratingHistory}
+            labels={{
+              standard: language === 'sv' ? 'ELO' : 'ELO',
+              rapid: language === 'sv' ? 'Snabb-ELO' : 'Rapid ELO',
+              blitz: language === 'sv' ? 'Blixt-ELO' : 'Blitz ELO',
+              lask: 'LASK'
+            }}
+          />
+        )}
       </div>
 
       {/* Player History with Tabs */}
