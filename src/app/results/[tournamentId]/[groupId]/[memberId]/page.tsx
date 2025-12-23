@@ -31,7 +31,8 @@ export default function TournamentPlayerDetailPage() {
   // Get group-level data from context
   const { roundResults, playerMap, loading: resultsLoading } = useGroupResults();
 
-  const [player, setPlayer] = useState<PlayerInfoDto | null>(null);
+  const [player, setPlayer] = useState<PlayerInfoDto | null>(null); // Current player info for display
+  const [tournamentPlayer, setTournamentPlayer] = useState<PlayerInfoDto | null>(null); // Historical player info for calculations
   const [tournament, setTournament] = useState<TournamentDto | null>(null);
   const [matches, setMatches] = useState<PlayerMatch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,9 +91,21 @@ export default function TournamentPlayerDetailPage() {
     fetchData();
   }, [tournamentId, memberId, groupId]);
 
+  // Get historical tournament player info from playerMap
+  useEffect(() => {
+    if (!memberId || !playerMap || resultsLoading) {
+      return;
+    }
+
+    const historicalPlayer = playerMap.get(memberId);
+    if (historicalPlayer) {
+      setTournamentPlayer(historicalPlayer);
+    }
+  }, [memberId, playerMap, resultsLoading]);
+
   // Extract player's matches from context roundResults once available
   useEffect(() => {
-    if (!memberId || !player || resultsLoading || roundResults.length === 0) {
+    if (!memberId || !tournamentPlayer || resultsLoading || roundResults.length === 0) {
       return;
     }
 
@@ -134,7 +147,7 @@ export default function TournamentPlayerDetailPage() {
     playerMatches.sort((a, b) => a.round - b.round);
 
     setMatches(playerMatches);
-  }, [memberId, player, roundResults, playerMap, resultsLoading]);
+  }, [memberId, tournamentPlayer, roundResults, playerMap, resultsLoading]);
 
   // Fetch tournament history after player data is loaded
   useEffect(() => {
@@ -239,7 +252,7 @@ export default function TournamentPlayerDetailPage() {
       id: 'whiteElo',
       header: t.pages.tournamentResults.roundByRound.elo,
       accessor: (row) => {
-        const whitePlayerElo = row.color === 'white' ? player.elo : row.opponent.elo;
+        const whitePlayerElo = row.color === 'white' ? tournamentPlayer?.elo : row.opponent.elo;
         return formatPlayerRating(whitePlayerElo, tournament.thinkingTime);
       },
       align: 'center',
@@ -265,7 +278,7 @@ export default function TournamentPlayerDetailPage() {
       id: 'blackElo',
       header: t.pages.tournamentResults.roundByRound.elo,
       accessor: (row) => {
-        const blackPlayerElo = row.color === 'black' ? player.elo : row.opponent.elo;
+        const blackPlayerElo = row.color === 'black' ? tournamentPlayer?.elo : row.opponent.elo;
         return formatPlayerRating(blackPlayerElo, tournament.thinkingTime);
       },
       align: 'center',
@@ -283,10 +296,12 @@ export default function TournamentPlayerDetailPage() {
       id: 'eloChange',
       header: language === 'sv' ? 'ELO +/-' : 'ELO +/-',
       accessor: (row) => {
-        // Get appropriate ratings based on tournament type
-        const { rating: playerRating } = getPlayerRatingForTournament(player.elo, tournament.thinkingTime);
+        if (!tournamentPlayer) return '-';
+
+        // Get appropriate ratings based on tournament type (historical ratings from tournament)
+        const { rating: playerRating } = getPlayerRatingForTournament(tournamentPlayer.elo, tournament.thinkingTime);
         const { rating: opponentRating } = getPlayerRatingForTournament(row.opponent.elo, tournament.thinkingTime);
-        const kFactor = getKFactor(player);
+        const kFactor = getKFactor(tournamentPlayer);
 
         // Can't calculate if either player has no rating
         if (!playerRating || !opponentRating) {
@@ -352,17 +367,17 @@ export default function TournamentPlayerDetailPage() {
 
           {/* Tournament Summary */}
           {(() => {
-            // Calculate tournament statistics
-            if (!player.elo || matches.length === 0) {
+            // Calculate tournament statistics using historical ratings
+            if (!tournamentPlayer?.elo || matches.length === 0) {
               return null;
             }
 
-            const { rating: playerRating } = getPlayerRatingForTournament(player.elo, tournament.thinkingTime);
+            const { rating: playerRating } = getPlayerRatingForTournament(tournamentPlayer.elo, tournament.thinkingTime);
             if (!playerRating) {
               return null;
             }
 
-            const kFactor = getKFactor(player);
+            const kFactor = getKFactor(tournamentPlayer);
 
             const matchResults = matches.map(match => ({
               opponentRating: getPlayerRatingForTournament(match.opponent.elo, tournament.thinkingTime).rating,

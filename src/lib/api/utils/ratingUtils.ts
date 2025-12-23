@@ -116,13 +116,13 @@ export function getPlayerRatingForTournament(
  *
  * @param elo - Player's FIDE rating information
  * @param thinkingTime - Tournament thinkingTime string (e.g., "10 min + 5 sek/drag")
- * @returns Formatted rating string (e.g., "2100", "1950*", "-")
+ * @returns Formatted rating string (e.g., "2100", "1950 S", "-")
  *
  * @example
  * ```ts
  * const displayRating = formatPlayerRating(player.elo, "10 min + 5 sek/drag");
  * // Returns: "1416" (rapid rating for rapid tournament)
- * // or "1950*" (standard rating as fallback if no rapid rating)
+ * // or "1950 S" (standard rating as fallback if no rapid rating)
  * // or "-" (no rating available)
  * ```
  */
@@ -136,5 +136,6 @@ export function formatPlayerRating(
     return '-';
   }
 
-  return `${rating}${isFallback ? '*' : ''}`;
+  // Option 2: Clean display for matching rating type, suffix " S" for standard fallback
+  return `${rating}${isFallback ? ' S' : ''}`;
 }

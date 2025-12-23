@@ -96,6 +96,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     groupResults,
     roundResults,
     playerMap,
+    thinkingTime,
     loading,
     error,
     getPlayerName,

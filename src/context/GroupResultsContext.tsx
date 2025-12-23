@@ -7,6 +7,7 @@ export interface GroupResultsContextValue {
   groupResults: TournamentEndResultDto[];
   roundResults: TournamentRoundResultDto[];
   playerMap: Map<number, PlayerInfoDto>;
+  thinkingTime: string | null;
   loading: boolean;
   error: string | null;
   getPlayerName: (playerId: number) => string;

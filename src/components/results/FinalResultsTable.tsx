@@ -3,12 +3,15 @@
 import React from 'react';
 import { Table, TableColumn, TableDensity, DensityThresholds } from '@/components/Table';
 import { TournamentEndResultDto } from '@/lib/api/types';
+import { formatPlayerRating } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 
 export interface FinalResultsTableProps {
   /** Tournament end results data */
   results: TournamentEndResultDto[];
+  /** Tournament thinking time for rating display */
+  thinkingTime?: string | null;
   /** Optional loading state */
   loading?: boolean;
   /** Optional error message */
@@ -29,6 +32,7 @@ export interface FinalResultsTableProps {
 
 export function FinalResultsTable({
   results,
+  thinkingTime,
   loading = false,
   error,
   onRowClick,
@@ -62,7 +66,7 @@ export function FinalResultsTable({
     {
       id: 'ranking',
       header: t.pages.tournamentResults.finalResultsTable.ranking,
-      accessor: (row) => row.playerInfo?.elo?.rating || '-',
+      accessor: (row) => formatPlayerRating(row.playerInfo?.elo, thinkingTime),
       align: 'left',
       noWrap: true
     },

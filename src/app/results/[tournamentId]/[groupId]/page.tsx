@@ -20,7 +20,7 @@ export default function GroupResultsPage() {
   const t = getTranslation(language);
 
   // Get group-level data from context
-  const { groupResults, roundResults, loading: resultsLoading, error: resultsError, getPlayerName, getPlayerElo } = useGroupResults();
+  const { groupResults, roundResults, thinkingTime, loading: resultsLoading, error: resultsError, getPlayerName, getPlayerElo } = useGroupResults();
 
   const [tournament, setTournament] = useState<TournamentDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -200,9 +200,9 @@ export default function GroupResultsPage() {
                     <div className="mb-4">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         {t.pages.tournamentResults.finalResults} - {selectedGroup.group.name}
-                        {selectedGroup.class.className !== selectedGroup.group.name && (
+                        {thinkingTime && (
                           <span className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-400">
-                            ({selectedGroup.class.className})
+                            ({thinkingTime})
                           </span>
                         )}
                       </h3>
@@ -210,6 +210,7 @@ export default function GroupResultsPage() {
 
                     <FinalResultsTable
                       results={groupResults}
+                      thinkingTime={thinkingTime}
                       loading={resultsLoading}
                       error={resultsError || undefined}
                       onRowClick={handlePlayerClick}

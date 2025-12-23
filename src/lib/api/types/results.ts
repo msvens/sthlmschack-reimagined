@@ -3,7 +3,7 @@
  */
 
 import { PlayerInfoDto } from './player';
-import { ClubDTO } from './organization';
+import { ClubDTO } from '@/lib/api';
 
 /**
  * Individual game information
