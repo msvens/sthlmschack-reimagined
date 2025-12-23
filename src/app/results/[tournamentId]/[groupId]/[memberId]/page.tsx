@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { PlayerInfo } from '@/components/player/PlayerInfo';
-import { PlayerTournamentList } from '@/components/player/PlayerTournamentList';
+import { PlayerHistory } from '@/components/player/PlayerHistory';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
 import { PlayerService, TournamentService, getPlayerTournaments, PlayerTournamentData, formatPlayerRating, getPlayerRatingForTournament, calculateRatingChange, calculateTournamentStats } from '@/lib/api';
@@ -432,26 +432,22 @@ export default function TournamentPlayerDetailPage() {
         />
       </div>
 
-      {/* Tournament History - Compact List */}
+      {/* Player History with Tabs */}
       <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          {t.pages.playerDetail.tournamentHistory.title}
-        </h2>
-        <div className="border-t border-gray-200 dark:border-gray-700">
-          <PlayerTournamentList
-            tournaments={tournaments}
-            loading={tournamentsLoading}
-            error={tournamentsError || undefined}
-            t={{
-              loading: t.pages.playerDetail.tournamentHistory.loading,
-              error: t.pages.playerDetail.tournamentHistory.error,
-              noTournaments: t.pages.playerDetail.tournamentHistory.noTournaments,
-              place: t.pages.playerDetail.tournamentHistory.place,
-              points: t.pages.playerDetail.tournamentHistory.points
-            }}
-            language={language}
-          />
-        </div>
+        <PlayerHistory
+          tournaments={tournaments}
+          loading={tournamentsLoading}
+          error={tournamentsError || undefined}
+          t={{
+            loading: t.pages.playerDetail.tournamentHistory.loading,
+            error: t.pages.playerDetail.tournamentHistory.error,
+            noTournaments: t.pages.playerDetail.tournamentHistory.noTournaments,
+            place: t.pages.playerDetail.tournamentHistory.place,
+            points: t.pages.playerDetail.tournamentHistory.points
+          }}
+          tabLabels={t.pages.playerDetail.tabs}
+          language={language}
+        />
       </div>
     </PageLayout>
   );

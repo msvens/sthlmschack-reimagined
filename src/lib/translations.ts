@@ -137,6 +137,11 @@ export interface Translations {
         place: string;
         points: string;
       };
+      tabs: {
+        individual: string;
+        team: string;
+        opponents: string;
+      };
     };
     tournamentResults: {
       loading: string;
@@ -311,6 +316,11 @@ const translations: Record<Language, Translations> = {
           place: 'Place',
           points: 'Points',
         },
+        tabs: {
+          individual: 'Individual',
+          team: 'Team',
+          opponents: 'Opponents',
+        },
       },
       tournamentResults: {
         loading: 'Loading tournament results...',
@@ -482,6 +492,11 @@ const translations: Record<Language, Translations> = {
           noTournaments: 'Ingen turneringshistorik hittades.',
           place: 'Placering',
           points: 'Poäng',
+        },
+        tabs: {
+          individual: 'Individuell',
+          team: 'Lag',
+          opponents: 'Motståndare',
         },
       },
       tournamentResults: {
