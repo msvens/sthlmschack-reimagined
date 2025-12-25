@@ -148,6 +148,8 @@ export interface TournamentClassDto {
     gamesUrl: string;
     /** Groups in this class */
     groups: TournamentClassGroupDto[];
+    /** Sub-classes (child classes) - recursive hierarchical structure */
+    subClasses: TournamentClassDto[];
 }
 
 /**

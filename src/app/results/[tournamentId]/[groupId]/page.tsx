@@ -66,34 +66,67 @@ export default function GroupResultsPage() {
     fetchTournament();
   }, [tournamentId]);
 
-  // Get all groups from all classes for the sidebar
-  const getAllGroups = (): { class: TournamentClassDto; group: TournamentClassGroupDto }[] => {
+  // Recursively collect all classes from class hierarchy
+  const getAllClasses = (): TournamentClassDto[] => {
     if (!tournament?.rootClasses) return [];
 
-    const groups: { class: TournamentClassDto; group: TournamentClassGroupDto }[] = [];
-    tournament.rootClasses.forEach(tournamentClass => {
-      if (tournamentClass.groups) {
-        tournamentClass.groups.forEach(group => {
-          groups.push({ class: tournamentClass, group });
+    const classes: TournamentClassDto[] = [];
+
+    const processClass = (tournamentClass: TournamentClassDto) => {
+      classes.push(tournamentClass);
+
+      // Recursively process subClasses
+      if (tournamentClass.subClasses && tournamentClass.subClasses.length > 0) {
+        tournamentClass.subClasses.forEach(subClass => {
+          processClass(subClass);
         });
       }
+    };
+
+    tournament.rootClasses.forEach(rootClass => {
+      processClass(rootClass);
     });
-    return groups;
+
+    return classes;
+  };
+
+  // Find which class contains the current groupId
+  const getSelectedClass = (): TournamentClassDto | null => {
+    if (!groupId) return null;
+
+    const allClasses = getAllClasses();
+    return allClasses.find(tournamentClass =>
+      tournamentClass.groups?.some(group => group.id === groupId)
+    ) || null;
   };
 
   // Get the currently selected group
-  const getSelectedGroup = (): { class: TournamentClassDto; group: TournamentClassGroupDto } | null => {
-    const allGroups = getAllGroups();
-    return allGroups.find(item => item.group.id === groupId) || null;
+  const getSelectedGroup = (): TournamentClassGroupDto | null => {
+    const selectedClass = getSelectedClass();
+    if (!selectedClass) return null;
+
+    return selectedClass.groups?.find(group => group.id === groupId) || null;
   };
 
-  // Convert groups to SelectableListItem format
+  // Convert classes to SelectableListItem format
+  const getSelectableClasses = (): SelectableListItem[] => {
+    const allClasses = getAllClasses();
+    return allClasses.map(tournamentClass => ({
+      id: tournamentClass.classID,
+      label: tournamentClass.className || `Class ${tournamentClass.classID}`,
+      tooltip: tournamentClass.className
+    }));
+  };
+
+  // Convert groups to SelectableListItem format (only from selected class)
   const getSelectableGroups = (): SelectableListItem[] => {
-    const allGroups = getAllGroups();
-    return allGroups.map(({ class: tournamentClass, group }) => ({
+    const selectedClass = getSelectedClass();
+    if (!selectedClass?.groups) return [];
+
+    return selectedClass.groups.map(group => ({
       id: group.id,
       label: group.name,
-      tooltip: `${group.name}${tournamentClass.className && tournamentClass.className !== group.name ? ` (${tournamentClass.className})` : ''}`
+      tooltip: group.name
     }));
   };
 
@@ -139,11 +172,24 @@ export default function GroupResultsPage() {
   }
 
   const selectedGroup = getSelectedGroup();
+  const selectedClass = getSelectedClass();
+  const allClasses = getAllClasses();
+  const hasMultipleClasses = allClasses.length > 1;
 
   // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
     if (result.playerInfo?.id && tournamentId && groupId) {
       router.push(`/results/${tournamentId}/${groupId}/${result.playerInfo.id}`);
+    }
+  };
+
+  // Handle class selection - navigate to first group in that class
+  const handleClassSelect = (id: string | number) => {
+    const selectedClass = allClasses.find(c => c.classID === id);
+
+    if (selectedClass?.groups && selectedClass.groups.length > 0) {
+      const firstGroupId = selectedClass.groups[0].id;
+      router.push(`/results/${tournamentId}/${firstGroupId}`);
     }
   };
 
@@ -167,8 +213,20 @@ export default function GroupResultsPage() {
 
           {/* Responsive Flex Layout */}
           <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-            {/* Group Selection - Desktop: Left sidebar */}
-            <div className="hidden md:block w-56 flex-shrink-0">
+            {/* Class & Group Selection - Desktop: Left sidebar */}
+            <div className="hidden md:block w-56 flex-shrink-0 space-y-4">
+              {/* Class Selector - only shown if multiple classes - always dropdown */}
+              {hasMultipleClasses && (
+                <SelectableList
+                  items={getSelectableClasses()}
+                  selectedId={selectedClass?.classID || null}
+                  onSelect={handleClassSelect}
+                  title="Class"
+                  variant="dropdown"
+                />
+              )}
+
+              {/* Group Selector - vertical list */}
               <SelectableList
                 items={getSelectableGroups()}
                 selectedId={groupId}
@@ -180,8 +238,22 @@ export default function GroupResultsPage() {
 
             {/* Main Content Area */}
             <div className="flex-1 min-w-0 md:pr-2">
-              {/* Group Selection - Mobile: Dropdown at top */}
-              <div className="md:hidden mb-4">
+              {/* Class & Group Selection - Mobile: Dropdowns at top */}
+              <div className="md:hidden mb-4 space-y-2">
+                {/* Class Selector - only shown if multiple classes */}
+                {hasMultipleClasses && (
+                  <SelectableList
+                    items={getSelectableClasses()}
+                    selectedId={selectedClass?.classID || null}
+                    onSelect={handleClassSelect}
+                    title="Class"
+                    variant="dropdown"
+                    compact
+                    transparent
+                  />
+                )}
+
+                {/* Group Selector */}
                 <SelectableList
                   items={getSelectableGroups()}
                   selectedId={groupId}
@@ -199,7 +271,7 @@ export default function GroupResultsPage() {
                   <div className="mb-6">
                     <div className="mb-4">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {t.pages.tournamentResults.finalResults} - {selectedGroup.group.name}
+                        {t.pages.tournamentResults.finalResults} - {selectedGroup.name}
                         {thinkingTime && (
                           <span className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-400">
                             ({thinkingTime})
