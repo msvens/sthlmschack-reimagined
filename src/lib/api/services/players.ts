@@ -13,6 +13,7 @@ export class PlayerService extends BaseApiService {
    * Get player information by SSF ID and date
    * @param playerId - The Swedish Chess Federation player ID (number)
    * @param date - Optional date (defaults to current date)
+   *
    * @returns Player information
    */
   async getPlayerInfo(

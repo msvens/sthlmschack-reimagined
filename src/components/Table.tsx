@@ -52,6 +52,8 @@ export interface TableProps<T = Record<string, unknown>> {
   hover?: boolean;
   /** Enable alternating row colors */
   striped?: boolean;
+  /** Show borders around table */
+  border?: boolean;
   /** Custom table container className */
   className?: string;
   /** Custom table container style */
@@ -83,6 +85,7 @@ export function Table<T = Record<string, unknown>>({
   loadingMessage = 'Loading...',
   hover = true,
   striped = true,
+  border = true,
   className = '',
   style,
   getRowKey,
@@ -224,7 +227,7 @@ export function Table<T = Record<string, unknown>>({
     <div className={`overflow-x-auto ${className}`} style={style}>
       <table className={`w-full ${fontSizeClass} ${lineHeightClass}`}>
         <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-700">
+          <tr className={border ? "border-b border-gray-200 dark:border-gray-700" : ""}>
             {columns.map((column) => (
               <th
                 key={column.id}
@@ -249,7 +252,7 @@ export function Table<T = Record<string, unknown>>({
           {data.map((row, index) => (
             <tr
               key={getKey(row, index)}
-              className={`border-b border-gray-200 dark:border-gray-700 ${
+              className={`${border ? 'border-b border-gray-200 dark:border-gray-700' : ''} ${
                 hover ? 'hover:bg-gray-100 dark:hover:bg-gray-700/30 transition-colors' : ''
               } ${onRowClick ? 'cursor-pointer' : ''} ${
                 striped && index % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/30' : ''

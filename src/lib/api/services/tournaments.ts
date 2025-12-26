@@ -52,4 +52,41 @@ export class TournamentService extends BaseApiService {
 
     return this.get<TournamentSearchAnswerDto[]>(endpoint);
   }
+
+  /**
+   * Get upcoming tournaments
+   * @param districtId - Optional district ID to filter by district and club tournaments
+   * @returns Array of upcoming tournaments
+   */
+  async searchComingTournaments(districtId?: number): Promise<ApiResponse<TournamentDto[]>> {
+    const endpoint = districtId !== undefined
+      ? `/tournament/group/coming/${districtId}`
+      : '/tournament/group/coming';
+
+    return this.get<TournamentDto[]>(endpoint);
+  }
+
+  /**
+   * Search for tournaments that started within a date range
+   * Finds tournaments that have begun (results exist) and started between the given dates.
+   * Tournaments may still be ongoing and extend past the end date.
+   * @param startDate - Start date in ISO format (YYYY-MM-DDTHH:mm:ss) - must be in the past
+   * @param endDate - End date in ISO format (YYYY-MM-DDTHH:mm:ss)
+   * @param districtId - Optional district ID to filter by district and club tournaments
+   * @returns Array of tournament groups that started within the date range
+   * @example
+   * // Find tournaments that started in December 2024 (may still be running)
+   * searchUpdatedTournaments('2024-12-01T00:00:00', '2024-12-31T23:59:59')
+   */
+  async searchUpdatedTournaments(
+    startDate: string,
+    endDate: string,
+    districtId?: number
+  ): Promise<ApiResponse<TournamentSearchAnswerDto[]>> {
+    const endpoint = districtId !== undefined
+      ? `/tournament/group/updated/${encodeURIComponent(startDate)}/${encodeURIComponent(endDate)}/${districtId}`
+      : `/tournament/group/updated/${encodeURIComponent(startDate)}/${encodeURIComponent(endDate)}`;
+
+    return this.get<TournamentSearchAnswerDto[]>(endpoint);
+  }
 }
