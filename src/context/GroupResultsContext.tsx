@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto } from '@/lib/api/types';
 
 export interface GroupResultsContextValue {
@@ -8,6 +8,8 @@ export interface GroupResultsContextValue {
   roundResults: TournamentRoundResultDto[];
   playerMap: Map<number, PlayerInfoDto>;
   thinkingTime: string | null;
+  groupStartDate: string | null;
+  groupEndDate: string | null;
   loading: boolean;
   error: string | null;
   getPlayerName: (playerId: number) => string;

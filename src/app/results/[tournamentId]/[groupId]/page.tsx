@@ -20,7 +20,7 @@ export default function GroupResultsPage() {
   const t = getTranslation(language);
 
   // Get group-level data from context
-  const { groupResults, roundResults, thinkingTime, loading: resultsLoading, error: resultsError, getPlayerName, getPlayerElo } = useGroupResults();
+  const { groupResults, roundResults, thinkingTime, groupStartDate, groupEndDate, loading: resultsLoading, error: resultsError, getPlayerName, getPlayerElo } = useGroupResults();
 
   const [tournament, setTournament] = useState<TournamentDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -280,13 +280,57 @@ export default function GroupResultsPage() {
                       </h3>
                     </div>
 
-                    <FinalResultsTable
-                      results={groupResults}
-                      thinkingTime={thinkingTime}
-                      loading={resultsLoading}
-                      error={resultsError || undefined}
-                      onRowClick={handlePlayerClick}
-                    />
+                    {!resultsLoading && groupResults.length === 0 && !resultsError && groupStartDate && (
+                      (() => {
+                        const now = new Date();
+                        const startDate = new Date(groupStartDate);
+                        const endDate = groupEndDate ? new Date(groupEndDate) : null;
+                        const hasntStarted = now < startDate;
+                        const hasEnded = endDate && now > endDate;
+
+                        if (hasntStarted) {
+                          return (
+                            <div className="p-8 text-center">
+                              <div className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                                {language === 'sv' ? 'Turneringen har inte startat än' : 'Tournament has not started yet'}
+                              </div>
+                              <div className="text-gray-600 dark:text-gray-400">
+                                {language === 'sv' ? 'Grupp börjar:' : 'Group starts:'} {groupStartDate}
+                              </div>
+                            </div>
+                          );
+                        } else if (hasEnded && groupResults.length === 0) {
+                          return (
+                            <div className="p-8 text-center">
+                              <div className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                                {language === 'sv' ? 'Inga resultat tillgängliga' : 'No results available'}
+                              </div>
+                              <div className="text-gray-600 dark:text-gray-400">
+                                {language === 'sv' ? 'Denna grupp kan ha ställts in' : 'This group may have been cancelled'}
+                              </div>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div className="p-8 text-center">
+                              <div className="text-gray-600 dark:text-gray-400">
+                                {language === 'sv' ? 'Resultat kommer snart...' : 'Results coming soon...'}
+                              </div>
+                            </div>
+                          );
+                        }
+                      })()
+                    )}
+
+                    {(groupResults.length > 0 || resultsLoading || resultsError) && (
+                      <FinalResultsTable
+                        results={groupResults}
+                        thinkingTime={thinkingTime}
+                        loading={resultsLoading}
+                        error={resultsError || undefined}
+                        onRowClick={handlePlayerClick}
+                      />
+                    )}
                   </div>
 
                   {/* Round-by-Round Results */}

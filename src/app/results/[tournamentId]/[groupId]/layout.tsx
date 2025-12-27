@@ -3,7 +3,7 @@
 import { ReactNode, useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { ResultsService, TournamentService, formatPlayerRating } from '@/lib/api';
-import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto } from '@/lib/api/types';
+import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TournamentClassDto, TournamentClassGroupDto } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue } from '@/context/GroupResultsContext';
 
 export default function GroupResultsLayout({ children }: { children: ReactNode }) {
@@ -14,6 +14,8 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   const [groupResults, setGroupResults] = useState<TournamentEndResultDto[]>([]);
   const [roundResults, setRoundResults] = useState<TournamentRoundResultDto[]>([]);
   const [thinkingTime, setThinkingTime] = useState<string | null>(null);
+  const [groupStartDate, setGroupStartDate] = useState<string | null>(null);
+  const [groupEndDate, setGroupEndDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,18 +44,35 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
 
         if (tournamentResponse.status === 200 && tournamentResponse.data) {
           setThinkingTime(tournamentResponse.data.thinkingTime || null);
+
+          // Find the group metadata to get start/end dates
+          const findGroupInClasses = (classes: TournamentClassDto[]): TournamentClassGroupDto | null => {
+            for (const tournamentClass of classes) {
+              const group = tournamentClass.groups?.find((g: TournamentClassGroupDto) => g.id === groupId);
+              if (group) return group;
+              if (tournamentClass.subClasses) {
+                const found = findGroupInClasses(tournamentClass.subClasses);
+                if (found) return found;
+              }
+            }
+            return null;
+          };
+
+          const groupMeta = findGroupInClasses(tournamentResponse.data.rootClasses || []);
+          if (groupMeta) {
+            setGroupStartDate(groupMeta.start);
+            setGroupEndDate(groupMeta.end);
+          }
         }
 
-        if (groupResponse.status !== 200) {
-          throw new Error(groupResponse.error || 'Failed to fetch group results');
-        }
+        // Don't throw on failed results - might just be that tournament hasn't started yet
+        setGroupResults(groupResponse.status === 200 ? (groupResponse.data || []) : []);
+        setRoundResults(roundResponse.status === 200 ? (roundResponse.data || []) : []);
 
-        if (roundResponse.status !== 200) {
-          throw new Error(roundResponse.error || 'Failed to fetch round results');
+        // Only set error if we couldn't fetch tournament metadata
+        if (tournamentResponse.status !== 200) {
+          throw new Error('Failed to fetch tournament data');
         }
-
-        setGroupResults(groupResponse.data || []);
-        setRoundResults(roundResponse.data || []);
 
       } catch (err) {
         setError('Failed to load results data');
@@ -97,6 +116,8 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     roundResults,
     playerMap,
     thinkingTime,
+    groupStartDate,
+    groupEndDate,
     loading,
     error,
     getPlayerName,

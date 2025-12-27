@@ -1,99 +1,78 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { OrganizationService } from '@/lib/api';
+import { loadOrganizationData, createOrganizationLookups } from '@/lib/organizations/organizationDataLoader';
 import type { DistrictDTO, ClubDTO } from '@/lib/api/types';
 
 interface OrganizationsContextType {
   districts: DistrictDTO[];
-  districtsLoading: boolean;
-  getClubName: (orgNumber: number) => Promise<string>;
+  loading: boolean;
+  error: string | null;
+  getClubName: (orgNumber: number) => string;
   getDistrict: (districtId: number) => DistrictDTO | undefined;
-  getOrganizerName: (orgType: number, orgNumber: number) => Promise<string>;
+  getOrganizerName: (orgType: number, orgNumber: number) => string;
+  getDistrictIdForOrganizer: (orgType: number, orgNumber: number) => number | null;
 }
 
 const OrganizationsContext = createContext<OrganizationsContextType | undefined>(undefined);
 
 export function OrganizationsProvider({ children }: { children: React.ReactNode }) {
   const [districts, setDistricts] = useState<DistrictDTO[]>([]);
-  const [districtsLoading, setDistrictsLoading] = useState(true);
-  const [clubCache, setClubCache] = useState<Map<number, ClubDTO>>(new Map());
-  const [fetchingClubs, setFetchingClubs] = useState<Set<number>>(new Set());
+  const [clubMap, setClubMap] = useState<Map<number, ClubDTO>>(new Map());
+  const [clubDistrictMap, setClubDistrictMap] = useState<Map<number, number | null>>(new Map());
+  const [districtMap, setDistrictMap] = useState<Map<number, DistrictDTO>>(new Map());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load districts on mount
+  // Load all organization data on mount
   useEffect(() => {
-    const loadDistricts = async () => {
+    const loadData = async () => {
       try {
-        const service = new OrganizationService();
-        const response = await service.getDistricts();
+        setLoading(true);
+        setError(null);
 
-        if (response.status === 200 && response.data) {
-          setDistricts(response.data);
-        } else {
-          console.error('Failed to load districts:', response.error);
-        }
-      } catch (error) {
-        console.error('Error loading districts:', error);
+        // Load data from configured source (static file, API, etc.)
+        const data = await loadOrganizationData();
+
+        // Create optimized lookup structures
+        const lookups = createOrganizationLookups(data);
+
+        // Update state
+        setDistricts(data.districts);
+        setClubMap(lookups.clubMap);
+        setClubDistrictMap(lookups.clubDistrictMap);
+        setDistrictMap(lookups.districtMap);
+
+        console.log(`✅ Loaded ${data.stats.districtCount} districts and ${data.stats.clubCount} clubs`);
+      } catch (err) {
+        console.error('Failed to load organization data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load organization data');
       } finally {
-        setDistrictsLoading(false);
+        setLoading(false);
       }
     };
 
-    loadDistricts();
+    loadData();
   }, []);
 
-  // Get club name by orgNumber (lazy load with cache)
-  const getClubName = useCallback(async (orgNumber: number): Promise<string> => {
+  // Get club name by orgNumber (instant lookup, no async)
+  const getClubName = useCallback((orgNumber: number): string => {
     // Special case: Sveriges Schackförbund
     if (orgNumber === 1) {
       return 'Sveriges Schackförbund';
     }
 
-    // Check cache first
-    const cached = clubCache.get(orgNumber);
-    if (cached) {
-      return cached.name;
-    }
+    const club = clubMap.get(orgNumber);
+    return club ? club.name : `Org ${orgNumber}`;
+  }, [clubMap]);
 
-    // Avoid duplicate fetches
-    if (fetchingClubs.has(orgNumber)) {
-      // Wait a bit and try again (simple polling)
-      await new Promise(resolve => setTimeout(resolve, 100));
-      return getClubName(orgNumber);
-    }
-
-    // Fetch club
-    try {
-      setFetchingClubs(prev => new Set(prev).add(orgNumber));
-      const service = new OrganizationService();
-      const response = await service.getClub(orgNumber);
-
-      if (response.status === 200 && response.data) {
-        setClubCache(prev => new Map(prev).set(orgNumber, response.data!));
-        return response.data.name;
-      } else {
-        console.error(`Failed to load club ${orgNumber}:`, response.error);
-        return `Org ${orgNumber}`;
-      }
-    } catch (error) {
-      console.error(`Error loading club ${orgNumber}:`, error);
-      return `Org ${orgNumber}`;
-    } finally {
-      setFetchingClubs(prev => {
-        const next = new Set(prev);
-        next.delete(orgNumber);
-        return next;
-      });
-    }
-  }, [clubCache, fetchingClubs]);
-
-  // Get district by ID
+  // Get district by ID (instant lookup)
   const getDistrict = useCallback((districtId: number): DistrictDTO | undefined => {
-    return districts.find(d => d.id === districtId);
-  }, [districts]);
+    return districtMap.get(districtId);
+  }, [districtMap]);
 
-  // Get organizer name based on orgType and orgNumber
-  const getOrganizerName = useCallback(async (orgType: number, orgNumber: number): Promise<string> => {
+  // Get organizer name based on orgType and orgNumber (instant lookup, no async)
+  const getOrganizerName = useCallback((orgType: number, orgNumber: number): string => {
     // orgType -1 OR orgNumber 1 = Federation (Sveriges Schackförbund)
     if (orgType === -1 || orgNumber === 1) {
       return 'Sveriges Schackförbund';
@@ -101,22 +80,44 @@ export function OrganizationsProvider({ children }: { children: React.ReactNode 
 
     // orgType 0 = District
     if (orgType === 0) {
-      const district = districts.find(d => d.id === orgNumber);
+      const district = districtMap.get(orgNumber);
       return district ? district.name : `District ${orgNumber}`;
     }
 
-    // orgType 1 = Club (fetch from API)
+    // orgType 1 = Club
     return getClubName(orgNumber);
-  }, [districts, getClubName]);
+  }, [districtMap, getClubName]);
+
+  // Get district ID for a given organizer (instant lookup, no async)
+  const getDistrictIdForOrganizer = useCallback((orgType: number, orgNumber: number): number | null => {
+    // orgType -1 = Federation - no district
+    if (orgType === -1 || orgNumber === 1) {
+      return null;
+    }
+
+    // orgType 0 = District - orgNumber IS the district ID
+    if (orgType === 0) {
+      return orgNumber;
+    }
+
+    // orgType 1 = Club - lookup district from pre-loaded map
+    if (orgType === 1) {
+      return clubDistrictMap.get(orgNumber) ?? null;
+    }
+
+    return null;
+  }, [clubDistrictMap]);
 
   return (
     <OrganizationsContext.Provider
       value={{
         districts,
-        districtsLoading,
+        loading,
+        error,
         getClubName,
         getDistrict,
         getOrganizerName,
+        getDistrictIdForOrganizer,
       }}
     >
       {children}

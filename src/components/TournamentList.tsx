@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { Table, TableColumn } from './Table';
 import { Link } from './Link';
 import { useOrganizations } from '@/context/OrganizationsContext';
@@ -22,8 +22,6 @@ export function TournamentList({
   language,
 }: TournamentListProps) {
   const { getOrganizerName } = useOrganizations();
-  const [organizerNames, setOrganizerNames] = useState<Map<string, string>>(new Map());
-  const [loadingOrganizers, setLoadingOrganizers] = useState(false);
 
   // Format date to YYYY-MM-DD
   const formatDate = (dateString: string) => {
@@ -31,39 +29,16 @@ export function TournamentList({
     return date.toISOString().split('T')[0];
   };
 
-  // Fetch organizer names for all unique orgType+orgNumber combinations
-  useEffect(() => {
-    const fetchOrganizerNames = async () => {
-      if (tournaments.length === 0) return;
-
-      setLoadingOrganizers(true);
-      const uniqueOrganizers = [
-        ...new Map(tournaments.map(t => [`${t.orgType}-${t.orgNumber}`, { orgType: t.orgType, orgNumber: t.orgNumber }])).values()
-      ];
-      const newOrganizerNames = new Map<string, string>();
-
-      await Promise.all(
-        uniqueOrganizers.map(async ({ orgType, orgNumber }) => {
-          const name = await getOrganizerName(orgType, orgNumber);
-          newOrganizerNames.set(`${orgType}-${orgNumber}`, name);
-        })
-      );
-
-      setOrganizerNames(newOrganizerNames);
-      setLoadingOrganizers(false);
-    };
-
-    fetchOrganizerNames();
+  // Prepare table data (synchronous - no async fetching needed!)
+  const tableData = useMemo(() => {
+    return tournaments.map((tournament) => ({
+      name: tournament.name,
+      club: getOrganizerName(tournament.orgType, tournament.orgNumber),
+      start: formatDate(tournament.start),
+      end: formatDate(tournament.end),
+      tournamentId: tournament.id,
+    }));
   }, [tournaments, getOrganizerName]);
-
-  // Prepare table data
-  const tableData = tournaments.map((tournament) => ({
-    name: tournament.name,
-    club: organizerNames.get(`${tournament.orgType}-${tournament.orgNumber}`) || `Org ${tournament.orgNumber}`,
-    start: formatDate(tournament.start),
-    end: formatDate(tournament.end),
-    tournamentId: tournament.id,
-  }));
 
   // Column definitions
   const columns: TableColumn<typeof tableData[0]>[] = [
