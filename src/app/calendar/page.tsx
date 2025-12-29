@@ -89,7 +89,7 @@ export default function CalendarPage() {
   }, [allTournaments, tournamentDistricts]);
 
   return (
-    <PageLayout>
+    <PageLayout maxWidth="4xl">
       <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
         {t.pages.calendar.title}
       </h1>
@@ -98,18 +98,16 @@ export default function CalendarPage() {
       </p>
 
       {/* District Filter - Dropdown at top */}
-      <div className="mb-4 flex justify-center">
-        <div className="w-full sm:w-auto sm:min-w-[640px]">
-          <DistrictFilter
-            selectedDistrictId={selectedDistrictId}
-            onDistrictSelect={setSelectedDistrictId}
-            variant="dropdown"
-            language={language}
-            transparent
-            districtCounts={districtCounts}
-            totalCount={allTournaments.length}
-          />
-        </div>
+      <div className="mb-4 max-w-md mx-auto">
+        <DistrictFilter
+          selectedDistrictId={selectedDistrictId}
+          onDistrictSelect={setSelectedDistrictId}
+          variant="dropdown"
+          language={language}
+          transparent
+          districtCounts={districtCounts}
+          totalCount={allTournaments.length}
+        />
       </div>
 
       <TournamentList

@@ -58,11 +58,6 @@ export interface TableProps<T = Record<string, unknown>> {
   className?: string;
   /** Custom table container style */
   style?: React.CSSProperties;
-  /**
-   * Custom className for the table element itself (overrides fullWidth behavior).
-   * Use this for complete control over table width when fullWidth prop is insufficient.
-   */
-  tableClassName?: string;
   /** Optional row key extractor function */
   getRowKey?: (row: T, index: number) => string | number;
   /** Optional row click handler */
@@ -77,12 +72,6 @@ export interface TableProps<T = Record<string, unknown>> {
    * Default: comfortable <= 10 rows, normal <= 20 rows, compact > 20 rows
    */
   densityThresholds?: DensityThresholds;
-  /**
-   * Whether the table should take full width of its container.
-   * Default: true (w-full always)
-   * When false: w-full on mobile, w-auto with min-width and centered on desktop
-   */
-  fullWidth?: boolean;
   /** @deprecated Use density prop instead */
   size?: 'small' | 'medium';
 }
@@ -106,8 +95,6 @@ export function Table<T = Record<string, unknown>>({
     comfortable: 10,
     normal: 20
   },
-  fullWidth = true,
-  tableClassName,
   size = 'medium'
 }: TableProps<T>) {
   // Track if we're on mobile
@@ -236,19 +223,9 @@ export function Table<T = Record<string, unknown>>({
     );
   }
 
-  // Table width classes (only used if tableClassName not provided)
-  const tableWidthClass = fullWidth
-    ? 'w-full'
-    : 'w-full md:w-auto md:min-w-3xl md:mx-auto';
-
-  // If tableClassName is provided, it completely overrides width behavior
-  const finalTableClassName = tableClassName
-    ? `${tableClassName} ${fontSizeClass} ${lineHeightClass}`
-    : `${tableWidthClass} ${fontSizeClass} ${lineHeightClass}`;
-
   return (
     <div className={`overflow-x-auto ${className}`} style={style}>
-      <table className={finalTableClassName}>
+      <table className={`w-full ${fontSizeClass} ${lineHeightClass}`}>
         <thead>
           <tr className={border ? "border-b border-gray-200 dark:border-gray-700" : ""}>
             {columns.map((column) => (

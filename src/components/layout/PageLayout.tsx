@@ -5,7 +5,7 @@ export interface PageLayoutProps {
   /** Page content */
   children: ReactNode;
   /** Maximum width of content container. Only includes values actually used in the project. */
-  maxWidth?: '3xl' | '4xl' | '7xl';
+  maxWidth?: '3xl' | '4xl' | '5xl' | '7xl';
   /** PageSpacing height - 'default' (96px), 'no_spacing' (56px - navbar height), or any arbitrary value */
   spacing?: 'default' | 'no_spacing' | string;
   /** Make the page full screen height (min-h-screen) */
@@ -21,7 +21,15 @@ export function PageLayout({
   fullScreen = false,
   className = ''
 }: PageLayoutProps) {
-  const maxWidthClass = `max-w-${maxWidth}`;
+  // Map maxWidth to actual Tailwind classes (required for JIT compiler)
+  const maxWidthClasses = {
+    '3xl': 'max-w-3xl',
+    '4xl': 'max-w-4xl',
+    '5xl': 'max-w-5xl',
+    '7xl': 'max-w-7xl',
+  };
+
+  const maxWidthClass = maxWidthClasses[maxWidth];
   const containerClass = fullScreen ? 'min-h-screen' : '';
 
   return (

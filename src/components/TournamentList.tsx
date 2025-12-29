@@ -101,7 +101,6 @@ export function TournamentList({
       data={tableData}
       columns={columns}
       border={false}
-      fullWidth={false}
     />
   );
 }

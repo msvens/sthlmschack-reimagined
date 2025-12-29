@@ -459,7 +459,6 @@ export default function GroupResultsPage() {
                                       data={resultsByRound[selectedRound]}
                                       columns={roundColumns}
                                       getRowKey={(row, index) => `${row.homeId}-${row.awayId}-${index}`}
-                                      fullWidth={true}
                                     />
                                   );
                                 })()}
