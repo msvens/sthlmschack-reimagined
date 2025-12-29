@@ -116,9 +116,6 @@ export default function CalendarPage() {
         tournaments={filteredTournaments}
         loading={loading}
         error={error || undefined}
-        emptyMessage={language === 'sv'
-          ? 'Inga kommande turneringar hittades'
-          : 'No upcoming tournaments found'}
         language={language}
       />
     </PageLayout>

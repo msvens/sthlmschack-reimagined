@@ -77,6 +77,14 @@ export interface Translations {
       title: string;
       subtitle: string;
       placeholder: string;
+      tournamentList: {
+        tournament: string;
+        organizer: string;
+        start: string;
+        end: string;
+        loading: string;
+        noTournaments: string;
+      };
     };
     results: {
       title: string;
@@ -256,6 +264,14 @@ const translations: Record<Language, Translations> = {
         title: 'Tournament Calendar',
         subtitle: 'View the full calendar of chess events and tournaments across Stockholm.',
         placeholder: 'Calendar view coming soon. This page will display a comprehensive calendar of all chess events with filtering and search capabilities.',
+        tournamentList: {
+          tournament: 'Tournament',
+          organizer: 'Organizer',
+          start: 'Start',
+          end: 'End',
+          loading: 'Loading tournaments...',
+          noTournaments: 'No upcoming tournaments found',
+        },
       },
       results: {
         title: 'Tournament Results',
@@ -433,6 +449,14 @@ const translations: Record<Language, Translations> = {
         title: 'Turneringskalender',
         subtitle: 'Se den fullständiga kalendern för schackevenemang och turneringar över hela Stockholm.',
         placeholder: 'Kalendervy kommer snart. Denna sida kommer att visa en omfattande kalender över alla schackevenemang med filtrering och sökfunktioner.',
+        tournamentList: {
+          tournament: 'Turnering',
+          organizer: 'Arrangör',
+          start: 'Start',
+          end: 'Slut',
+          loading: 'Laddar turneringar...',
+          noTournaments: 'Inga kommande turneringar hittades',
+        },
       },
       results: {
         title: 'Turneringsresultat',

@@ -4,8 +4,8 @@ import { PageSpacing } from './PageSpacing';
 export interface PageLayoutProps {
   /** Page content */
   children: ReactNode;
-  /** Maximum width of content container */
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl';
+  /** Maximum width of content container. Only includes values actually used in the project. */
+  maxWidth?: '3xl' | '4xl' | '7xl';
   /** PageSpacing height - 'default' (96px), 'no_spacing' (56px - navbar height), or any arbitrary value */
   spacing?: 'default' | 'no_spacing' | string;
   /** Make the page full screen height (min-h-screen) */

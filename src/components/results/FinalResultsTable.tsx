@@ -132,6 +132,7 @@ export function FinalResultsTable({
       getRowKey={(row) => row.playerInfo?.id || row.contenderId}
       density={density}
       densityThresholds={densityThresholds}
+      fullWidth={true}
     />
   );
 }

@@ -386,6 +386,7 @@ export default function TournamentPlayerDetailPage() {
             columns={matchColumns}
             getRowKey={(row) => `${row.round}-${row.opponent.id}`}
             emptyMessage={language === 'sv' ? 'Inga partier hittades' : 'No matches found'}
+            fullWidth={true}
           />
 
           {/* Tournament Summary */}

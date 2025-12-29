@@ -4,13 +4,13 @@ import { useMemo } from 'react';
 import { Table, TableColumn } from './Table';
 import { Link } from './Link';
 import { useOrganizations } from '@/context/OrganizationsContext';
+import { getTranslation } from '@/lib/translations';
 import type { TournamentDto } from '@/lib/api/types';
 
 interface TournamentListProps {
   tournaments: TournamentDto[];
   loading?: boolean;
   error?: string;
-  emptyMessage?: string;
   language: 'sv' | 'en';
 }
 
@@ -18,10 +18,10 @@ export function TournamentList({
   tournaments,
   loading = false,
   error,
-  emptyMessage = 'No tournaments found',
   language,
 }: TournamentListProps) {
   const { getOrganizerName } = useOrganizations();
+  const t = getTranslation(language);
 
   // Format date to YYYY-MM-DD
   const formatDate = (dateString: string) => {
@@ -44,7 +44,7 @@ export function TournamentList({
   const columns: TableColumn<typeof tableData[0]>[] = [
     {
       id: 'name',
-      header: language === 'sv' ? 'Turnering' : 'Tournament',
+      header: t.pages.calendar.tournamentList.tournament,
       accessor: (row) => (
         <Link href={`/results/${row.tournamentId}`}>
           {row.name}
@@ -53,21 +53,21 @@ export function TournamentList({
       align: 'left',
     },
     {
-      id: 'club',
-      header: language === 'sv' ? 'Arrangör' : 'Organizer',
-      accessor: 'club',
-      align: 'left',
-    },
-    {
       id: 'start',
-      header: language === 'sv' ? 'Start' : 'Start',
+      header: t.pages.calendar.tournamentList.start,
       accessor: 'start',
       align: 'left',
     },
     {
       id: 'end',
-      header: language === 'sv' ? 'Slut' : 'End',
+      header: t.pages.calendar.tournamentList.end,
       accessor: 'end',
+      align: 'left',
+    },
+    {
+      id: 'club',
+      header: t.pages.calendar.tournamentList.organizer,
+      accessor: 'club',
       align: 'left',
     },
   ];
@@ -75,7 +75,7 @@ export function TournamentList({
   if (loading) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        {language === 'sv' ? 'Laddar turneringar...' : 'Loading tournaments...'}
+        {t.pages.calendar.tournamentList.loading}
       </div>
     );
   }
@@ -91,7 +91,7 @@ export function TournamentList({
   if (tournaments.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        {emptyMessage}
+        {t.pages.calendar.tournamentList.noTournaments}
       </div>
     );
   }
@@ -101,6 +101,7 @@ export function TournamentList({
       data={tableData}
       columns={columns}
       border={false}
+      fullWidth={false}
     />
   );
 }
