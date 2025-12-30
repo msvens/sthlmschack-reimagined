@@ -70,7 +70,7 @@ export default function TournamentRedirectPage() {
       <PageLayout fullScreen>
         <div className="text-center">
           <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
-            <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
               Error Loading Tournament
             </h1>
             <p className="text-lg mb-6 text-gray-600 dark:text-gray-400">

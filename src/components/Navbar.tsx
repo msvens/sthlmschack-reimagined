@@ -56,7 +56,7 @@ export default function Navbar() {
         <div className="flex justify-between h-12">
           {/* App Name - Left aligned (matching mphotos-ui exactly) */}
           <div className="flex items-center flex-shrink-0 pl-1">
-            <Link href="/" className="text-base font-light leading-tight tracking-widest uppercase text-gray-900 dark:text-white">
+            <Link href="/" className="text-base font-light leading-tight tracking-widest uppercase text-gray-900 dark:text-gray-200">
               <span className="block">Stockholm</span>
               <span className="block">Chess</span>
             </Link>
@@ -79,7 +79,7 @@ export default function Navbar() {
                       icon={item.icon}
                       size="large"
                       className={isActive
-                        ? 'text-gray-900 dark:text-white bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'text-gray-900 dark:text-gray-200 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
                         : 'text-gray-600 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
                       }
                     />
@@ -104,7 +104,7 @@ export default function Navbar() {
                       icon={item.icon}
                       size="large"
                       className={isActive
-                        ? 'text-gray-900 dark:text-white bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'text-gray-900 dark:text-gray-200 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
                         : 'text-gray-600 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
                       }
                     />
@@ -148,7 +148,7 @@ export default function Navbar() {
                       onClick={() => handleLanguageChange(lang.code as 'en' | 'sv')}
                       className={`w-full text-left px-4 py-2 text-sm transition-colors ${
                         language === lang.code
-                          ? 'text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800'
+                          ? 'text-gray-900 dark:text-gray-200 bg-gray-100 dark:bg-gray-800'
                           : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
                     >
@@ -200,7 +200,7 @@ export default function Navbar() {
                 href={item.href}
                 onClick={() => setIsMenuOpen(false)}
                 className={`flex items-center px-4 py-3 transition-colors ${
-                  isActive ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'
+                  isActive ? 'text-gray-900 dark:text-gray-200' : 'text-gray-600 dark:text-gray-400'
                 }`}
               >
                 <item.icon className="w-8 h-8 stroke-[1.25]" aria-hidden="true" />
@@ -247,7 +247,7 @@ export default function Navbar() {
                   setIsMenuOpen(false);
                 }}
                 className={`w-full text-left flex items-center px-4 py-3 transition-colors ${
-                  language === lang.code ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'
+                  language === lang.code ? 'text-gray-900 dark:text-gray-200' : 'text-gray-600 dark:text-gray-400'
                 }`}
               >
                 <span className="mr-4 text-lg">{lang.flag}</span>

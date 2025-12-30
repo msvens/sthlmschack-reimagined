@@ -65,7 +65,7 @@ export function EloRatingChart({
       const date = payload[0]?.payload?.date;
       return (
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-1.5 shadow-lg">
-          <p className="text-xs font-medium text-gray-900 dark:text-white mb-0.5">
+          <p className="text-xs font-medium text-gray-900 dark:text-gray-200 mb-0.5">
             {formatDate(date)}
           </p>
           {payload.map((entry, index) => (

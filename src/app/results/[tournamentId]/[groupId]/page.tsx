@@ -147,7 +147,7 @@ export default function GroupResultsPage() {
       <PageLayout fullScreen>
         <div className="text-center">
           <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
-            <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
               Error Loading Tournament
             </h1>
             <p className="text-lg mb-6 text-gray-600 dark:text-gray-400">
@@ -202,7 +202,7 @@ export default function GroupResultsPage() {
     <PageLayout fullScreen>
       {/* Tournament Header */}
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-light mb-2 text-gray-900 dark:text-white">
+            <h1 className="text-2xl md:text-3xl font-light mb-2 text-gray-900 dark:text-gray-200">
               {tournament.name}
             </h1>
             <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
@@ -270,7 +270,7 @@ export default function GroupResultsPage() {
                   {/* Main Results Table */}
                   <div className="mb-6">
                     <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
                         {t.pages.tournamentResults.finalResults} - {selectedGroup.name}
                         {thinkingTime && (
                           <span className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-400">
@@ -291,7 +291,7 @@ export default function GroupResultsPage() {
                         if (hasntStarted) {
                           return (
                             <div className="p-8 text-center">
-                              <div className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                              <div className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
                                 {language === 'sv' ? 'Turneringen har inte startat än' : 'Tournament has not started yet'}
                               </div>
                               <div className="text-gray-600 dark:text-gray-400">
@@ -302,7 +302,7 @@ export default function GroupResultsPage() {
                         } else if (hasEnded && groupResults.length === 0) {
                           return (
                             <div className="p-8 text-center">
-                              <div className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                              <div className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
                                 {language === 'sv' ? 'Inga resultat tillgängliga' : 'No results available'}
                               </div>
                               <div className="text-gray-600 dark:text-gray-400">
@@ -336,7 +336,7 @@ export default function GroupResultsPage() {
                   {/* Round-by-Round Results */}
                   <div className="rounded-lg border overflow-hidden bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
                     <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
                         {t.pages.tournamentResults.roundByRound.title}
                       </h3>
                     </div>

@@ -113,7 +113,7 @@ export function SelectableList({
             }`}
           >
             <div className="flex-1 min-w-0">
-              <div className={`${fontSize} font-medium truncate text-gray-900 dark:text-white`}>
+              <div className={`${fontSize} font-medium truncate text-gray-900 dark:text-gray-200`}>
                 {selectedItem?.label || 'Select an option'}
               </div>
             </div>
@@ -143,7 +143,7 @@ export function SelectableList({
                     onClick={() => handleItemSelect(item.id)}
                     className={`w-full text-left ${itemPadding} transition-colors ${itemHoverBg} ${
                       selectedId === item.id
-                        ? `${itemSelectedBg} font-medium text-gray-900 dark:text-white`
+                        ? `${itemSelectedBg} font-medium text-gray-900 dark:text-gray-200`
                         : 'text-gray-600 dark:text-gray-400'
                     }`}
                     title={item.tooltip}
@@ -167,7 +167,7 @@ export function SelectableList({
     return (
       <div className={`p-2 ${className}`}>
         {title && (
-          <h2 className="text-sm font-semibold mb-3 text-gray-900 dark:text-white">
+          <h2 className="text-sm font-semibold mb-3 text-gray-900 dark:text-gray-200">
             {title}
           </h2>
         )}
@@ -179,7 +179,7 @@ export function SelectableList({
               onClick={() => handleItemSelect(item.id)}
               className={`flex-shrink-0 text-left px-3 py-2 transition-colors text-xs border-b rounded whitespace-nowrap hover:bg-gray-100 dark:hover:bg-gray-800 ${
                 selectedId === item.id
-                  ? 'font-medium border-current text-gray-900 dark:text-white'
+                  ? 'font-medium border-current text-gray-900 dark:text-gray-200'
                   : 'border-transparent text-gray-600 dark:text-gray-400'
               }`}
               title={item.tooltip}
@@ -199,7 +199,7 @@ export function SelectableList({
   return (
     <div className={`p-2 ${className}`}>
       {title && (
-        <h2 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">
+        <h2 className="text-sm font-semibold mb-2 text-gray-900 dark:text-gray-200">
           {title}
         </h2>
       )}
@@ -211,7 +211,7 @@ export function SelectableList({
             onClick={() => handleItemSelect(item.id)}
             className={`w-full text-left px-3 py-2 transition-colors text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
               selectedId === item.id
-                ? 'font-medium bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                ? 'font-medium bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-200'
                 : 'text-gray-600 dark:text-gray-400'
             }`}
             title={item.tooltip}

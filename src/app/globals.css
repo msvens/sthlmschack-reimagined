@@ -7,7 +7,7 @@
 @variant dark (.dark &);
 
 body {
-  @apply antialiased text-gray-900 dark:text-white bg-white dark:bg-dark-bg;
+  @apply antialiased text-gray-900 dark:text-gray-200 bg-white dark:bg-dark-bg;
 }
 
 @layer utilities {

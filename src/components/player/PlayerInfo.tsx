@@ -44,7 +44,7 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
   return (
     <div>
       {/* Player Name */}
-      <h1 className="text-3xl font-light mb-8 text-gray-900 dark:text-white">
+      <h1 className="text-3xl font-light mb-8 text-gray-900 dark:text-gray-200">
         {player.firstName} {player.lastName}
       </h1>
 
@@ -67,26 +67,26 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
           {/* ELO Rating - Bold and bright */}
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">{t.eloRating.title}:</span>
-            <span className="text-gray-900 dark:text-white font-bold">{formatRating(player.elo?.rating)}</span>
+            <span className="text-gray-900 dark:text-gray-200 font-bold">{formatRating(player.elo?.rating)}</span>
           </div>
 
           {/* LASK Rating - Always show */}
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">{t.laskRating.title}:</span>
-            <span className="text-gray-900 dark:text-white font-medium">{formatRating(player.lask?.rating)}</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">{formatRating(player.lask?.rating)}</span>
           </div>
 
           {/* Member ID */}
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">{t.playerInfo.memberId}:</span>
-            <span className="text-gray-900 dark:text-white font-medium">{player.id}</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">{player.id}</span>
           </div>
 
           {/* Club */}
           {player.club && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.playerInfo.club}:</span>
-              <span className="text-gray-900 dark:text-white font-medium">{player.club}</span>
+              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.club}</span>
             </div>
           )}
 
@@ -94,7 +94,7 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
           {player.elo?.rapidRating && player.elo.rapidRating > 0 && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.eloRating.rapidRating}:</span>
-              <span className="text-gray-900 dark:text-white font-medium">{player.elo.rapidRating}</span>
+              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.elo.rapidRating}</span>
             </div>
           )}
 
@@ -102,7 +102,7 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
           {player.elo?.blitzRating && player.elo.blitzRating > 0 && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.eloRating.blitzRating}:</span>
-              <span className="text-gray-900 dark:text-white font-medium">{player.elo.blitzRating}</span>
+              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.elo.blitzRating}</span>
             </div>
           )}
 
@@ -110,7 +110,7 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
           {player.fideid && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.additionalInfo.fideId}:</span>
-              <span className="text-gray-900 dark:text-white font-medium">
+              <span className="text-gray-900 dark:text-gray-200 font-medium">
                 <a
                   href={`https://ratings.fide.com/profile/${player.fideid}`}
                   target="_blank"
@@ -127,7 +127,7 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
           {player.birthdate && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.additionalInfo.birthDate}:</span>
-              <span className="text-gray-900 dark:text-white font-medium">{player.birthdate}</span>
+              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.birthdate}</span>
             </div>
           )}
 
@@ -135,14 +135,14 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
           {player.elo?.title && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">{t.eloRating.fideTitle}:</span>
-              <span className="text-gray-900 dark:text-white font-medium">{player.elo.title}</span>
+              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.elo.title}</span>
             </div>
           )}
 
           {/* K-Factor - Always show */}
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">{t.eloRating.kFactor}:</span>
-            <span className="text-gray-900 dark:text-white font-medium">
+            <span className="text-gray-900 dark:text-gray-200 font-medium">
               {player.elo?.k && player.elo.k > 0 ? player.elo.k : 'N/A'}
             </span>
           </div>

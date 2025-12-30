@@ -29,7 +29,7 @@ export function Link({
   // Color classes
   const colorClasses = {
     blue: 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300',
-    inherit: 'text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300',
+    inherit: 'text-gray-900 dark:text-gray-200 hover:text-gray-700 dark:hover:text-gray-300',
     gray: 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
   };
 

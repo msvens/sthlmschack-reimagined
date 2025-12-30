@@ -80,6 +80,46 @@ src/
 - **Touch-Friendly**: Optimized for touch interfaces and mobile gestures
 - **Performance**: Fast loading times across all device types
 
+### Design System & Color Palette
+
+#### Foundation
+This project's design system is originally inspired by [Material UI (MUI)](https://mui.com/), with adaptations for Tailwind CSS and context-specific UX improvements.
+
+#### Color Scheme
+Following Tailwind CSS conventions with context-aware adjustments for optimal readability:
+
+**Primary Text** (Body paragraphs, headings, main content):
+- Light mode: `text-gray-900` - Maximum contrast for readability
+- Dark mode: `dark:text-gray-200` or `dark:text-gray-100` - Bright for maximum readability
+
+**Secondary Text** (Labels, metadata, helper text):
+- Light mode: `text-gray-600`
+- Dark mode: `dark:text-gray-400`
+
+**Muted/Tertiary** (Timestamps, placeholders, disabled states):
+- Light mode: `text-gray-500`
+- Dark mode: `dark:text-gray-500`
+
+#### Component-Specific Exceptions
+
+**Table Body Cells**:
+- Light mode: `text-gray-900` (primary)
+- Dark mode: `dark:text-gray-400` (deliberately using secondary color)
+- **Rationale**: In data-dense tables with many rows, bright white text (`dark:text-gray-200`) can cause eye strain. Using a softer `gray-400` improves reading comfort in dark mode while maintaining readability.
+
+**Table Headers**:
+- Light mode: `text-gray-900`
+- Dark mode: `dark:text-gray-200` (standard primary)
+
+#### Design Rationale
+While MUI served as our initial inspiration, we've made intentional UX-driven deviations:
+- Tables use softer text in dark mode (`gray-400` instead of `white`) to reduce eye strain
+- This is a deliberate exception to the general primary text pattern
+- Light mode maintains consistent high contrast across all components
+
+#### Component Styling
+All components use Tailwind CSS utility classes with the `dark:` prefix for theme-aware styling. Custom theme colors are defined in `src/app/globals.css` using Tailwind's `@theme` directive.
+
 ## Development Roadmap
 
 ### Phase 1: Foundation (Current)

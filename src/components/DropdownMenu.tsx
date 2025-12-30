@@ -128,7 +128,7 @@ export function DropdownMenu({
           <button
             key={item.id}
             onClick={() => onItemClick(item)}
-            className="block px-3 py-2 text-left text-gray-900 dark:text-white hover:bg-white/10 dark:hover:bg-white/10 transition-colors focus:outline-none relative whitespace-nowrap text-sm w-full"
+            className="block px-3 py-2 text-left text-gray-900 dark:text-gray-200 hover:bg-white/10 dark:hover:bg-white/10 transition-colors focus:outline-none relative whitespace-nowrap text-sm w-full"
           >
             <div>
               {item.secondary ? `${item.primary} (${item.secondary})` : item.primary}

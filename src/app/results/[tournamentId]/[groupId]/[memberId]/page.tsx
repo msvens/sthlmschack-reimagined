@@ -216,7 +216,7 @@ export default function TournamentPlayerDetailPage() {
       <PageLayout maxWidth="3xl">
         <div className="text-center">
           <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
-            <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
               Error
             </h1>
             <p className="text-lg mb-6 text-gray-600 dark:text-gray-400">
@@ -378,7 +378,7 @@ export default function TournamentPlayerDetailPage() {
         </div>
       ) : (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
             {player.firstName} {player.lastName} - {language === 'sv' ? 'Partier' : 'Matches'}
           </h2>
           <Table
@@ -420,7 +420,7 @@ export default function TournamentPlayerDetailPage() {
                     <div className="text-xs text-gray-600 dark:text-gray-400">
                       {language === 'sv' ? 'Totalt' : 'Total'}
                     </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
                       {matches.length} {language === 'sv' ? 'av' : 'of'} {matches.length}
                     </div>
                   </div>
@@ -428,7 +428,7 @@ export default function TournamentPlayerDetailPage() {
                     <div className="text-xs text-gray-600 dark:text-gray-400">
                       {language === 'sv' ? 'ELO +/-' : 'ELO +/-'}
                     </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
                       {stats.totalChange > 0 ? `+${stats.totalChange}` : stats.totalChange}
                     </div>
                   </div>
@@ -436,7 +436,7 @@ export default function TournamentPlayerDetailPage() {
                     <div className="text-xs text-gray-600 dark:text-gray-400">
                       {language === 'sv' ? 'ELO prestation' : 'Performance Rating'}
                     </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
                       {stats.performanceRating}
                     </div>
                   </div>
@@ -457,7 +457,7 @@ export default function TournamentPlayerDetailPage() {
 
       {/* ELO Rating History Chart */}
       <div className="mt-8 mb-8">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
           {language === 'sv' ? 'Rankingutveckling' : 'Rating History'}
         </h2>
         {ratingHistoryLoading ? (

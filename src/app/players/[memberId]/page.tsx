@@ -131,7 +131,7 @@ export default function PlayerPage() {
       <PageLayout maxWidth="3xl">
         <div className="text-center">
           <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
-            <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
               {t.pages.playerDetail.error}
             </h1>
             <p className="text-lg mb-6 text-gray-600 dark:text-gray-400">
@@ -173,7 +173,7 @@ export default function PlayerPage() {
 
       {/* ELO Rating History Chart */}
       <div className="mt-8 mb-8">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
           {language === 'sv' ? 'Rankingutveckling' : 'Rating History'}
         </h2>
         {ratingHistoryLoading ? (

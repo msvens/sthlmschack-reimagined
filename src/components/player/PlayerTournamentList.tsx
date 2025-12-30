@@ -186,7 +186,7 @@ export function PlayerTournamentList({
         >
           <div className="flex justify-between items-start">
             <div className={`flex-1 flex flex-col ${classes.gap}`}>
-              <h3 className={`font-medium text-gray-900 dark:text-white ${classes.titleSize}`}>
+              <h3 className={`font-medium text-gray-900 dark:text-gray-200 ${classes.titleSize}`}>
                 {tournamentData.tournament.name}
               </h3>
               <div className={`flex flex-wrap gap-x-4 gap-y-0.5 ${classes.metaSize} text-gray-600 dark:text-gray-400`}>
@@ -196,7 +196,7 @@ export function PlayerTournamentList({
             </div>
             <div className="text-right ml-4 flex-shrink-0">
               {tournamentData.result.place && (
-                <div className={`${classes.fontSize} font-medium text-gray-900 dark:text-white`}>
+                <div className={`${classes.fontSize} font-medium text-gray-900 dark:text-gray-200`}>
                   {t.place}: {tournamentData.result.place}
                 </div>
               )}

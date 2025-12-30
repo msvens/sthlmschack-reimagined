@@ -231,7 +231,7 @@ export function Table<T = Record<string, unknown>>({
             {columns.map((column) => (
               <th
                 key={column.id}
-                className={`${paddingClass} font-medium text-gray-900 dark:text-white ${
+                className={`${paddingClass} font-medium text-gray-900 dark:text-gray-200 ${
                   column.align === 'center'
                     ? 'text-center'
                     : column.align === 'right'
@@ -262,7 +262,7 @@ export function Table<T = Record<string, unknown>>({
               {columns.map((column) => (
                 <td
                   key={column.id}
-                  className={`${paddingClass} text-gray-600 dark:text-gray-400 ${
+                  className={`${paddingClass} text-gray-900 dark:text-gray-400 ${
                     column.align === 'center'
                       ? 'text-center'
                       : column.align === 'right'

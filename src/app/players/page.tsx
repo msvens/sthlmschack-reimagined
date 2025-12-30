@@ -102,7 +102,7 @@ export default function PlayersPage() {
     <PageLayout fullScreen maxWidth="4xl">
       {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-light tracking-wide mb-4 text-gray-900 dark:text-white">
+            <h1 className="text-4xl font-light tracking-wide mb-4 text-gray-900 dark:text-gray-200">
               {t.pages.players.title}
             </h1>
             <p className="text-lg font-light text-gray-600 dark:text-gray-400">
@@ -114,7 +114,7 @@ export default function PlayersPage() {
           <div className="space-y-8 mb-12">
             {/* Search by Name */}
             <div className="relative">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
                 {t.pages.players.search.byName}
               </h3>
               <form ref={nameSearchRef} onSubmit={handleNameSearch} className="flex gap-4">
@@ -158,7 +158,7 @@ export default function PlayersPage() {
 
             {/* Search by Member ID */}
             <div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
                 {t.pages.players.search.byMemberId}
               </h3>
               <form onSubmit={handleMemberIdSearch} className="flex gap-4">
@@ -196,7 +196,7 @@ export default function PlayersPage() {
 
           {/* Example Member IDs */}
           <Card>
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-200">
               Example Member IDs to try:
             </h3>
             <div className="flex flex-wrap gap-2">
