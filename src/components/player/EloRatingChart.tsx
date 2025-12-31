@@ -49,11 +49,18 @@ export function EloRatingChart({
     lask: 'LASK'
   }
 }: EloRatingChartProps) {
-  // Format date for display (show only month-year)
+  // Format date for display (numeric YYYY-MM format, language-agnostic)
   const formatDate = (dateString: string) => {
     try {
+      // If dateString is already in YYYY-MM format, return as-is
+      if (/^\d{4}-\d{2}$/.test(dateString)) {
+        return dateString;
+      }
+      // Otherwise parse and format as YYYY-MM
       const date = new Date(dateString);
-      return date.toLocaleDateString('sv-SE', { month: 'short', year: 'numeric' });
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      return `${year}-${month}`;
     } catch {
       return dateString;
     }
