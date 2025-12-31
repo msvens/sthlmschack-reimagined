@@ -67,6 +67,33 @@ export interface Translations {
       paragraph2: string;
     };
   };
+  common: {
+    eloLabels: {
+      standard: string;
+      rapid: string;
+      blitz: string;
+      lask: string;
+      ratingHistory: string;
+      loadingHistory: string;
+      eloChange: string;
+      performanceRating: string;
+    };
+  };
+  components: {
+    districtFilter: {
+      loading: string;
+      district: string;
+      all: string;
+      allDistricts: string;
+      showAll: string;
+      other: string;
+      tournamentsWithoutDistrict: string;
+    };
+    playerHistory: {
+      teamTournamentHistory: string;
+      opponentStatistics: string;
+    };
+  };
   pages: {
     events: {
       title: string;
@@ -90,6 +117,29 @@ export interface Translations {
       title: string;
       subtitle: string;
       placeholder: string;
+      filters: {
+        dateRange: {
+          title: string;
+          startDate: string;
+          endDate: string;
+          searchButton: string;
+          clearButton: string;
+        };
+        textSearch: {
+          title: string;
+          placeholder: string;
+          searchButton: string;
+          clearButton: string;
+        };
+      };
+      tournamentList: {
+        tournament: string;
+        organizer: string;
+        start: string;
+        end: string;
+        loading: string;
+        noTournaments: string;
+      };
     };
     players: {
       title: string;
@@ -150,6 +200,11 @@ export interface Translations {
         team: string;
         opponents: string;
       };
+      matches: string;
+      total: string;
+      noMatchesFound: string;
+      loadingMatches: string;
+      of: string;
     };
     tournamentResults: {
       loading: string;
@@ -182,6 +237,13 @@ export interface Translations {
         round: string;
       };
       selectGroup: string;
+      tournamentStatus: {
+        hasNotStarted: string;
+        groupStarts: string;
+        noResultsAvailable: string;
+        groupCancelled: string;
+        resultsComing: string;
+      };
     };
   };
 }
@@ -254,6 +316,33 @@ const translations: Record<Language, Translations> = {
         paragraph2: 'Whether you\'re a beginner looking for your first tournament or an experienced player tracking results, Stockholm Chess Reimagined provides the tools you need to stay connected with the local chess community.',
       },
     },
+    common: {
+      eloLabels: {
+        standard: 'ELO',
+        rapid: 'Rapid ELO',
+        blitz: 'Blitz ELO',
+        lask: 'LASK',
+        ratingHistory: 'Rating History',
+        loadingHistory: 'Loading history...',
+        eloChange: 'ELO +/-',
+        performanceRating: 'Performance Rating',
+      },
+    },
+    components: {
+      districtFilter: {
+        loading: 'Loading organizations...',
+        district: 'District',
+        all: 'All',
+        allDistricts: 'All Districts',
+        showAll: 'Show all',
+        other: 'Other',
+        tournamentsWithoutDistrict: 'Tournaments without district',
+      },
+      playerHistory: {
+        teamTournamentHistory: 'Team tournament history coming soon',
+        opponentStatistics: 'Opponent statistics coming soon',
+      },
+    },
     pages: {
       events: {
         title: 'Upcoming Events',
@@ -277,6 +366,29 @@ const translations: Record<Language, Translations> = {
         title: 'Tournament Results',
         subtitle: 'Check the latest results and standings from recent chess tournaments.',
         placeholder: 'Tournament results coming soon. This page will display comprehensive results, standings, and player statistics from completed tournaments.',
+        filters: {
+          dateRange: {
+            title: 'Search by Date Range',
+            startDate: 'Start Date',
+            endDate: 'End Date',
+            searchButton: 'Search',
+            clearButton: 'Clear',
+          },
+          textSearch: {
+            title: 'Search by Name or Location',
+            placeholder: 'Enter tournament name or location...',
+            searchButton: 'Search',
+            clearButton: 'Clear',
+          },
+        },
+        tournamentList: {
+          tournament: 'Tournament',
+          organizer: 'Organizer',
+          start: 'Start',
+          end: 'End',
+          loading: 'Loading tournaments...',
+          noTournaments: 'No tournaments found',
+        },
       },
       players: {
         title: 'Players',
@@ -337,6 +449,11 @@ const translations: Record<Language, Translations> = {
           team: 'Team',
           opponents: 'Opponents',
         },
+        matches: 'Matches',
+        total: 'Total',
+        noMatchesFound: 'No matches found',
+        loadingMatches: 'Loading matches...',
+        of: 'of',
       },
       tournamentResults: {
         loading: 'Loading tournament results...',
@@ -369,6 +486,13 @@ const translations: Record<Language, Translations> = {
           round: 'Round',
         },
         selectGroup: 'Please select a group to view results',
+        tournamentStatus: {
+          hasNotStarted: 'Tournament has not started yet',
+          groupStarts: 'Group starts:',
+          noResultsAvailable: 'No results available',
+          groupCancelled: 'This group may have been cancelled',
+          resultsComing: 'Results coming soon...',
+        },
       },
     },
   },
@@ -439,6 +563,33 @@ const translations: Record<Language, Translations> = {
         paragraph2: 'Oavsett om du är en nybörjare som letar efter din första turnering eller en erfaren spelare som spårar resultat, ger Stockholm Schack Omskapat dig verktygen du behöver för att hålla dig uppdaterad med den lokala schackgemenskapen.',
       },
     },
+    common: {
+      eloLabels: {
+        standard: 'ELO',
+        rapid: 'Snabb-ELO',
+        blitz: 'Blixt-ELO',
+        lask: 'LASK',
+        ratingHistory: 'Rankingutveckling',
+        loadingHistory: 'Laddar historik...',
+        eloChange: 'ELO +/-',
+        performanceRating: 'ELO prestation',
+      },
+    },
+    components: {
+      districtFilter: {
+        loading: 'Laddar organisationer...',
+        district: 'Distrikt',
+        all: 'Alla',
+        allDistricts: 'Alla distrikt',
+        showAll: 'Visa alla',
+        other: 'Övriga',
+        tournamentsWithoutDistrict: 'Turneringar utan distrikt',
+      },
+      playerHistory: {
+        teamTournamentHistory: 'Lagturneringshistorik kommer snart',
+        opponentStatistics: 'Motståndarstatistik kommer snart',
+      },
+    },
     pages: {
       events: {
         title: 'Kommande Evenemang',
@@ -462,6 +613,29 @@ const translations: Record<Language, Translations> = {
         title: 'Turneringsresultat',
         subtitle: 'Kolla de senaste resultaten och placeringarna från nyligen avslutade schackturneringar.',
         placeholder: 'Turneringsresultat kommer snart. Denna sida kommer att visa omfattande resultat, placeringar och spelarstatistik från avslutade turneringar.',
+        filters: {
+          dateRange: {
+            title: 'Sök efter Datumintervall',
+            startDate: 'Startdatum',
+            endDate: 'Slutdatum',
+            searchButton: 'Sök',
+            clearButton: 'Rensa',
+          },
+          textSearch: {
+            title: 'Sök efter Namn eller Plats',
+            placeholder: 'Ange turneringsnamn eller plats...',
+            searchButton: 'Sök',
+            clearButton: 'Rensa',
+          },
+        },
+        tournamentList: {
+          tournament: 'Turnering',
+          organizer: 'Arrangör',
+          start: 'Start',
+          end: 'Slut',
+          loading: 'Laddar turneringar...',
+          noTournaments: 'Inga turneringar hittades',
+        },
       },
       players: {
         title: 'Spelare',
@@ -522,6 +696,11 @@ const translations: Record<Language, Translations> = {
           team: 'Lag',
           opponents: 'Motståndare',
         },
+        matches: 'Partier',
+        total: 'Totalt',
+        noMatchesFound: 'Inga partier hittades',
+        loadingMatches: 'Laddar partier...',
+        of: 'av',
       },
       tournamentResults: {
         loading: 'Laddar turneringsresultat...',
@@ -555,6 +734,13 @@ const translations: Record<Language, Translations> = {
           round: 'Rond',
         },
         selectGroup: 'Vänligen välj en grupp för att se resultat',
+        tournamentStatus: {
+          hasNotStarted: 'Turneringen har inte startat än',
+          groupStarts: 'Grupp börjar:',
+          noResultsAvailable: 'Inga resultat tillgängliga',
+          groupCancelled: 'Denna grupp kan ha ställts in',
+          resultsComing: 'Resultat kommer snart...',
+        },
       },
     },
   },

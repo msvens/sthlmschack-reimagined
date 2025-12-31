@@ -250,7 +250,7 @@ export default function TournamentPlayerDetailPage() {
   const matchColumns: TableColumn<PlayerMatch>[] = [
     {
       id: 'round',
-      header: language === 'sv' ? 'Rond' : 'Round',
+      header: t.pages.tournamentResults.roundByRound.round,
       accessor: (row) => row.round,
       align: 'left',
       noWrap: true
@@ -317,7 +317,7 @@ export default function TournamentPlayerDetailPage() {
     },
     {
       id: 'eloChange',
-      header: language === 'sv' ? 'ELO +/-' : 'ELO +/-',
+      header: t.common.eloLabels.eloChange,
       accessor: (row) => {
         if (!tournamentPlayer) return '-';
 
@@ -373,19 +373,19 @@ export default function TournamentPlayerDetailPage() {
       {resultsLoading ? (
         <div className="mb-8 text-center">
           <div className="text-lg text-gray-600 dark:text-gray-400">
-            Loading matches...
+            {t.pages.playerDetail.loadingMatches}
           </div>
         </div>
       ) : (
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
-            {player.firstName} {player.lastName} - {language === 'sv' ? 'Partier' : 'Matches'}
+            {player.firstName} {player.lastName} - {t.pages.playerDetail.matches}
           </h2>
           <Table
             data={matches}
             columns={matchColumns}
             getRowKey={(row) => `${row.round}-${row.opponent.id}`}
-            emptyMessage={language === 'sv' ? 'Inga partier hittades' : 'No matches found'}
+            emptyMessage={t.pages.playerDetail.noMatchesFound}
           />
 
           {/* Tournament Summary */}
@@ -418,15 +418,15 @@ export default function TournamentPlayerDetailPage() {
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {language === 'sv' ? 'Totalt' : 'Total'}
+                      {t.pages.playerDetail.total}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                      {matches.length} {language === 'sv' ? 'av' : 'of'} {matches.length}
+                      {matches.length} {t.pages.playerDetail.of} {matches.length}
                     </div>
                   </div>
                   <div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {language === 'sv' ? 'ELO +/-' : 'ELO +/-'}
+                      {t.common.eloLabels.eloChange}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
                       {stats.totalChange > 0 ? `+${stats.totalChange}` : stats.totalChange}
@@ -434,7 +434,7 @@ export default function TournamentPlayerDetailPage() {
                   </div>
                   <div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {language === 'sv' ? 'ELO prestation' : 'Performance Rating'}
+                      {t.common.eloLabels.performanceRating}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
                       {stats.performanceRating}
@@ -458,20 +458,20 @@ export default function TournamentPlayerDetailPage() {
       {/* ELO Rating History Chart */}
       <div className="mt-8 mb-8">
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
-          {language === 'sv' ? 'Rankingutveckling' : 'Rating History'}
+          {t.common.eloLabels.ratingHistory}
         </h2>
         {ratingHistoryLoading ? (
           <div className="flex items-center justify-center h-96 text-gray-600 dark:text-gray-400">
-            {language === 'sv' ? 'Laddar historik...' : 'Loading history...'}
+            {t.common.eloLabels.loadingHistory}
           </div>
         ) : (
           <EloRatingChart
             data={ratingHistory}
             labels={{
-              standard: language === 'sv' ? 'ELO' : 'ELO',
-              rapid: language === 'sv' ? 'Snabb-ELO' : 'Rapid ELO',
-              blitz: language === 'sv' ? 'Blixt-ELO' : 'Blitz ELO',
-              lask: 'LASK'
+              standard: t.common.eloLabels.standard,
+              rapid: t.common.eloLabels.rapid,
+              blitz: t.common.eloLabels.blitz,
+              lask: t.common.eloLabels.lask
             }}
           />
         )}

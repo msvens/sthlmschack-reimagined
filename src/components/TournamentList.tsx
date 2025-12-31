@@ -23,8 +23,9 @@ export function TournamentList({
   const { getOrganizerName } = useOrganizations();
   const t = getTranslation(language);
 
-  // Format date to YYYY-MM-DD
+  // Format date to YYYY-MM-DD (or "-" if empty)
   const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toISOString().split('T')[0];
   };
@@ -33,7 +34,9 @@ export function TournamentList({
   const tableData = useMemo(() => {
     return tournaments.map((tournament) => ({
       name: tournament.name,
-      club: getOrganizerName(tournament.orgType, tournament.orgNumber),
+      club: tournament.orgType && tournament.orgNumber
+        ? getOrganizerName(tournament.orgType, tournament.orgNumber)
+        : '-',
       start: formatDate(tournament.start),
       end: formatDate(tournament.end),
       tournamentId: tournament.id,

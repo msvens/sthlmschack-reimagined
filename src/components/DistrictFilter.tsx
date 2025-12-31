@@ -2,6 +2,7 @@
 
 import { SelectableList, SelectableListItem } from './SelectableList';
 import { useOrganizations } from '@/context/OrganizationsContext';
+import { getTranslation } from '@/lib/translations';
 
 export interface DistrictCount {
   districtId: number | null; // null = "Övriga"
@@ -17,6 +18,7 @@ interface DistrictFilterProps {
   transparent?: boolean;
   districtCounts?: DistrictCount[]; // Optional: show counts, hide empty districts
   totalCount?: number; // Total number of items for "All" option
+  showLabel?: boolean; // Optional: show/hide the label. Defaults to true
 }
 
 export function DistrictFilter({
@@ -27,14 +29,16 @@ export function DistrictFilter({
   compact,
   transparent,
   districtCounts,
-  totalCount
+  totalCount,
+  showLabel = true
 }: DistrictFilterProps) {
   const { districts, loading } = useOrganizations();
+  const t = getTranslation(language);
 
   if (loading) {
     return (
       <div className="text-sm text-gray-600 dark:text-gray-400">
-        {language === 'sv' ? 'Laddar organisationer...' : 'Loading organizations...'}
+        {t.components.districtFilter.loading}
       </div>
     );
   }
@@ -49,9 +53,9 @@ export function DistrictFilter({
     {
       id: 'all',
       label: totalCount !== undefined
-        ? `${language === 'sv' ? 'Alla' : 'All'} (${totalCount})`
-        : language === 'sv' ? 'Alla distrikt' : 'All Districts',
-      tooltip: language === 'sv' ? 'Visa alla' : 'Show all'
+        ? `${t.components.districtFilter.all} (${totalCount})`
+        : t.components.districtFilter.allDistricts,
+      tooltip: t.components.districtFilter.showAll
     },
     ...filteredDistricts.map(district => {
       const count = districtCounts?.find(dc => dc.districtId === district.id)?.count;
@@ -68,8 +72,8 @@ export function DistrictFilter({
   if (ovrigaCount && ovrigaCount > 0) {
     districtItems.push({
       id: 'ovriga',
-      label: `${language === 'sv' ? 'Övriga' : 'Other'} (${ovrigaCount})`,
-      tooltip: language === 'sv' ? 'Turneringar utan distrikt' : 'Tournaments without district'
+      label: `${t.components.districtFilter.other} (${ovrigaCount})`,
+      tooltip: t.components.districtFilter.tournamentsWithoutDistrict
     });
   }
 
@@ -96,7 +100,7 @@ export function DistrictFilter({
       items={districtItems}
       selectedId={displaySelectedId}
       onSelect={handleSelect}
-      title={language === 'sv' ? 'Distrikt' : 'District'}
+      title={showLabel ? t.components.districtFilter.district : undefined}
       variant={variant}
       compact={compact}
       transparent={transparent}

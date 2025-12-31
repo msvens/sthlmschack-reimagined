@@ -292,10 +292,10 @@ export default function GroupResultsPage() {
                           return (
                             <div className="p-8 text-center">
                               <div className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
-                                {language === 'sv' ? 'Turneringen har inte startat än' : 'Tournament has not started yet'}
+                                {t.pages.tournamentResults.tournamentStatus.hasNotStarted}
                               </div>
                               <div className="text-gray-600 dark:text-gray-400">
-                                {language === 'sv' ? 'Grupp börjar:' : 'Group starts:'} {groupStartDate}
+                                {t.pages.tournamentResults.tournamentStatus.groupStarts} {groupStartDate}
                               </div>
                             </div>
                           );
@@ -303,10 +303,10 @@ export default function GroupResultsPage() {
                           return (
                             <div className="p-8 text-center">
                               <div className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
-                                {language === 'sv' ? 'Inga resultat tillgängliga' : 'No results available'}
+                                {t.pages.tournamentResults.tournamentStatus.noResultsAvailable}
                               </div>
                               <div className="text-gray-600 dark:text-gray-400">
-                                {language === 'sv' ? 'Denna grupp kan ha ställts in' : 'This group may have been cancelled'}
+                                {t.pages.tournamentResults.tournamentStatus.groupCancelled}
                               </div>
                             </div>
                           );
@@ -314,7 +314,7 @@ export default function GroupResultsPage() {
                           return (
                             <div className="p-8 text-center">
                               <div className="text-gray-600 dark:text-gray-400">
-                                {language === 'sv' ? 'Resultat kommer snart...' : 'Results coming soon...'}
+                                {t.pages.tournamentResults.tournamentStatus.resultsComing}
                               </div>
                             </div>
                           );

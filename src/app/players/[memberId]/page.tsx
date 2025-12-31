@@ -174,20 +174,20 @@ export default function PlayerPage() {
       {/* ELO Rating History Chart */}
       <div className="mt-8 mb-8">
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
-          {language === 'sv' ? 'Rankingutveckling' : 'Rating History'}
+          {t.common.eloLabels.ratingHistory}
         </h2>
         {ratingHistoryLoading ? (
           <div className="flex items-center justify-center h-96 text-gray-600 dark:text-gray-400">
-            {language === 'sv' ? 'Laddar historik...' : 'Loading history...'}
+            {t.common.eloLabels.loadingHistory}
           </div>
         ) : (
           <EloRatingChart
             data={ratingHistory}
             labels={{
-              standard: language === 'sv' ? 'ELO' : 'ELO',
-              rapid: language === 'sv' ? 'Snabb-ELO' : 'Rapid ELO',
-              blitz: language === 'sv' ? 'Blixt-ELO' : 'Blitz ELO',
-              lask: 'LASK'
+              standard: t.common.eloLabels.standard,
+              rapid: t.common.eloLabels.rapid,
+              blitz: t.common.eloLabels.blitz,
+              lask: t.common.eloLabels.lask
             }}
           />
         )}

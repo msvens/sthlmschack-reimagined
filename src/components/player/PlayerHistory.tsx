@@ -3,6 +3,7 @@
 import React, { useState, ReactNode } from 'react';
 import { PlayerTournamentList } from './PlayerTournamentList';
 import { PlayerTournamentData } from '@/lib/api/utils/playerTournaments';
+import { getTranslation } from '@/lib/translations';
 
 export type PlayerTabType = 'individual' | 'team' | 'opponents';
 
@@ -43,6 +44,7 @@ export function PlayerHistory({
   prependToIndividual
 }: PlayerHistoryProps) {
   const [selectedTab, setSelectedTab] = useState<PlayerTabType>('individual');
+  const translations = getTranslation(language);
 
   return (
     <div>
@@ -96,13 +98,13 @@ export function PlayerHistory({
 
       {selectedTab === 'team' && (
         <div className="p-6 text-center text-gray-600 dark:text-gray-400">
-          {language === 'sv' ? 'Lagturneringshistorik kommer snart' : 'Team tournament history coming soon'}
+          {translations.components.playerHistory.teamTournamentHistory}
         </div>
       )}
 
       {selectedTab === 'opponents' && (
         <div className="p-6 text-center text-gray-600 dark:text-gray-400">
-          {language === 'sv' ? 'Motståndarstatistik kommer snart' : 'Opponent statistics coming soon'}
+          {translations.components.playerHistory.opponentStatistics}
         </div>
       )}
     </div>
