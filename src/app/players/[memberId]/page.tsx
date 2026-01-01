@@ -10,6 +10,7 @@ import { PlayerService, getPlayerTournaments, getPlayerRatingHistory, PlayerTour
 import { PlayerInfoDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
+import { addRecentPlayer } from '@/lib/recentPlayers';
 
 export default function PlayerPage() {
   const params = useParams();
@@ -111,6 +112,17 @@ export default function PlayerPage() {
     // Fetch in parallel
     fetchTournaments();
     fetchRatingHistory();
+  }, [player, memberId]);
+
+  // Save to recent players when player data is loaded
+  useEffect(() => {
+    if (player && memberId) {
+      addRecentPlayer({
+        id: memberId,
+        name: `${player.firstName} ${player.lastName}`,
+        club: player.club || undefined
+      });
+    }
   }, [player, memberId]);
 
 

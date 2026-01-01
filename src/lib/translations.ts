@@ -153,6 +153,7 @@ export interface Translations {
         searchPlaceholder: string;
         memberIdPlaceholder: string;
       };
+      recentPlayers: string;
     };
     playerDetail: {
       loading: string;
@@ -402,6 +403,7 @@ const translations: Record<Language, Translations> = {
           searchPlaceholder: 'Enter first or last name...',
           memberIdPlaceholder: 'Enter member ID...',
         },
+        recentPlayers: 'Recent Players',
       },
       playerDetail: {
         loading: 'Loading player information...',
@@ -649,6 +651,7 @@ const translations: Record<Language, Translations> = {
           searchPlaceholder: 'Ange förnamn eller efternamn...',
           memberIdPlaceholder: 'Ange medlems-ID...',
         },
+        recentPlayers: 'Senaste Spelare',
       },
       playerDetail: {
         loading: 'Laddar spelarinformation...',

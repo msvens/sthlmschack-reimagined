@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { Card } from '@/components/Card';
 import { DropdownMenu, DropdownMenuItem } from '@/components/DropdownMenu';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { PlayerService } from '@/lib/api';
 import { PlayerInfoDto } from '@/lib/api/types';
+import { getRecentPlayers, addRecentPlayer, RecentPlayer } from '@/lib/recentPlayers';
 
 export default function PlayersPage() {
   const { language } = useLanguage();
@@ -19,42 +19,75 @@ export default function PlayersPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [memberIdSearch, setMemberIdSearch] = useState('');
+  const [fideIdSearch, setFideIdSearch] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<PlayerInfoDto[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const nameSearchRef = useRef<HTMLFormElement>(null);
+  const [recentPlayers, setRecentPlayers] = useState<RecentPlayer[]>([]);
+  const buttonContainerRef = useRef<HTMLDivElement>(null);
   const playerService = new PlayerService();
 
-  const handleNameSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!firstName.trim() || !lastName.trim()) return;
+  // Load recent players on mount
+  useEffect(() => {
+    setRecentPlayers(getRecentPlayers());
+  }, []);
 
+  // Unified search handler - tries memberId, then fideId, then name
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSearching(true);
     setShowDropdown(false);
 
     try {
-      const response = await playerService.searchPlayer(firstName.trim(), lastName.trim());
-
-      if (response.status === 200 && response.data) {
-        const results = response.data;
-
-        if (results.length === 1) {
-          // Single result - navigate directly
-          router.push(`/players/${results[0].id}`);
-        } else if (results.length > 1) {
-          // Multiple results - show dropdown
-          setSearchResults(results);
-          setShowDropdown(true);
-        } else {
-          // No results
-          setSearchResults([]);
-          setShowDropdown(false);
+      // Priority 1: Try Member ID if provided
+      if (memberIdSearch.trim()) {
+        const memberId = parseInt(memberIdSearch.trim());
+        if (!isNaN(memberId)) {
+          router.push(`/players/${memberId}`);
+          return;
         }
-      } else {
-        console.error('Search failed:', response.error);
-        setSearchResults([]);
-        setShowDropdown(false);
       }
+
+      // Priority 2: Try FIDE ID if provided
+      if (fideIdSearch.trim()) {
+        const fideId = parseInt(fideIdSearch.trim());
+        if (!isNaN(fideId)) {
+          // Date parameter optional, defaults to today
+          const response = await playerService.getPlayerByFIDEId(fideId);
+
+          if (response.status === 200 && response.data) {
+            router.push(`/players/${response.data.id}`);
+            return;
+          }
+        }
+      }
+
+      // Priority 3: Try name search if both names provided
+      if (firstName.trim() && lastName.trim()) {
+        const response = await playerService.searchPlayer(firstName.trim(), lastName.trim());
+
+        if (response.status === 200 && response.data) {
+          const results = response.data;
+
+          if (results.length === 1) {
+            // Single result - navigate directly
+            router.push(`/players/${results[0].id}`);
+          } else if (results.length > 1) {
+            // Multiple results - show dropdown
+            setSearchResults(results);
+            setShowDropdown(true);
+          } else {
+            // No results
+            setSearchResults([]);
+            setShowDropdown(false);
+          }
+          return;
+        }
+      }
+
+      // If we get here, no valid search criteria or no results
+      setSearchResults([]);
+      setShowDropdown(false);
     } catch (error) {
       console.error('Search error:', error);
       setSearchResults([]);
@@ -64,25 +97,11 @@ export default function PlayersPage() {
     }
   };
 
-  const handleMemberIdSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!memberIdSearch.trim()) return;
-    
-    setIsSearching(true);
-    // Navigate directly to the player page
-    const memberId = parseInt(memberIdSearch.trim());
-    if (!isNaN(memberId)) {
-      router.push(`/players/${memberId}`);
-    } else {
-      alert('Please enter a valid member ID (number)');
-    }
-    setIsSearching(false);
-  };
-
   const clearSearches = () => {
     setFirstName('');
     setLastName('');
     setMemberIdSearch('');
+    setFideIdSearch('');
     setSearchResults([]);
     setShowDropdown(false);
   };
@@ -101,115 +120,103 @@ export default function PlayersPage() {
   return (
     <PageLayout fullScreen maxWidth="4xl">
       {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-light tracking-wide mb-4 text-gray-900 dark:text-gray-200">
-              {t.pages.players.title}
-            </h1>
-            <p className="text-lg font-light text-gray-600 dark:text-gray-400">
-              {t.pages.players.subtitle}
-            </p>
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-light tracking-wide mb-4 text-gray-900 dark:text-gray-200">
+          {t.pages.players.title}
+        </h1>
+        <p className="text-lg font-light text-gray-600 dark:text-gray-400">
+          {t.pages.players.subtitle}
+        </p>
+      </div>
+
+      {/* Unified Search Form */}
+      <form onSubmit={handleSearch} className="space-y-4 mb-12">
+        {/* Line 1: First Name & Last Name */}
+        <div>
+          <div className="flex gap-4">
+            <TextField
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First name"
+              fullWidth
+            />
+            <TextField
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last name"
+              fullWidth
+            />
           </div>
+          <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
+            Enter both first and last name to search for players.
+          </p>
+        </div>
 
-          {/* Search Forms */}
-          <div className="space-y-8 mb-12">
-            {/* Search by Name */}
-            <div className="relative">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
-                {t.pages.players.search.byName}
-              </h3>
-              <form ref={nameSearchRef} onSubmit={handleNameSearch} className="flex gap-4">
-                <TextField
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="First name"
-                  fullWidth
-                />
-                <TextField
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Last name"
-                  fullWidth
-                />
-                <Button
-                  type="submit"
-                  disabled={isSearching || !firstName.trim() || !lastName.trim()}
-                  variant="outlined"
-                  className="px-6"
+        {/* Line 2: MemberId */}
+        <TextField
+          value={memberIdSearch}
+          onChange={(e) => setMemberIdSearch(e.target.value)}
+          placeholder={t.pages.players.search.memberIdPlaceholder}
+          fullWidth
+        />
+
+        {/* Line 3: FideId */}
+        <TextField
+          value={fideIdSearch}
+          onChange={(e) => setFideIdSearch(e.target.value)}
+          placeholder="FIDE ID"
+          fullWidth
+        />
+
+        {/* Line 4: Clear & Search buttons (right-aligned) */}
+        <div ref={buttonContainerRef} className="flex justify-end gap-4 pt-2">
+          <Button
+            type="button"
+            onClick={clearSearches}
+            variant="outlined"
+          >
+            {t.pages.players.search.clearButton}
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSearching}
+            variant="outlined"
+          >
+            {isSearching ? '...' : t.pages.players.search.searchButton}
+          </Button>
+        </div>
+
+        {/* Dropdown for multiple name search results */}
+        <DropdownMenu
+          items={dropdownItems}
+          isVisible={showDropdown}
+          onItemClick={handlePlayerSelect}
+          onClose={() => setShowDropdown(false)}
+          anchorElement={buttonContainerRef.current}
+          maxItems={5}
+        />
+      </form>
+
+      {/* Recent Players */}
+      {recentPlayers.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-200">
+            {t.pages.players.recentPlayers}
+          </h3>
+          <div className="space-y-1">
+            {recentPlayers.map((player) => (
+              <div key={player.id}>
+                <button
+                  onClick={() => router.push(`/players/${player.id}`)}
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  {isSearching ? '...' : t.pages.players.search.searchButton}
-                </Button>
-              </form>
-              <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
-                Enter both first and last name to search for players.
-              </p>
-
-              <DropdownMenu
-                items={dropdownItems}
-                isVisible={showDropdown}
-                onItemClick={handlePlayerSelect}
-                onClose={() => setShowDropdown(false)}
-                anchorElement={nameSearchRef.current}
-                maxItems={5}
-              />
-            </div>
-
-            {/* Divider */}
-            <div className="h-px w-full bg-gray-200 dark:bg-gray-700" />
-
-            {/* Search by Member ID */}
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
-                {t.pages.players.search.byMemberId}
-              </h3>
-              <form onSubmit={handleMemberIdSearch} className="flex gap-4">
-                <TextField
-                  value={memberIdSearch}
-                  onChange={(e) => setMemberIdSearch(e.target.value)}
-                  placeholder={t.pages.players.search.memberIdPlaceholder}
-                  fullWidth
-                />
-                <Button
-                  type="submit"
-                  disabled={isSearching || !memberIdSearch.trim()}
-                  variant="outlined"
-                  className="px-6"
-                >
-                  {isSearching ? '...' : t.pages.players.search.searchButton}
-                </Button>
-              </form>
-              <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
-                Enter a member ID to go directly to that player&apos;s page.
-              </p>
-            </div>
-
-            {/* Clear Button */}
-            <div className="text-center">
-              <Button
-                onClick={clearSearches}
-                variant="outlined"
-                color="default"
-              >
-                {t.pages.players.search.clearButton}
-              </Button>
-            </div>
+                  {player.name}{player.club ? `, ${player.club}` : ''}
+                </button>
+              </div>
+            ))}
           </div>
-
-          {/* Example Member IDs */}
-          <Card>
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-200">
-              Example Member IDs to try:
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => setMemberIdSearch('642062')}
-                variant="outlined"
-                color="default"
-                className="px-3 py-1 text-sm"
-              >
-                642062 (Olle Svensson)
-              </Button>
-            </div>
-          </Card>
+        </div>
+      )}
     </PageLayout>
   );
 }

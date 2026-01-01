@@ -230,7 +230,7 @@ export default function ResultsPage() {
             </div>
             <Button
               onClick={handleDateRangeSearch}
-              color="primary"
+              variant="outlined"
               disabled={loading}
             >
               {t.pages.results.filters.dateRange.searchButton}
@@ -252,7 +252,7 @@ export default function ResultsPage() {
           />
           <Button
             onClick={handleTextSearch}
-            color="primary"
+            variant="outlined"
             disabled={loading}
           >
             {t.pages.results.filters.textSearch.searchButton}
