@@ -5,10 +5,10 @@
 
 import { RatingsService } from '../index';
 import { RatingType, PlayerCategory } from '../types';
-import { SSF_API_BASE_URL } from '../constants';
-import { 
-  TEST_RATING_TYPE, 
-  TEST_RATING_CATEGORY, 
+import { CURRENT_TEST_API_URL } from '../constants';
+import {
+  TEST_RATING_TYPE,
+  TEST_RATING_CATEGORY,
   TEST_RATING_DATE,
   TEST_FEDERATION_ID,
   TEST_DISTRICT_ID,
@@ -19,7 +19,7 @@ describe('Ratings Service Integration Tests', () => {
   let ratingsService: RatingsService;
 
   beforeEach(() => {
-    ratingsService = new RatingsService(SSF_API_BASE_URL);
+    ratingsService = new RatingsService(CURRENT_TEST_API_URL);
     // Suppress unused variable warning for now
     void ratingsService;
   });

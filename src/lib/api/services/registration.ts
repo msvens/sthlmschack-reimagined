@@ -1,9 +1,8 @@
 import { BaseApiService } from '../base';
-import { SSF_LOCAL_API_BASE_URL } from '../constants';
 import type { TeamRegistrationDto, ApiResponse } from '../types';
 
 export class RegistrationService extends BaseApiService {
-  constructor(baseUrl: string = SSF_LOCAL_API_BASE_URL) {
+  constructor(baseUrl?: string) {
     super(baseUrl);
   }
 

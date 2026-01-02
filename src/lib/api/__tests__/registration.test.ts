@@ -4,8 +4,8 @@
  */
 
 import { RegistrationService } from '../index';
-import { SSF_API_BASE_URL } from '../constants';
-import { 
+import { CURRENT_TEST_API_URL } from '../constants';
+import {
   TEST_REGISTRATION_TOURNAMENT_ID,
   TEST_REGISTRATION_GROUP_ID,
   TEST_REGISTRATION_MEMBER_ID,
@@ -16,7 +16,7 @@ describe('Registration Service Integration Tests', () => {
   let registrationService: RegistrationService;
 
   beforeEach(() => {
-    registrationService = new RegistrationService(SSF_API_BASE_URL);
+    registrationService = new RegistrationService(CURRENT_TEST_API_URL);
     // Suppress unused variable warning for now
     void registrationService;
   });

@@ -5,13 +5,13 @@
 
 import { getPlayerTournaments } from '@/lib/api';
 import { PlayerTournamentData } from '@/lib/api';
-import { SSF_API_BASE_URL } from '../constants';
+import { CURRENT_TEST_API_URL } from '../constants';
 import { TEST_PLAYER_ID } from './test-data';
 
 describe('Player Tournaments Utility Tests', () => {
   describe('getPlayerTournaments', () => {
     test('should fetch tournaments for test player', async () => {
-      const response = await getPlayerTournaments(TEST_PLAYER_ID, SSF_API_BASE_URL);
+      const response = await getPlayerTournaments(TEST_PLAYER_ID, CURRENT_TEST_API_URL);
 
       expect(response.status).toBe(200);
       expect(response.data).toBeDefined();
@@ -49,7 +49,7 @@ describe('Player Tournaments Utility Tests', () => {
     }, 15000); // 15 second timeout for multiple API calls
 
     test('should handle invalid player ID gracefully', async () => {
-      const response = await getPlayerTournaments(999999, SSF_API_BASE_URL);
+      const response = await getPlayerTournaments(999999, CURRENT_TEST_API_URL);
 
       expect(response.status).toBeGreaterThanOrEqual(200);
       expect(Array.isArray(response.data)).toBe(true);

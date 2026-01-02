@@ -5,8 +5,8 @@
 
 import { ResultsService } from '../index';
 import { TeamTournamentEndResultDto, TournamentEndResultDto, TournamentRoundResultDto } from '../types';
-import { SSF_API_BASE_URL } from '../constants';
-import { 
+import { CURRENT_TEST_API_URL } from '../constants';
+import {
   TEST_RESULTS_GROUP_ID,
   TEST_RESULTS_TEAM_GROUP_ID,
   TEST_RESULTS_MEMBER_ID
@@ -16,7 +16,7 @@ describe('Results Service Integration Tests', () => {
   let resultsService: ResultsService;
 
   beforeEach(() => {
-    resultsService = new ResultsService(SSF_API_BASE_URL);
+    resultsService = new ResultsService(CURRENT_TEST_API_URL);
   });
 
   describe('Tournament Results API', () => {

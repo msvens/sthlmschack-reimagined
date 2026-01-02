@@ -1,9 +1,8 @@
 import { BaseApiService } from '../base';
-import { SSF_LOCAL_API_BASE_URL } from '../constants';
 import type { TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, ApiResponse } from '../types';
 
 export class ResultsService extends BaseApiService {
-  constructor(baseUrl: string = SSF_LOCAL_API_BASE_URL) {
+  constructor(baseUrl?: string) {
     super(baseUrl);
   }
 

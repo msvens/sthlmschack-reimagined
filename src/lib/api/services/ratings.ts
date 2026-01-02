@@ -1,10 +1,9 @@
 import { BaseApiService } from '../base';
-import { SSF_LOCAL_API_BASE_URL } from '../constants';
 import type { PlayerInfoDto, ApiResponse } from '../types';
 import { RatingType, PlayerCategory } from '../types';
 
 export class RatingsService extends BaseApiService {
-  constructor(baseUrl: string = SSF_LOCAL_API_BASE_URL) {
+  constructor(baseUrl?: string) {
     super(baseUrl);
   }
 

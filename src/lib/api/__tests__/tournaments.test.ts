@@ -4,8 +4,8 @@
  */
 
 import {ApiResponse, TournamentDto, TournamentService} from '../index';
-import { SSF_API_BASE_URL } from '../constants';
-import { 
+import { CURRENT_TEST_API_URL } from '../constants';
+import {
   TEST_TOURNAMENT_ID,
   TEST_TOURNAMENT_GROUP_ID,
   TEST_TOURNAMENT_CLASS_ID,
@@ -19,7 +19,7 @@ describe('Tournament Service Integration Tests', () => {
   let tournamentService: TournamentService;
 
   beforeEach(() => {
-    tournamentService = new TournamentService(SSF_API_BASE_URL);
+    tournamentService = new TournamentService(CURRENT_TEST_API_URL);
     // Suppress unused variable warning for now
     void tournamentService;
   });

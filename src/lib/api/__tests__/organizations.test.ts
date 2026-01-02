@@ -4,20 +4,20 @@
  */
 
 import { OrganizationService } from '../index';
-import { SSF_API_BASE_URL } from '../constants';
-import { 
-  TEST_FEDERATION_ID, 
-  TEST_DISTRICT_ID, 
-  TEST_CLUB_ID, 
+import { CURRENT_TEST_API_URL } from '../constants';
+import {
+  TEST_FEDERATION_ID,
+  TEST_DISTRICT_ID,
+  TEST_CLUB_ID,
   TEST_CLUB_NAME,
-  TEST_ORGANIZATION_ID 
+  TEST_ORGANIZATION_ID
 } from './test-data';
 
 describe('Organization Service Integration Tests', () => {
   let organizationService: OrganizationService;
 
   beforeEach(() => {
-    organizationService = new OrganizationService(SSF_API_BASE_URL);
+    organizationService = new OrganizationService(CURRENT_TEST_API_URL);
   });
 
   describe('Federation API', () => {

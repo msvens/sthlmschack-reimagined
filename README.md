@@ -202,6 +202,59 @@ This project integrates with the Svenska Schackförbundet API:
 - **API Specification**: [https://member.schack.se/memdb/v3/api-docs](https://member.schack.se/memdb/v3/api-docs)
 - **Swagger UI (Testing)**: [https://member.schack.se/swagger-ui/index.html](https://member.schack.se/swagger-ui/index.html)
 
+### API Architecture
+
+To avoid CORS issues and keep the browser happy, this project uses a **proxy architecture**:
+
+1. **Frontend** calls local proxy URLs (e.g., `/api/chess/v1/...`)
+2. **Next.js server** rewrites these requests to remote APIs (see `next.config.ts`)
+3. **Browser** never directly calls the external API
+
+This architecture provides:
+- ✅ No CORS errors
+- ✅ Cleaner client-side code
+- ✅ Easy environment switching
+- ✅ API URL abstraction
+
+### Environment Configuration
+
+The API configuration is centralized in `src/lib/api/constants.ts`:
+
+**Production Environment:**
+- Frontend calls: `/api/chess/v1/:path*`
+- Next.js rewrites to: `https://member.schack.se/public/api/v1/:path*`
+
+**Development Environment (Halvarsson Test Server):**
+- Frontend calls: `/api/chess-dev/v1/:path*`
+- Next.js rewrites to: `https://halvarsson.no-ip.com/webapp/memdb/public/api/v1/:path*`
+
+### Switching Environments
+
+**For Frontend (Services):**
+Edit `src/lib/api/constants.ts` and change `CURRENT_API_URL`:
+```typescript
+// Production (default)
+export const CURRENT_API_URL = SSF_PROXY_URL;
+
+// Development
+// export const CURRENT_API_URL = SSF_DEV_PROXY_URL;
+```
+
+**For Tests (Direct API calls):**
+Edit `src/lib/api/constants.ts` and change `CURRENT_TEST_API_URL`:
+```typescript
+// Production (default)
+export const CURRENT_TEST_API_URL = SSF_PROD_API_URL;
+
+// Development
+// export const CURRENT_TEST_API_URL = SSF_DEV_API_URL;
+```
+
+### Why Two Different Constants?
+
+- **`CURRENT_API_URL`**: Used by frontend services (uses proxy URLs like `/api/chess/v1`)
+- **`CURRENT_TEST_API_URL`**: Used by integration tests (uses direct URLs, no Next.js server running)
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

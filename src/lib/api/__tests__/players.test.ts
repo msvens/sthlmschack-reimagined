@@ -5,8 +5,8 @@
 
 import { PlayerService } from '../index';
 import { PlayerInfoDto } from '../types';
-import { SSF_API_BASE_URL } from '../constants';
-import { 
+import { CURRENT_TEST_API_URL } from '../constants';
+import {
   TEST_PLAYER_ID,
   TEST_PLAYER_DATE,
   TEST_PLAYER_FIDE_ID,
@@ -19,7 +19,7 @@ describe('Player Service Integration Tests', () => {
   let playerService: PlayerService;
 
   beforeEach(() => {
-    playerService = new PlayerService(SSF_API_BASE_URL);
+    playerService = new PlayerService(CURRENT_TEST_API_URL);
   });
 
   describe('Player Information API', () => {
