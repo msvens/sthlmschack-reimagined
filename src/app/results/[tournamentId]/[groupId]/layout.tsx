@@ -2,22 +2,32 @@
 
 import { ReactNode, useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, formatPlayerRating } from '@/lib/api';
-import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TournamentClassDto, TournamentClassGroupDto } from '@/lib/api/types';
+import { ResultsService, TournamentService, PlayerService, formatPlayerRating } from '@/lib/api';
+import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TournamentClassDto, TournamentClassGroupDto, TeamTournamentEndResultDto, TournamentDto } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue } from '@/context/GroupResultsContext';
+import { useOrganizations } from '@/context/OrganizationsContext';
 
 export default function GroupResultsLayout({ children }: { children: ReactNode }) {
   const params = useParams();
+  const { getClubName: getOrgClubName } = useOrganizations();
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
 
-  const [groupResults, setGroupResults] = useState<TournamentEndResultDto[]>([]);
-  const [roundResults, setRoundResults] = useState<TournamentRoundResultDto[]>([]);
+  // Tournament metadata
+  const [tournament, setTournament] = useState<TournamentDto | null>(null);
   const [thinkingTime, setThinkingTime] = useState<string | null>(null);
   const [groupStartDate, setGroupStartDate] = useState<string | null>(null);
   const [groupEndDate, setGroupEndDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Individual tournament results
+  const [individualResults, setIndividualResults] = useState<TournamentEndResultDto[]>([]);
+  const [individualRoundResults, setIndividualRoundResults] = useState<TournamentRoundResultDto[]>([]);
+
+  // Team tournament results
+  const [teamResults, setTeamResults] = useState<TeamTournamentEndResultDto[]>([]);
+  const [teamRoundResults, setTeamRoundResults] = useState<TournamentRoundResultDto[]>([]);
 
   // Fetch tournament data and results when IDs are available
   useEffect(() => {
@@ -35,50 +45,125 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
         const resultsService = new ResultsService();
         const tournamentService = new TournamentService();
 
-        // Fetch tournament data and results in parallel
-        const [tournamentResponse, groupResponse, roundResponse] = await Promise.all([
-          tournamentService.getTournament(tournamentId),
-          resultsService.getTournamentResults(groupId),
-          resultsService.getTournamentRoundResults(groupId)
-        ]);
+        // Fetch tournament metadata first to determine type
+        const tournamentResponse = await tournamentService.getTournament(tournamentId);
 
-        if (tournamentResponse.status === 200 && tournamentResponse.data) {
-          setThinkingTime(tournamentResponse.data.thinkingTime || null);
-
-          // Find the group metadata to get start/end dates
-          const findGroupInClasses = (classes: TournamentClassDto[]): TournamentClassGroupDto | null => {
-            for (const tournamentClass of classes) {
-              const group = tournamentClass.groups?.find((g: TournamentClassGroupDto) => g.id === groupId);
-              if (group) return group;
-              if (tournamentClass.subClasses) {
-                const found = findGroupInClasses(tournamentClass.subClasses);
-                if (found) return found;
-              }
-            }
-            return null;
-          };
-
-          const groupMeta = findGroupInClasses(tournamentResponse.data.rootClasses || []);
-          if (groupMeta) {
-            setGroupStartDate(groupMeta.start);
-            setGroupEndDate(groupMeta.end);
-          }
+        if (tournamentResponse.status !== 200 || !tournamentResponse.data) {
+          throw new Error('Failed to fetch tournament data');
         }
 
-        // Don't throw on failed results - might just be that tournament hasn't started yet
-        setGroupResults(groupResponse.status === 200 ? (groupResponse.data || []) : []);
-        setRoundResults(roundResponse.status === 200 ? (roundResponse.data || []) : []);
+        const tournamentData = tournamentResponse.data;
+        setTournament(tournamentData);
+        setThinkingTime(tournamentData.thinkingTime || null);
 
-        // Only set error if we couldn't fetch tournament metadata
-        if (tournamentResponse.status !== 200) {
-          throw new Error('Failed to fetch tournament data');
+        // Find the group metadata to get start/end dates
+        const findGroupInClasses = (classes: TournamentClassDto[]): TournamentClassGroupDto | null => {
+          for (const tournamentClass of classes) {
+            const group = tournamentClass.groups?.find((g: TournamentClassGroupDto) => g.id === groupId);
+            if (group) return group;
+            if (tournamentClass.subClasses) {
+              const found = findGroupInClasses(tournamentClass.subClasses);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+
+        const groupMeta = findGroupInClasses(tournamentData.rootClasses || []);
+        if (groupMeta) {
+          setGroupStartDate(groupMeta.start);
+          setGroupEndDate(groupMeta.end);
+        }
+
+        // Detect tournament type and fetch appropriate results
+        const isTeamTournament = tournamentData.type === 2;
+
+        if (isTeamTournament) {
+          // Fetch team tournament results
+          const [teamTableResponse, teamRoundResponse] = await Promise.all([
+            resultsService.getTeamTournamentResults(groupId),
+            resultsService.getTeamRoundResults(groupId)
+          ]);
+
+          const teamTableData = teamTableResponse.status === 200 ? (teamTableResponse.data || []) : [];
+          const teamRoundData = teamRoundResponse.status === 200 ? (teamRoundResponse.data || []) : [];
+
+          // Set team results immediately so UI can render team standings table
+          setTeamResults(teamTableData);
+          setTeamRoundResults(teamRoundData);
+          setIndividualRoundResults([]);
+
+          // Fetch player info in background (non-blocking for team table)
+          // This allows the team standings to display immediately while player names load
+          // for the expanded round results view
+          const fetchPlayerInfo = async () => {
+            // Extract unique player IDs from games
+            const playerIds = new Set<number>();
+            teamRoundData.forEach(roundResult => {
+              roundResult.games?.forEach(game => {
+                playerIds.add(game.whiteId);
+                playerIds.add(game.blackId);
+              });
+            });
+
+            // Fetch player info for all unique player IDs in parallel
+            if (playerIds.size > 0) {
+              const playerService = new PlayerService();
+              const playerInfoPromises = Array.from(playerIds).map(playerId =>
+                playerService.getPlayerInfo(playerId)
+              );
+
+              const playerInfoResponses = await Promise.all(playerInfoPromises);
+
+              // Build player map from responses
+              const playersMap = new Map<number, PlayerInfoDto>();
+              playerInfoResponses.forEach((response) => {
+                if (response.status === 200 && response.data) {
+                  playersMap.set(response.data.id, response.data);
+                }
+              });
+
+              // Create minimal TournamentEndResultDto objects for playerMap population
+              setIndividualResults(Array.from(playersMap.values()).map(playerInfo => ({
+                place: 0,
+                points: 0,
+                secPoints: 0,
+                contenderId: playerInfo.id,
+                teamNumber: 0,
+                wonGames: 0,
+                drawGames: 0,
+                lostGames: 0,
+                groupId: groupId,
+                playerInfo
+              })));
+            }
+          };
+
+          // Start player fetch in background (don't await)
+          fetchPlayerInfo().catch(err => {
+            console.error('Error fetching player info for team tournament:', err);
+          });
+
+        } else {
+          // Fetch individual tournament results
+          const [groupResponse, roundResponse] = await Promise.all([
+            resultsService.getTournamentResults(groupId),
+            resultsService.getTournamentRoundResults(groupId)
+          ]);
+
+          setIndividualResults(groupResponse.status === 200 ? (groupResponse.data || []) : []);
+          setIndividualRoundResults(roundResponse.status === 200 ? (roundResponse.data || []) : []);
+          setTeamResults([]);
+          setTeamRoundResults([]);
         }
 
       } catch (err) {
         setError('Failed to load results data');
         console.error('Error fetching results:', err);
-        setGroupResults([]);
-        setRoundResults([]);
+        setIndividualResults([]);
+        setIndividualRoundResults([]);
+        setTeamResults([]);
+        setTeamRoundResults([]);
       } finally {
         setLoading(false);
       }
@@ -87,16 +172,25 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     fetchResults();
   }, [tournamentId, groupId]);
 
-  // Create player lookup map from group results for O(1) lookups
+  // Create player lookup map for O(1) lookups
   const playerMap = useMemo(() => {
     const map = new Map<number, PlayerInfoDto>();
-    groupResults.forEach(result => {
+
+    // For individual tournaments, use playerInfo from results
+    individualResults.forEach(result => {
       if (result.playerInfo) {
         map.set(result.playerInfo.id, result.playerInfo);
       }
     });
+
+    // For team tournaments, extract player IDs from games
+    // Note: We don't have full player info (names, ELO) in team round results
+    // The games only contain player IDs, not their details
+    // This means getPlayerName and getPlayerElo will fall back to "Player {id}"
+    // TODO: Fetch player info for team tournaments if needed
+
     return map;
-  }, [groupResults]);
+  }, [individualResults]);
 
   // Helper to get player name from ID
   const getPlayerName = (playerId: number): string => {
@@ -111,9 +205,20 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     return formatPlayerRating(player?.elo, thinkingTime);
   };
 
+  // Helper to get club name from ID
+  const getClubName = (clubId: number): string => {
+    return getOrgClubName(clubId);
+  };
+
+  // Determine if this is a team tournament
+  const isTeamTournament = tournament?.type === 2;
+
   const contextValue: GroupResultsContextValue = {
-    groupResults,
-    roundResults,
+    isTeamTournament,
+    individualResults,
+    individualRoundResults,
+    teamResults,
+    teamRoundResults,
     playerMap,
     thinkingTime,
     groupStartDate,
@@ -121,7 +226,8 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     loading,
     error,
     getPlayerName,
-    getPlayerElo
+    getPlayerElo,
+    getClubName
   };
 
   return (
