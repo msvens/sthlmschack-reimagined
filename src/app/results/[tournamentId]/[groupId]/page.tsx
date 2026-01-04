@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { TournamentService } from '@/lib/api';
-import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto } from '@/lib/api/types';
+import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TeamTournamentEndResultDto, TournamentRoundResultDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults } from '@/context/GroupResultsContext';
 import { FinalResultsTable } from '@/components/results/FinalResultsTable';
+import { TeamFinalResultsTable } from '@/components/results/TeamFinalResultsTable';
+import { TeamRoundResults } from '@/components/results/TeamRoundResults';
 import { SelectableList, SelectableListItem } from '@/components/SelectableList';
 import { Link } from '@/components/Link';
 import { Table, TableColumn } from '@/components/Table';
@@ -20,7 +22,25 @@ export default function GroupResultsPage() {
   const t = getTranslation(language);
 
   // Get group-level data from context
-  const { groupResults, roundResults, thinkingTime, groupStartDate, groupEndDate, loading: resultsLoading, error: resultsError, getPlayerName, getPlayerElo } = useGroupResults();
+  const {
+    isTeamTournament,
+    individualResults,
+    individualRoundResults,
+    teamResults,
+    teamRoundResults,
+    thinkingTime,
+    groupStartDate,
+    groupEndDate,
+    loading: resultsLoading,
+    error: resultsError,
+    getPlayerName,
+    getPlayerElo,
+    getClubName
+  } = useGroupResults();
+
+  // Use appropriate results based on tournament type
+  const groupResults = isTeamTournament ? [] : individualResults;
+  const roundResults = isTeamTournament ? [] : individualRoundResults;
 
   const [tournament, setTournament] = useState<TournamentDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -280,8 +300,13 @@ export default function GroupResultsPage() {
                       </h3>
                     </div>
 
-                    {!resultsLoading && groupResults.length === 0 && !resultsError && groupStartDate && (
+                    {!resultsLoading && !resultsError && groupStartDate && (
                       (() => {
+                        // Check if we have results based on tournament type
+                        const hasResults = isTeamTournament ? teamResults.length > 0 : groupResults.length > 0;
+
+                        if (hasResults) return null; // Don't show status message if we have results
+
                         const now = new Date();
                         const startDate = new Date(groupStartDate);
                         const endDate = groupEndDate ? new Date(groupEndDate) : null;
@@ -299,7 +324,7 @@ export default function GroupResultsPage() {
                               </div>
                             </div>
                           );
-                        } else if (hasEnded && groupResults.length === 0) {
+                        } else if (hasEnded) {
                           return (
                             <div className="p-8 text-center">
                               <div className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
@@ -322,153 +347,179 @@ export default function GroupResultsPage() {
                       })()
                     )}
 
-                    {(groupResults.length > 0 || resultsLoading || resultsError) && (
-                      <FinalResultsTable
-                        results={groupResults}
-                        thinkingTime={thinkingTime}
-                        loading={resultsLoading}
-                        error={resultsError || undefined}
-                        onRowClick={handlePlayerClick}
-                      />
+                    {isTeamTournament ? (
+                      (teamResults.length > 0 || resultsLoading || resultsError) && (
+                        <TeamFinalResultsTable
+                          results={teamResults}
+                          getClubName={getClubName}
+                          loading={resultsLoading}
+                          error={resultsError || undefined}
+                        />
+                      )
+                    ) : (
+                      (groupResults.length > 0 || resultsLoading || resultsError) && (
+                        <FinalResultsTable
+                          results={groupResults}
+                          thinkingTime={thinkingTime}
+                          loading={resultsLoading}
+                          error={resultsError || undefined}
+                          onRowClick={handlePlayerClick}
+                        />
+                      )
                     )}
                   </div>
 
                   {/* Round-by-Round Results */}
-                  <div className="rounded-lg border overflow-hidden bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
-                    <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
-                        {t.pages.tournamentResults.roundByRound.title}
-                      </h3>
-                    </div>
-
-                    {!resultsLoading && !resultsError && roundResults.length === 0 && (
-                      <div className="p-6 text-center">
-                        <div className="text-gray-600 dark:text-gray-400">
-                          {t.pages.tournamentResults.roundByRound.noResults}
-                        </div>
+                  {isTeamTournament ? (
+                    /* Team Tournament Round Results */
+                    tournamentId && groupId && teamRoundResults.length > 0 && (
+                      <TeamRoundResults
+                        roundResults={teamRoundResults}
+                        getClubName={getClubName}
+                        getPlayerName={getPlayerName}
+                        getPlayerElo={getPlayerElo}
+                        tournamentId={tournamentId}
+                        groupId={groupId}
+                      />
+                    )
+                  ) : (
+                    /* Individual Tournament Round Results */
+                    <div className="rounded-lg border overflow-hidden bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
+                      <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
+                          {t.pages.tournamentResults.roundByRound.title}
+                        </h3>
                       </div>
-                    )}
 
-                    {!resultsLoading && !resultsError && roundResults.length > 0 && (
-                      <>
-                        {/* Round Tabs */}
-                        {(() => {
-                          // Group round results by round number
-                          const resultsByRound = roundResults.reduce((acc, result) => {
-                            const round = result.roundNr || 1;
-                            if (!acc[round]) acc[round] = [];
-                            acc[round].push(result);
-                            return acc;
-                          }, {} as Record<number, TournamentRoundResultDto[]>);
+                      {!resultsLoading && !resultsError && roundResults.length === 0 && (
+                        <div className="p-6 text-center">
+                          <div className="text-gray-600 dark:text-gray-400">
+                            {t.pages.tournamentResults.roundByRound.noResults}
+                          </div>
+                        </div>
+                      )}
 
-                          const rounds = Object.keys(resultsByRound)
-                            .map(Number)
-                            .sort((a, b) => a - b);
+                      {!resultsLoading && !resultsError && roundResults.length > 0 && (
+                        <>
+                          {/* Round Tabs */}
+                          {(() => {
+                            // Group round results by round number
+                            const resultsByRound = roundResults.reduce((acc, result) => {
+                              const round = result.roundNr || 1;
+                              if (!acc[round]) acc[round] = [];
+                              acc[round].push(result);
+                              return acc;
+                            }, {} as Record<number, TournamentRoundResultDto[]>);
 
-                          // Set default selected round if not set
-                          if (selectedRound === null && rounds.length > 0) {
-                            setSelectedRound(rounds[0]);
-                          }
+                            const rounds = Object.keys(resultsByRound)
+                              .map(Number)
+                              .sort((a, b) => a - b);
 
-                          return (
-                            <>
-                              {/* Round Tab Navigation */}
-                              <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700">
-                                {rounds.map(roundNumber => (
-                                  <button
-                                    key={roundNumber}
-                                    onClick={() => setSelectedRound(roundNumber)}
-                                    className={`flex-shrink-0 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-                                      selectedRound === roundNumber
-                                        ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
-                                        : 'text-gray-600 dark:text-gray-400'
-                                    }`}
-                                  >
-                                    {t.pages.tournamentResults.roundByRound.round} {roundNumber}
-                                  </button>
-                                ))}
-                              </div>
+                            // Set default selected round if not set
+                            if (selectedRound === null && rounds.length > 0) {
+                              setSelectedRound(rounds[0]);
+                            }
 
-                              {/* Selected Round Content */}
-                              <div className="p-4 md:p-6">
-                                {selectedRound && resultsByRound[selectedRound] && (() => {
-                                  // Define columns for round-by-round table
-                                  const roundColumns: TableColumn<TournamentRoundResultDto>[] = [
-                                    {
-                                      id: 'table',
-                                      header: t.pages.tournamentResults.roundByRound.table,
-                                      accessor: (row) => row.board || '-',
-                                      align: 'left',
-                                      noWrap: true
-                                    },
-                                    {
-                                      id: 'white',
-                                      header: t.pages.tournamentResults.roundByRound.white,
-                                      accessor: (row) => (
-                                        <Link
-                                          href={`/results/${tournamentId}/${groupId}/${row.homeId}`}
-                                          color="gray"
-                                        >
-                                          {getPlayerName(row.homeId)}
-                                        </Link>
-                                      ),
-                                      align: 'left'
-                                    },
-                                    {
-                                      id: 'whiteElo',
-                                      header: t.pages.tournamentResults.roundByRound.elo,
-                                      accessor: (row) => getPlayerElo(row.homeId),
-                                      align: 'center',
-                                      noWrap: true
-                                    },
-                                    {
-                                      id: 'black',
-                                      header: t.pages.tournamentResults.roundByRound.black,
-                                      accessor: (row) => (
-                                        <Link
-                                          href={`/results/${tournamentId}/${groupId}/${row.awayId}`}
-                                          color="gray"
-                                        >
-                                          {getPlayerName(row.awayId)}
+                            return (
+                              <>
+                                {/* Round Tab Navigation */}
+                                <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700">
+                                  {rounds.map(roundNumber => (
+                                    <button
+                                      key={roundNumber}
+                                      onClick={() => setSelectedRound(roundNumber)}
+                                      className={`flex-shrink-0 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                                        selectedRound === roundNumber
+                                          ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+                                          : 'text-gray-600 dark:text-gray-400'
+                                      }`}
+                                    >
+                                      {t.pages.tournamentResults.roundByRound.round} {roundNumber}
+                                    </button>
+                                  ))}
+                                </div>
+
+                                {/* Selected Round Content */}
+                                <div className="p-4 md:p-6">
+                                  {selectedRound && resultsByRound[selectedRound] && (() => {
+                                    // Define columns for round-by-round table
+                                    const roundColumns: TableColumn<TournamentRoundResultDto>[] = [
+                                      {
+                                        id: 'table',
+                                        header: t.pages.tournamentResults.roundByRound.table,
+                                        accessor: (row) => row.board || '-',
+                                        align: 'left',
+                                        noWrap: true
+                                      },
+                                      {
+                                        id: 'white',
+                                        header: t.pages.tournamentResults.roundByRound.white,
+                                        accessor: (row) => (
+                                          <Link
+                                            href={`/results/${tournamentId}/${groupId}/${row.homeId}`}
+                                            color="gray"
+                                          >
+                                            {getPlayerName(row.homeId)}
                                           </Link>
-                                      ),
-                                      align: 'left'
-                                    },
-                                    {
-                                      id: 'blackElo',
-                                      header: t.pages.tournamentResults.roundByRound.elo,
-                                      accessor: (row) => getPlayerElo(row.awayId),
-                                      align: 'center',
-                                      noWrap: true
-                                    },
-                                    {
-                                      id: 'result',
-                                      header: t.pages.tournamentResults.roundByRound.result,
-                                      accessor: (row) =>
-                                        row.homeResult !== undefined && row.awayResult !== undefined
-                                          ? `${row.homeResult} - ${row.awayResult}`
-                                          : '-',
-                                      align: 'center',
-                                      noWrap: true,
-                                      cellStyle: { fontWeight: 'medium' }
-                                    }
-                                  ];
+                                        ),
+                                        align: 'left'
+                                      },
+                                      {
+                                        id: 'whiteElo',
+                                        header: t.pages.tournamentResults.roundByRound.elo,
+                                        accessor: (row) => getPlayerElo(row.homeId),
+                                        align: 'center',
+                                        noWrap: true
+                                      },
+                                      {
+                                        id: 'black',
+                                        header: t.pages.tournamentResults.roundByRound.black,
+                                        accessor: (row) => (
+                                          <Link
+                                            href={`/results/${tournamentId}/${groupId}/${row.awayId}`}
+                                            color="gray"
+                                          >
+                                            {getPlayerName(row.awayId)}
+                                            </Link>
+                                        ),
+                                        align: 'left'
+                                      },
+                                      {
+                                        id: 'blackElo',
+                                        header: t.pages.tournamentResults.roundByRound.elo,
+                                        accessor: (row) => getPlayerElo(row.awayId),
+                                        align: 'center',
+                                        noWrap: true
+                                      },
+                                      {
+                                        id: 'result',
+                                        header: t.pages.tournamentResults.roundByRound.result,
+                                        accessor: (row) =>
+                                          row.homeResult !== undefined && row.awayResult !== undefined
+                                            ? `${row.homeResult} - ${row.awayResult}`
+                                            : '-',
+                                        align: 'center',
+                                        noWrap: true,
+                                        cellStyle: { fontWeight: 'medium' }
+                                      }
+                                    ];
 
-                                  return (
-                                    <Table
-                                      data={resultsByRound[selectedRound]}
-                                      columns={roundColumns}
-                                      getRowKey={(row, index) => `${row.homeId}-${row.awayId}-${index}`}
-                                    />
-                                  );
-                                })()}
-                              </div>
-                            </>
-                          );
-                        })()}
-                      </>
-                    )}
-                  </div>
+                                    return (
+                                      <Table
+                                        data={resultsByRound[selectedRound]}
+                                        columns={roundColumns}
+                                        getRowKey={(row, index) => `${row.homeId}-${row.awayId}-${index}`}
+                                      />
+                                    );
+                                  })()}
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="p-6 rounded-lg border text-center bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">

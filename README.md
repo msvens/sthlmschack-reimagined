@@ -151,6 +151,47 @@ All components use Tailwind CSS utility classes with the `dark:` prefix for them
 - [ ] Testing and quality assurance
 - [ ] Deployment and monitoring
 
+## Performance Optimizations
+
+### Future Improvement: Lazy Loading Player Data in Team Tournaments
+
+**Current Implementation (Option 1):**
+When loading team tournament results, the application:
+1. Fetches and displays team standings table immediately
+2. Fetches ALL player info for ALL games in the background (non-blocking)
+3. Player names appear in expanded match views once loaded
+
+This approach provides instant team standings display while player data loads in the background.
+
+**Potential Future Optimization (Option 2):**
+Implement lazy loading of player data on match expansion:
+
+**Benefits:**
+- **Reduced API load**: Only fetch players for matches the user actually expands
+- **Better API citizenship**: Spreads API calls over time instead of burst loading
+- **Faster initial load**: Zero player API calls on page load
+- **User-driven fetching**: Average user views 2-3 matches = ~60-80 API calls instead of ~420
+
+**Implementation Strategy:**
+1. On match expansion, extract player IDs from that specific match's games (~14-28 players)
+2. Check which players are already in the playerMap cache
+3. Fetch only missing players in parallel
+4. Display loading skeleton while fetching
+5. Cache all fetched players for subsequent expansions (no re-fetching needed)
+
+**Complexity Estimate:** ~3-4 hours of implementation
+- Add loading state per expanded match
+- Filter missing player IDs before fetching
+- Handle async fetch with loading/error states
+- Update playerMap via context when players loaded
+
+**When to Consider:**
+- If API rate limiting becomes an issue
+- If initial load time feedback from users
+- If analytics show most users don't expand all matches
+
+**Note:** Player data caching across expansions is correct behavior - player info doesn't change mid-session, and page refresh handles any updates.
+
 ## Getting Started
 
 ### Prerequisites

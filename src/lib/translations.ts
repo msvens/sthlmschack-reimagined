@@ -227,6 +227,18 @@ export interface Translations {
         noResults: string;
         loadingResults: string;
       };
+      teamFinalResultsTable: {
+        pos: string;
+        team: string;
+        sp: string;
+        won: string;
+        draw: string;
+        lost: string;
+        pp: string;
+        mp: string;
+        noResults: string;
+        loadingResults: string;
+      };
       roundByRound: {
         title: string;
         white: string;
@@ -236,6 +248,13 @@ export interface Translations {
         result: string;
         noResults: string;
         round: string;
+      };
+      teamRoundResults: {
+        board: string;
+        homeTeam: string;
+        awayTeam: string;
+        elo: string;
+        result: string;
       };
       selectGroup: string;
       tournamentStatus: {
@@ -477,6 +496,18 @@ const translations: Record<Language, Translations> = {
           noResults: 'No results available for this group',
           loadingResults: 'Loading results...',
         },
+        teamFinalResultsTable: {
+          pos: 'Pos',
+          team: 'Team',
+          sp: 'MP',
+          won: '+',
+          draw: '=',
+          lost: '-',
+          pp: 'BP',
+          mp: 'Pts',
+          noResults: 'No results available for this group',
+          loadingResults: 'Loading results...',
+        },
         roundByRound: {
           title: 'Rounds',
           white: 'White',
@@ -486,6 +517,13 @@ const translations: Record<Language, Translations> = {
           result: 'Result',
           noResults: 'No round results available for this group',
           round: 'Round',
+        },
+        teamRoundResults: {
+          board: 'Board',
+          homeTeam: 'Home',
+          awayTeam: 'Away',
+          elo: 'ELO',
+          result: 'Result',
         },
         selectGroup: 'Please select a group to view results',
         tournamentStatus: {
@@ -722,7 +760,18 @@ const translations: Record<Language, Translations> = {
           lost: '-',
           points: 'P',
           qp: 'KP',
-
+          noResults: 'Inga resultat tillgängliga för denna grupp',
+          loadingResults: 'Laddar resultat...',
+        },
+        teamFinalResultsTable: {
+          pos: 'Plac',
+          team: 'Lag',
+          sp: 'MP',
+          won: '+',
+          draw: '=',
+          lost: '-',
+          pp: 'BP',
+          mp: 'P',
           noResults: 'Inga resultat tillgängliga för denna grupp',
           loadingResults: 'Laddar resultat...',
         },
@@ -735,6 +784,13 @@ const translations: Record<Language, Translations> = {
           result: 'Resultat',
           noResults: 'Inga rondresultat tillgängliga för denna grupp',
           round: 'Rond',
+        },
+        teamRoundResults: {
+          board: 'Bräde',
+          homeTeam: 'Hemma',
+          awayTeam: 'Borta',
+          elo: 'ELO',
+          result: 'Resultat',
         },
         selectGroup: 'Vänligen välj en grupp för att se resultat',
         tournamentStatus: {

@@ -30,7 +30,7 @@ export default function TournamentPlayerDetailPage() {
   const t = getTranslation(language);
 
   // Get group-level data from context
-  const { roundResults, playerMap, loading: resultsLoading } = useGroupResults();
+  const { isTeamTournament, individualRoundResults, teamRoundResults, playerMap, loading: resultsLoading } = useGroupResults();
 
   const [player, setPlayer] = useState<PlayerInfoDto | null>(null); // Current player info for display
   const [tournamentPlayer, setTournamentPlayer] = useState<PlayerInfoDto | null>(null); // Historical player info for calculations
@@ -108,42 +108,94 @@ export default function TournamentPlayerDetailPage() {
     }
   }, [memberId, playerMap, resultsLoading]);
 
-  // Extract player's matches from context roundResults once available
+  // Extract player's matches from context round results once available
   useEffect(() => {
-    if (!memberId || !tournamentPlayer || resultsLoading || roundResults.length === 0) {
+    if (!memberId || !tournamentPlayer || resultsLoading) {
       return;
     }
 
-    // Filter matches for this player using data from context
     const playerMatches: PlayerMatch[] = [];
 
-    for (const roundResult of roundResults) {
-      if (roundResult.homeId === memberId || roundResult.awayId === memberId) {
-        const isHome = roundResult.homeId === memberId;
-        const opponentId = isHome ? roundResult.awayId : roundResult.homeId;
-        const playerResult = isHome ? roundResult.homeResult : roundResult.awayResult;
+    if (isTeamTournament) {
+      // Team tournament: extract games from teamRoundResults
+      if (teamRoundResults.length === 0) return;
 
-        // Get opponent info from playerMap (no API call needed!)
-        const opponent = playerMap.get(opponentId);
-        if (opponent) {
-          // Determine result
-          let result: 'win' | 'draw' | 'loss';
-          if (playerResult === 1) {
-            result = 'win';
-          } else if (playerResult === 0.5) {
-            result = 'draw';
-          } else {
-            result = 'loss';
+      for (const roundResult of teamRoundResults) {
+        // Look through all games in this round result
+        roundResult.games?.forEach(game => {
+          if (game.whiteId === memberId || game.blackId === memberId) {
+            const isWhite = game.whiteId === memberId;
+            const opponentId = isWhite ? game.blackId : game.whiteId;
+
+            // Get opponent info from playerMap
+            const opponent = playerMap.get(opponentId);
+            if (opponent) {
+              // Determine result based on game.result and player color
+              let result: 'win' | 'draw' | 'loss';
+              let homeResult: number;
+              let awayResult: number;
+
+              if (game.result === 0) {
+                // Draw
+                result = 'draw';
+                homeResult = 0.5;
+                awayResult = 0.5;
+              } else if (game.result === 1) {
+                // White wins
+                result = isWhite ? 'win' : 'loss';
+                homeResult = 1;
+                awayResult = 0;
+              } else {
+                // Black wins (result === -1)
+                result = isWhite ? 'loss' : 'win';
+                homeResult = 0;
+                awayResult = 1;
+              }
+
+              playerMatches.push({
+                round: roundResult.roundNr,
+                opponent,
+                result,
+                color: isWhite ? 'white' : 'black',
+                homeResult,
+                awayResult
+              });
+            }
           }
+        });
+      }
+    } else {
+      // Individual tournament: use existing logic
+      if (individualRoundResults.length === 0) return;
 
-          playerMatches.push({
-            round: roundResult.roundNr,
-            opponent,
-            result,
-            color: isHome ? 'white' : 'black',
-            homeResult: roundResult.homeResult,
-            awayResult: roundResult.awayResult
-          });
+      for (const roundResult of individualRoundResults) {
+        if (roundResult.homeId === memberId || roundResult.awayId === memberId) {
+          const isHome = roundResult.homeId === memberId;
+          const opponentId = isHome ? roundResult.awayId : roundResult.homeId;
+          const playerResult = isHome ? roundResult.homeResult : roundResult.awayResult;
+
+          // Get opponent info from playerMap
+          const opponent = playerMap.get(opponentId);
+          if (opponent) {
+            // Determine result
+            let result: 'win' | 'draw' | 'loss';
+            if (playerResult === 1) {
+              result = 'win';
+            } else if (playerResult === 0.5) {
+              result = 'draw';
+            } else {
+              result = 'loss';
+            }
+
+            playerMatches.push({
+              round: roundResult.roundNr,
+              opponent,
+              result,
+              color: isHome ? 'white' : 'black',
+              homeResult: roundResult.homeResult,
+              awayResult: roundResult.awayResult
+            });
+          }
         }
       }
     }
@@ -152,7 +204,7 @@ export default function TournamentPlayerDetailPage() {
     playerMatches.sort((a, b) => a.round - b.round);
 
     setMatches(playerMatches);
-  }, [memberId, tournamentPlayer, roundResults, playerMap, resultsLoading]);
+  }, [memberId, tournamentPlayer, isTeamTournament, individualRoundResults, teamRoundResults, playerMap, resultsLoading]);
 
   // Fetch tournament history and rating history after player data is loaded
   useEffect(() => {
