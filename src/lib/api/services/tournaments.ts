@@ -66,10 +66,32 @@ export class TournamentService extends BaseApiService {
   }
 
   /**
-   * Search for tournaments that started within a date range
-   * Finds tournaments that have begun (results exist) and started between the given dates.
-   * Tournaments may still be ongoing and extend past the end date.
-   * @param startDate - Start date in ISO format (YYYY-MM-DDTHH:mm:ss) - must be in the past
+   * Search for tournaments with results updated within a date range
+   * Returns complete tournament objects (not just groups).
+   * @param startDate - Start date in ISO format (YYYY-MM-DDTHH:mm:ss)
+   * @param endDate - End date in ISO format (YYYY-MM-DDTHH:mm:ss)
+   * @param districtId - Optional district ID to filter by district and club tournaments
+   * @returns Array of tournaments with results updated within the date range
+   * @example
+   * // Find tournaments with updated results in December 2024
+   * searchUpdatedTournamentsByTournament('2024-12-01T00:00:00', '2024-12-31T23:59:59')
+   */
+  async searchUpdatedTournamentsByTournament(
+    startDate: string,
+    endDate: string,
+    districtId?: number
+  ): Promise<ApiResponse<TournamentDto[]>> {
+    const endpoint = districtId !== undefined
+      ? `/tournament/tournament/updated/${encodeURIComponent(startDate)}/${encodeURIComponent(endDate)}/${districtId}`
+      : `/tournament/tournament/updated/${encodeURIComponent(startDate)}/${encodeURIComponent(endDate)}`;
+
+    return this.get<TournamentDto[]>(endpoint);
+  }
+
+  /**
+   * Search for tournament groups with results updated within a date range
+   * @deprecated Use searchUpdatedTournamentsByTournament() instead - returns full TournamentDto[] instead of group summaries
+   * @param startDate - Start date in ISO format (YYYY-MM-DDTHH:mm:ss)
    * @param endDate - End date in ISO format (YYYY-MM-DDTHH:mm:ss)
    * @param districtId - Optional district ID to filter by district and club tournaments
    * @returns Array of tournament groups that started within the date range

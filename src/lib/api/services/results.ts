@@ -1,5 +1,5 @@
 import { BaseApiService } from '../base';
-import type { TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, ApiResponse } from '../types';
+import type { TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, GameDto, ApiResponse } from '../types';
 
 export class ResultsService extends BaseApiService {
   constructor(baseUrl?: string) {
@@ -73,5 +73,18 @@ export class ResultsService extends BaseApiService {
     const endpoint = `/tournamentresults/team/roundresults/id/${groupId}/memberid/${memberId}`;
 
     return this.get<TournamentRoundResultDto[]>(endpoint);
+  }
+
+  /**
+   * Get all games played by a member
+   * Returns all games (individual and team tournaments) for the specified member.
+   * Useful for player profiles showing complete game history.
+   * @param memberId - Member ID
+   * @returns Array of all games played by the member
+   */
+  async getMemberGames(memberId: number): Promise<ApiResponse<GameDto[]>> {
+    const endpoint = `/tournamentresults/game/memberid/${memberId}`;
+
+    return this.get<GameDto[]>(endpoint);
   }
 }

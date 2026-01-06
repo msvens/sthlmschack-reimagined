@@ -231,6 +231,8 @@ export interface TournamentDto {
     showPublic: number;
     /** Invitation URL */
     invitationurl: string;
+    /** Latest updated timestamp */
+    latestUpdated?: string;
     /** Parsed secondary judges (array of IDs) */
     secParsedJudges: number[];
     /** Root classes */
@@ -249,4 +251,6 @@ export interface TournamentSearchAnswerDto {
     tournamentid: number;
     /** Tournament name */
     tournamentname: string;
+    /** Latest updated game timestamp */
+    latestUpdatedGame?: string;
 }

@@ -309,6 +309,118 @@
         }
       }
     },
+    "/public/api/v1/tournament/group/updated/{startdate}/{enddate}": {
+      "get": {
+        "tags": [
+          "tournament-structure-controller"
+        ],
+        "summary": "Sök upp grupper med resultat som uppdaterats mellan datum",
+        "operationId": "searchUpdatedTournament",
+        "parameters": [
+          {
+            "name": "startdate",
+            "in": "path",
+            "description": "from datum",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "enddate",
+            "in": "path",
+            "description": "tom datum",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "districtid",
+            "in": "path",
+            "description": "filtrerar distrikts och klubbturneringar per distrikt. Optional",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TournamentSearchAnswerDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/api/v1/tournament/group/updated/{startdate}/{enddate}/{districtid}": {
+      "get": {
+        "tags": [
+          "tournament-structure-controller"
+        ],
+        "summary": "Sök upp grupper med resultat som uppdaterats mellan datum",
+        "operationId": "searchUpdatedTournament_1",
+        "parameters": [
+          {
+            "name": "startdate",
+            "in": "path",
+            "description": "from datum",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "enddate",
+            "in": "path",
+            "description": "tom datum",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "districtid",
+            "in": "path",
+            "description": "filtrerar distrikts och klubbturneringar per distrikt. Optional",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TournamentSearchAnswerDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/public/api/v1/tournament/group/search/{searchWord}": {
       "get": {
         "tags": [
@@ -370,6 +482,78 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/TournamentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/api/v1/tournament/group/coming": {
+      "get": {
+        "tags": [
+          "tournament-structure-controller"
+        ],
+        "summary": "Sök upp kommande turneringar",
+        "operationId": "searchComingTournaments",
+        "parameters": [
+          {
+            "name": "districtid",
+            "in": "path",
+            "description": "filtrerar distrikts och klubbturneringar per distrikt. Optional",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TournamentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/api/v1/tournament/group/coming/{districtid}": {
+      "get": {
+        "tags": [
+          "tournament-structure-controller"
+        ],
+        "summary": "Sök upp kommande turneringar",
+        "operationId": "searchComingTournaments_1",
+        "parameters": [
+          {
+            "name": "districtid",
+            "in": "path",
+            "description": "filtrerar distrikts och klubbturneringar per distrikt. Optional",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TournamentDto"
+                  }
                 }
               }
             }
