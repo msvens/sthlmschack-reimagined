@@ -25,3 +25,10 @@ export {
   type MatchResult,
   type TournamentRatingStats
 } from './utils/eloCalculations';
+export {
+  isWalkoverPlayer,
+  isWalkoverResult,
+  isWalkover,
+  formatGameResult,
+  formatMatchResult
+} from './utils/resultFormatting';

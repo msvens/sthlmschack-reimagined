@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService } from '@/lib/api';
+import { TournamentService, formatMatchResult } from '@/lib/api';
 import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TeamTournamentEndResultDto, TournamentRoundResultDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -35,6 +35,7 @@ export default function GroupResultsPage() {
     error: resultsError,
     getPlayerName,
     getPlayerElo,
+    getPlayerClubId,
     getClubName
   } = useGroupResults();
 
@@ -378,6 +379,7 @@ export default function GroupResultsPage() {
                         getClubName={getClubName}
                         getPlayerName={getPlayerName}
                         getPlayerElo={getPlayerElo}
+                        getPlayerClubId={getPlayerClubId}
                         tournamentId={tournamentId}
                         groupId={groupId}
                       />
@@ -494,10 +496,7 @@ export default function GroupResultsPage() {
                                       {
                                         id: 'result',
                                         header: t.pages.tournamentResults.roundByRound.result,
-                                        accessor: (row) =>
-                                          row.homeResult !== undefined && row.awayResult !== undefined
-                                            ? `${row.homeResult} - ${row.awayResult}`
-                                            : '-',
+                                        accessor: (row) => formatMatchResult(row.homeResult, row.awayResult, row.homeId, row.awayId),
                                         align: 'center',
                                         noWrap: true,
                                         cellStyle: { fontWeight: 'medium' }

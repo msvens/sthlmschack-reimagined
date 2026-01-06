@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { TournamentRoundResultDto, GameDto } from '@/lib/api/types';
+import { isWalkoverPlayer } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { Link } from '@/components/Link';
@@ -16,6 +17,8 @@ export interface TeamRoundResultsProps {
   getPlayerName: (playerId: number) => string;
   /** Function to get player ELO from player ID */
   getPlayerElo: (playerId: number) => string;
+  /** Function to get player club ID from player ID */
+  getPlayerClubId: (playerId: number) => number | null;
   /** Tournament ID for player links */
   tournamentId: number;
   /** Group ID for player links */
@@ -34,11 +37,25 @@ interface TeamMatch {
   boards: TournamentRoundResultDto[]; // All board results for this match
 }
 
+// Processed game data for display (home team always in left column)
+interface DisplayGame {
+  boardNumber: number;
+  homePlayerId: number;
+  homePlayerElo: string;
+  awayPlayerId: number;
+  awayPlayerElo: string;
+  homeScore: number;
+  awayScore: number;
+  isWalkover: boolean;
+  couldNotDeduceClub: boolean; // Debug flag when we can't determine player teams
+}
+
 export function TeamRoundResults({
   roundResults,
   getClubName,
   getPlayerName,
   getPlayerElo,
+  getPlayerClubId,
   tournamentId,
   groupId
 }: TeamRoundResultsProps) {
@@ -108,11 +125,150 @@ export function TeamRoundResults({
     setExpandedMatchIndex(expandedMatchIndex === index ? null : index);
   };
 
-  // Get game result display
-  const getGameResult = (result: number): string => {
-    if (result === 1) return '1 - 0';
-    if (result === 0) return '½ - ½';
-    if (result === -1) return '0 - 1';
+  // Process a game to determine home/away players and calculate result
+  const processGame = (game: GameDto, homeClubId: number, awayClubId: number): DisplayGame => {
+    // Step 1: Pull the club from each player
+    const whiteClubId = getPlayerClubId(game.whiteId);
+    const blackClubId = getPlayerClubId(game.blackId);
+
+    // Determine if white player is on home team or away team
+    // Strategy: Check which player's club actually matches either home or away team
+    // Players might be playing for a different club than their registered main club
+    let whiteIsHome: boolean;
+    let couldNotDeduceClub = false;
+
+    if (isWalkoverPlayer(game.whiteId)) {
+      // White is W.O, so use black's club - if black is home, white must be away (and vice versa)
+      if (blackClubId === homeClubId) {
+        whiteIsHome = false; // Black is home, so W.O is away
+      } else if (blackClubId === awayClubId) {
+        whiteIsHome = true; // Black is away, so W.O is home
+      } else {
+        // Black's club doesn't match either team - shouldn't happen often
+        whiteIsHome = blackClubId !== homeClubId;
+        couldNotDeduceClub = true;
+      }
+    } else if (isWalkoverPlayer(game.blackId)) {
+      // Black is W.O, so use white's club
+      if (whiteClubId === homeClubId) {
+        whiteIsHome = true; // White is home, so W.O is away
+      } else if (whiteClubId === awayClubId) {
+        whiteIsHome = false; // White is away, so W.O is home
+      } else {
+        // White's club doesn't match either team
+        whiteIsHome = whiteClubId === homeClubId;
+        couldNotDeduceClub = true;
+      }
+    } else {
+      // Step 2: Check if player1 (white) has either home or away team as their club
+      if (whiteClubId === homeClubId) {
+        whiteIsHome = true;
+      } else if (whiteClubId === awayClubId) {
+        whiteIsHome = false;
+      // Step 3: If not, check player2 (black) has either home or away team as their club
+      } else if (blackClubId === homeClubId) {
+        whiteIsHome = false; // Black is home, so white is away
+      } else if (blackClubId === awayClubId) {
+        whiteIsHome = true; // Black is away, so white is home
+      } else {
+        // Step 4: Neither player's registered club matches the teams playing
+        // This is the problematic case - mark for debugging
+        couldNotDeduceClub = true;
+        // Fall back to color-based assignment (white=home)
+        whiteIsHome = true;
+        console.warn(`Could not deduce club assignment for game: white=${game.whiteId} (club=${whiteClubId}), black=${game.blackId} (club=${blackClubId}), match: ${homeClubId} vs ${awayClubId}`);
+      }
+    }
+
+    // Handle W.O (walkover) cases
+    // result === 2: white wins on W.O
+    // result === -2: black wins on W.O
+    // playerId === -1: the missing player
+    const isWalkover = Math.abs(game.result) === 2 || isWalkoverPlayer(game.whiteId) || isWalkoverPlayer(game.blackId);
+
+    let homePlayerId: number;
+    let awayPlayerId: number;
+    let homeScore: number;
+    let awayScore: number;
+
+    if (whiteIsHome) {
+      // White is home team
+      homePlayerId = game.whiteId;
+      awayPlayerId = game.blackId;
+
+      // Calculate scores based on result
+      if (game.result === 2) {
+        // White wins on W.O
+        homeScore = 1;
+        awayScore = 0;
+      } else if (game.result === -2) {
+        // Black wins on W.O
+        homeScore = 0;
+        awayScore = 1;
+      } else if (game.result === 1) {
+        // White wins
+        homeScore = 1;
+        awayScore = 0;
+      } else if (game.result === -1) {
+        // Black wins
+        homeScore = 0;
+        awayScore = 1;
+      } else {
+        // Draw
+        homeScore = 0.5;
+        awayScore = 0.5;
+      }
+    } else {
+      // Black is home team (need to flip)
+      homePlayerId = game.blackId;
+      awayPlayerId = game.whiteId;
+
+      // Calculate scores based on result (flipped perspective)
+      if (game.result === 2) {
+        // White wins on W.O (away team wins)
+        homeScore = 0;
+        awayScore = 1;
+      } else if (game.result === -2) {
+        // Black wins on W.O (home team wins)
+        homeScore = 1;
+        awayScore = 0;
+      } else if (game.result === 1) {
+        // White wins (away team wins)
+        homeScore = 0;
+        awayScore = 1;
+      } else if (game.result === -1) {
+        // Black wins (home team wins)
+        homeScore = 1;
+        awayScore = 0;
+      } else {
+        // Draw
+        homeScore = 0.5;
+        awayScore = 0.5;
+      }
+    }
+
+    return {
+      boardNumber: (game.tableNr !== undefined ? game.tableNr + 1 : 0),
+      homePlayerId,
+      homePlayerElo: isWalkoverPlayer(homePlayerId) ? '-' : getPlayerElo(homePlayerId),
+      awayPlayerId,
+      awayPlayerElo: isWalkoverPlayer(awayPlayerId) ? '-' : getPlayerElo(awayPlayerId),
+      homeScore,
+      awayScore,
+      isWalkover,
+      couldNotDeduceClub
+    };
+  };
+
+  // Format game result for display
+  const formatGameResult = (game: DisplayGame): string => {
+    if (game.homeScore === 1 && game.awayScore === 0) {
+      return game.isWalkover ? '1 - 0 w.o' : '1 - 0';
+    } else if (game.homeScore === 0 && game.awayScore === 1) {
+      return game.isWalkover ? '0 - 1 w.o' : '0 - 1';
+    } else if (game.homeScore === 0.5 && game.awayScore === 0.5) {
+      return '½ - ½';
+    }
     return '-';
   };
 
@@ -148,11 +304,11 @@ export function TeamRoundResults({
       <div className="p-4 md:p-6">
         <div className="space-y-2">
           {selectedMatches.map((match, index) => (
-            <div key={index} className="border rounded-lg overflow-hidden border-gray-200 dark:border-gray-700">
+            <div key={index} className="overflow-hidden">
               {/* Match Header - Clickable */}
               <button
                 onClick={() => handleMatchClick(index)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -187,76 +343,97 @@ export function TeamRoundResults({
                 <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                   <div className="p-4">
                     {(() => {
-                      // Get all games from this match (match.boards[0] contains the TournamentRoundResultDto)
+                      // Get all games from this match
                       const allGames = match.boards[0]?.games || [];
 
+                      // Process games to ensure home team is always in left column
+                      const processedGames = allGames.map(game =>
+                        processGame(game, match.homeId, match.awayId)
+                      );
+
+                      // Sort by board number
+                      const sortedGames = [...processedGames].sort((a, b) => a.boardNumber - b.boardNumber);
+
+                      // Get club names for headers (truncated for mobile)
+                      const homeClubName = getClubName(match.homeId);
+                      const awayClubName = getClubName(match.awayId);
+
                       // Create columns for board games table
-                      const boardColumns: TableColumn<GameDto>[] = [
+                      const boardColumns: TableColumn<DisplayGame>[] = [
                         {
                           id: 'board',
                           header: t.pages.tournamentResults.teamRoundResults.board,
-                          accessor: (game) => game.tableNr !== undefined ? game.tableNr + 1 : '-',
+                          accessor: (game) => game.boardNumber || '-',
                           align: 'left',
                           noWrap: true
                         },
                         {
                           id: 'homePlayer',
-                          header: t.pages.tournamentResults.teamRoundResults.homeTeam,
-                          accessor: (game) => (
-                            <Link
-                              href={`/results/${tournamentId}/${groupId}/${game.whiteId}`}
-                              color="gray"
-                            >
-                              {getPlayerName(game.whiteId)}
-                            </Link>
-                          ),
+                          header: homeClubName,
+                          headerClassName: 'max-w-[10ch] sm:max-w-none truncate',
+                          accessor: (game) => {
+                            if (game.homePlayerId === -1) {
+                              return <span className="text-gray-500 dark:text-gray-400">W.O</span>;
+                            }
+                            return (
+                              <Link
+                                href={`/results/${tournamentId}/${groupId}/${game.homePlayerId}`}
+                                color="gray"
+                              >
+                                {getPlayerName(game.homePlayerId)}
+                              </Link>
+                            );
+                          },
                           align: 'left'
                         },
                         {
                           id: 'homeElo',
                           header: t.pages.tournamentResults.teamRoundResults.elo,
-                          accessor: (game) => getPlayerElo(game.whiteId),
+                          accessor: (game) => game.homePlayerElo,
                           align: 'center',
                           noWrap: true
                         },
                         {
                           id: 'awayPlayer',
-                          header: t.pages.tournamentResults.teamRoundResults.awayTeam,
-                          accessor: (game) => (
-                            <Link
-                              href={`/results/${tournamentId}/${groupId}/${game.blackId}`}
-                              color="gray"
-                            >
-                              {getPlayerName(game.blackId)}
-                            </Link>
-                          ),
+                          header: awayClubName,
+                          headerClassName: 'max-w-[10ch] sm:max-w-none truncate',
+                          accessor: (game) => {
+                            if (game.awayPlayerId === -1) {
+                              return <span className="text-gray-500 dark:text-gray-400">W.O</span>;
+                            }
+                            return (
+                              <Link
+                                href={`/results/${tournamentId}/${groupId}/${game.awayPlayerId}`}
+                                color="gray"
+                              >
+                                {getPlayerName(game.awayPlayerId)}
+                              </Link>
+                            );
+                          },
                           align: 'left'
                         },
                         {
                           id: 'awayElo',
                           header: t.pages.tournamentResults.teamRoundResults.elo,
-                          accessor: (game) => getPlayerElo(game.blackId),
+                          accessor: (game) => game.awayPlayerElo,
                           align: 'center',
                           noWrap: true
                         },
                         {
                           id: 'result',
                           header: t.pages.tournamentResults.teamRoundResults.result,
-                          accessor: (game) => getGameResult(game.result),
+                          accessor: (game) => formatGameResult(game),
                           align: 'center',
                           noWrap: true,
                           cellStyle: { fontWeight: 'medium' }
                         }
                       ];
 
-                      // Sort games by table number
-                      const sortedGames = [...allGames].sort((a, b) => (a.tableNr || 0) - (b.tableNr || 0));
-
                       return (
                         <Table
                           data={sortedGames}
                           columns={boardColumns}
-                          getRowKey={(game) => game.id.toString()}
+                          getRowKey={(game, index) => `${game.boardNumber}-${index}`}
                           density="compact"
                         />
                       );

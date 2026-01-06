@@ -3,7 +3,7 @@
 import { ReactNode, useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { ResultsService, TournamentService, PlayerService, formatPlayerRating } from '@/lib/api';
-import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TournamentClassDto, TournamentClassGroupDto, TeamTournamentEndResultDto, TournamentDto } from '@/lib/api/types';
+import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TournamentClassDto, TournamentClassGroupDto, TeamTournamentEndResultDto, TournamentDto, isTeamTournament } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
 
@@ -76,9 +76,9 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
         }
 
         // Detect tournament type and fetch appropriate results
-        const isTeamTournament = tournamentData.type === 2;
+        const isTeam = isTeamTournament(tournamentData.type);
 
-        if (isTeamTournament) {
+        if (isTeam) {
           // Fetch team tournament results
           const [teamTableResponse, teamRoundResponse] = await Promise.all([
             resultsService.getTeamTournamentResults(groupId),
@@ -205,16 +205,22 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     return formatPlayerRating(player?.elo, thinkingTime);
   };
 
+  // Helper to get player club ID from player ID
+  const getPlayerClubId = (playerId: number): number | null => {
+    const player = playerMap.get(playerId);
+    return player?.clubId ?? null;
+  };
+
   // Helper to get club name from ID
   const getClubName = (clubId: number): string => {
     return getOrgClubName(clubId);
   };
 
   // Determine if this is a team tournament
-  const isTeamTournament = tournament?.type === 2;
+  const isTeam = tournament ? isTeamTournament(tournament.type) : false;
 
   const contextValue: GroupResultsContextValue = {
-    isTeamTournament,
+    isTeamTournament: isTeam,
     individualResults,
     individualRoundResults,
     teamResults,
@@ -227,6 +233,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     error,
     getPlayerName,
     getPlayerElo,
+    getPlayerClubId,
     getClubName
   };
 

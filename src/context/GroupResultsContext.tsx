@@ -26,6 +26,7 @@ export interface GroupResultsContextValue {
   // Helper functions
   getPlayerName: (playerId: number) => string;
   getPlayerElo: (playerId: number) => string;
+  getPlayerClubId: (playerId: number) => number | null;
   getClubName: (clubId: number) => string;
 }
 

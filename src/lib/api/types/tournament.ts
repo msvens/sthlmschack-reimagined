@@ -3,6 +3,31 @@
  */
 
 /**
+ * Tournament type constants
+ */
+export const TournamentType = {
+  ALLSVENSKAN: 2,
+  INDIVIDUAL: 3,
+  SM_TREE: 4,
+  SCHOOL_SM: 5,
+  SVENSKA_CUPEN: 6,
+  GRAND_PRIX: 7,
+  YES2CHESS: 8,
+  SCHACKFYRAN: 9,
+} as const;
+
+/**
+ * Check if a tournament type is a team tournament
+ * @param type Tournament type number
+ * @returns true if team tournament (Allsvenskan, Svenska Cupen, Yes2Chess)
+ */
+export function isTeamTournament(type: number): boolean {
+  return type === TournamentType.ALLSVENSKAN
+    || type === TournamentType.SVENSKA_CUPEN
+    || type === TournamentType.YES2CHESS;
+}
+
+/**
  * Local time representation
  */
 export interface LocalTime {
