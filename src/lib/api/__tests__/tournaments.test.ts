@@ -50,7 +50,7 @@ describe('Tournament Service Integration Tests', () => {
 
   describe('Tournament Search API', () => {
     test('should search tournaments by name', async () => {
-      const response = await tournamentService.searchTournaments(TEST_SEARCH_TERM);
+      const response = await tournamentService.searchGroups(TEST_SEARCH_TERM);
       expect(response.status).toBe(200);
       expect(response.data).toBeDefined();
       expect(response.data?.length).toBeGreaterThan(0);

@@ -1,5 +1,5 @@
 import { BaseApiService } from '../base';
-import type { TournamentDto, TournamentSearchAnswerDto, ApiResponse } from '../types';
+import type { TournamentDto, GroupSearchAnswerDto, ApiResponse } from '../types';
 
 export class TournamentService extends BaseApiService {
   constructor(baseUrl?: string) {
@@ -46,10 +46,10 @@ export class TournamentService extends BaseApiService {
    * @param searchWord - Search term for tournament/group name or location
    * @returns Array of matching tournament groups with basic information
    */
-  async searchTournaments(searchWord: string): Promise<ApiResponse<TournamentSearchAnswerDto[]>> {
+  async searchGroups(searchWord: string): Promise<ApiResponse<GroupSearchAnswerDto[]>> {
     const endpoint = `/tournament/group/search/${encodeURIComponent(searchWord)}`;
 
-    return this.get<TournamentSearchAnswerDto[]>(endpoint);
+    return this.get<GroupSearchAnswerDto[]>(endpoint);
   }
 
   /**
@@ -76,7 +76,7 @@ export class TournamentService extends BaseApiService {
    * // Find tournaments with updated results in December 2024
    * searchUpdatedTournamentsByTournament('2024-12-01T00:00:00', '2024-12-31T23:59:59')
    */
-  async searchUpdatedTournamentsByTournament(
+  async searchUpdatedTournaments(
     startDate: string,
     endDate: string,
     districtId?: number
@@ -99,15 +99,15 @@ export class TournamentService extends BaseApiService {
    * // Find tournaments that started in December 2024 (may still be running)
    * searchUpdatedTournaments('2024-12-01T00:00:00', '2024-12-31T23:59:59')
    */
-  async searchUpdatedTournaments(
+  async searchUpdatedGroups(
     startDate: string,
     endDate: string,
     districtId?: number
-  ): Promise<ApiResponse<TournamentSearchAnswerDto[]>> {
+  ): Promise<ApiResponse<GroupSearchAnswerDto[]>> {
     const endpoint = districtId !== undefined
       ? `/tournament/group/updated/${encodeURIComponent(startDate)}/${encodeURIComponent(endDate)}/${districtId}`
       : `/tournament/group/updated/${encodeURIComponent(startDate)}/${encodeURIComponent(endDate)}`;
 
-    return this.get<TournamentSearchAnswerDto[]>(endpoint);
+    return this.get<GroupSearchAnswerDto[]>(endpoint);
   }
 }

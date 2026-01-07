@@ -9,19 +9,19 @@ import { TournamentList } from "@/components/TournamentList";
 import { useLanguage } from "@/context/LanguageContext";
 import { getTranslation } from "@/lib/translations";
 import { TournamentService } from "@/lib/api/services/tournaments";
-import type { TournamentDto, TournamentSearchAnswerDto } from "@/lib/api/types";
+import type { TournamentDto, GroupSearchAnswerDto } from "@/lib/api/types";
 
 export default function ResultsPage() {
   const { language } = useLanguage();
   const t = getTranslation(language);
 
-  // Helper: Get default date range (1 month back)
+  // Helper: Get default date range (10 days back)
   const getDefaultDateRange = () => {
     const now = new Date();
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const tenDaysAgo = new Date();
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
     return {
-      start: oneMonthAgo.toISOString().split('T')[0],
+      start: tenDaysAgo.toISOString().split('T')[0],
       end: now.toISOString().split('T')[0]
     };
   };
@@ -46,9 +46,10 @@ export default function ResultsPage() {
     return `${dateString}T00:00:00`;
   };
 
-  // Helper: Deduplicate tournament groups and create tournament objects from search results
-  const deduplicateAndConvertTournaments = (groups: TournamentSearchAnswerDto[]): TournamentDto[] => {
-    const uniqueTournaments = new Map<number, TournamentSearchAnswerDto>();
+  // Helper: Deduplicate tournament groups and create tournament objects from text search results
+  // Note: Only used for text search, which still returns GroupSearchAnswerDto[]
+  const deduplicateAndConvertTournaments = (groups: GroupSearchAnswerDto[]): TournamentDto[] => {
+    const uniqueTournaments = new Map<number, GroupSearchAnswerDto>();
 
     // Keep first occurrence of each tournament
     groups.forEach(group => {
@@ -84,22 +85,23 @@ export default function ResultsPage() {
       teamNrOfDaysRegged: 0,
       showPublic: 0,
       invitationurl: '',
+      latestUpdated: group.latestUpdatedGame || '',
       secParsedJudges: [],
       rootClasses: [],
     } as TournamentDto));
   };
 
-  // Load default data: tournaments updated in last 1 month
+  // Load default data: tournaments updated in last 10 days
   const loadDefaultTournaments = async () => {
     setLoading(true);
     setError('');
 
     try {
       const now = new Date();
-      const oneMonthAgo = new Date();
-      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      const tenDaysAgo = new Date();
+      tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
 
-      const startDateStr = formatDateForApi(oneMonthAgo.toISOString().split('T')[0]);
+      const startDateStr = formatDateForApi(tenDaysAgo.toISOString().split('T')[0]);
       const endDateStr = formatDateForApi(now.toISOString().split('T')[0]);
 
       const response = await tournamentService.searchUpdatedTournaments(
@@ -108,8 +110,13 @@ export default function ResultsPage() {
       );
 
       if (response.data) {
-        const tournamentsData = deduplicateAndConvertTournaments(response.data);
-        setTournaments(tournamentsData);
+        // Sort tournaments by latestUpdated timestamp (descending - most recent first)
+        const sortedTournaments = [...response.data].sort((a, b) => {
+          const dateA = a.latestUpdated ? new Date(a.latestUpdated).getTime() : 0;
+          const dateB = b.latestUpdated ? new Date(b.latestUpdated).getTime() : 0;
+          return dateB - dateA;
+        });
+        setTournaments(sortedTournaments);
       } else {
         setError(response.error || 'Failed to load tournaments');
       }
@@ -148,8 +155,13 @@ export default function ResultsPage() {
       );
 
       if (response.data) {
-        const tournamentsData = deduplicateAndConvertTournaments(response.data);
-        setTournaments(tournamentsData);
+        // Sort tournaments by latestUpdated timestamp (descending - most recent first)
+        const sortedTournaments = [...response.data].sort((a, b) => {
+          const dateA = a.latestUpdated ? new Date(a.latestUpdated).getTime() : 0;
+          const dateB = b.latestUpdated ? new Date(b.latestUpdated).getTime() : 0;
+          return dateB - dateA;
+        });
+        setTournaments(sortedTournaments);
       } else {
         setError(response.error || 'Failed to search tournaments');
       }
@@ -172,7 +184,7 @@ export default function ResultsPage() {
     setError('');
 
     try {
-      const response = await tournamentService.searchTournaments(searchText.trim());
+      const response = await tournamentService.searchGroups(searchText.trim());
 
       if (response.data) {
         const tournamentsData = deduplicateAndConvertTournaments(response.data);
@@ -242,21 +254,27 @@ export default function ResultsPage() {
         <div className="border-t border-gray-200 dark:border-gray-700"></div>
 
         {/* Text Search Section */}
-        <div className="flex items-center gap-3">
-          <TextField
-            type="text"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            placeholder={t.pages.results.filters.textSearch.placeholder}
-            fullWidth
-          />
-          <Button
-            onClick={handleTextSearch}
-            variant="outlined"
-            disabled={loading}
-          >
-            {t.pages.results.filters.textSearch.searchButton}
-          </Button>
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <TextField
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder={t.pages.results.filters.textSearch.placeholder}
+              fullWidth
+            />
+            <Button
+              onClick={handleTextSearch}
+              variant="outlined"
+              disabled={loading}
+            >
+              {t.pages.results.filters.textSearch.searchButton}
+            </Button>
+          </div>
+          {/* Beta Notice */}
+          <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+            {t.pages.results.filters.textSearch.betaNotice}
+          </p>
         </div>
       </div>
 
@@ -267,6 +285,7 @@ export default function ResultsPage() {
           loading={loading}
           error={error}
           language={language}
+          showUpdatedColumn={true}
         />
       </div>
     </PageLayout>

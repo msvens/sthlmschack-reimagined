@@ -1564,6 +1564,10 @@
           },
           "pgn": {
             "type": "string"
+          },
+          "groupiD": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

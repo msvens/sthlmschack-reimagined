@@ -109,6 +109,7 @@ export interface Translations {
         organizer: string;
         start: string;
         end: string;
+        lastUpdated: string;
         loading: string;
         noTournaments: string;
       };
@@ -130,6 +131,7 @@ export interface Translations {
           placeholder: string;
           searchButton: string;
           clearButton: string;
+          betaNotice: string;
         };
       };
       tournamentList: {
@@ -137,6 +139,7 @@ export interface Translations {
         organizer: string;
         start: string;
         end: string;
+        lastUpdated: string;
         loading: string;
         noTournaments: string;
       };
@@ -378,6 +381,7 @@ const translations: Record<Language, Translations> = {
           organizer: 'Organizer',
           start: 'Start',
           end: 'End',
+          lastUpdated: 'Updated',
           loading: 'Loading tournaments...',
           noTournaments: 'No upcoming tournaments found',
         },
@@ -399,6 +403,7 @@ const translations: Record<Language, Translations> = {
             placeholder: 'Enter tournament name or location...',
             searchButton: 'Search',
             clearButton: 'Clear',
+            betaNotice: 'Note: Text search is in testing and may not return exact matches.',
           },
         },
         tournamentList: {
@@ -406,6 +411,7 @@ const translations: Record<Language, Translations> = {
           organizer: 'Organizer',
           start: 'Start',
           end: 'End',
+          lastUpdated: 'Updated',
           loading: 'Loading tournaments...',
           noTournaments: 'No tournaments found',
         },
@@ -645,6 +651,7 @@ const translations: Record<Language, Translations> = {
           organizer: 'Arrangör',
           start: 'Start',
           end: 'Slut',
+          lastUpdated: 'Uppdaterad',
           loading: 'Laddar turneringar...',
           noTournaments: 'Inga kommande turneringar hittades',
         },
@@ -666,6 +673,7 @@ const translations: Record<Language, Translations> = {
             placeholder: 'Ange turneringsnamn eller plats...',
             searchButton: 'Sök',
             clearButton: 'Rensa',
+            betaNotice: 'Obs: Textsökning är under testning och kan ge inexakta resultat.',
           },
         },
         tournamentList: {
@@ -673,6 +681,7 @@ const translations: Record<Language, Translations> = {
           organizer: 'Arrangör',
           start: 'Start',
           end: 'Slut',
+          lastUpdated: 'Uppdaterad',
           loading: 'Laddar turneringar...',
           noTournaments: 'Inga turneringar hittades',
         },

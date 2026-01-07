@@ -23,6 +23,8 @@ export interface GameDto {
     result: number;
     /** PGN notation of the game */
     pgn: string;
+    /** Group ID */
+    groupiD: number;
 }
 
 /**

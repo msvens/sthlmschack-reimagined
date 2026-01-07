@@ -242,7 +242,7 @@ export interface TournamentDto {
 /**
  * Tournament search result
  */
-export interface TournamentSearchAnswerDto {
+export interface GroupSearchAnswerDto {
     /** Group ID */
     id: number;
     /** Group/tournament name */
