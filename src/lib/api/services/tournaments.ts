@@ -1,5 +1,7 @@
 import { BaseApiService } from '../base';
 import type { TournamentDto, GroupSearchAnswerDto, ApiResponse } from '../types';
+import type { BatchOptions, BatchResult } from './players';
+import { deduplicateIds, chunkArray } from '../utils/batchUtils';
 
 export class TournamentService extends BaseApiService {
   constructor(baseUrl?: string) {
@@ -109,5 +111,125 @@ export class TournamentService extends BaseApiService {
       : `/tournament/group/updated/${encodeURIComponent(startDate)}/${encodeURIComponent(endDate)}`;
 
     return this.get<GroupSearchAnswerDto[]>(endpoint);
+  }
+
+  /**
+   * Fetch tournament information for multiple tournament IDs in batches
+   *
+   * @param tournamentIds - Array of tournament IDs to fetch
+   * @param options - Batch processing options
+   * @returns BatchResult containing successfully fetched tournaments and any errors
+   *
+   * @remarks
+   * - **Deduplicates input IDs** - Duplicate IDs are removed before making API calls
+   * - Results may not be in the same order as input IDs
+   * - Failed fetches are returned in the errors array
+   * - Processes requests in batches to avoid overwhelming the API
+   *
+   * @example
+   * ```typescript
+   * // Input: [1, 2, 2, 3] -> Deduped: [1, 2, 3] -> 3 API calls
+   * const result = await tournamentService.getTournamentsBatch([1, 2, 2, 3]);
+   * console.log(`Fetched ${result.data.length} tournaments`);
+   * ```
+   */
+  async getTournamentsBatch(
+    tournamentIds: number[],
+    options: BatchOptions = {}
+  ): Promise<BatchResult<TournamentDto>> {
+    const { concurrency = 10 } = options;
+
+    // Deduplicate IDs before processing
+    const uniqueIds = deduplicateIds(tournamentIds);
+    const chunks = chunkArray(uniqueIds, concurrency);
+
+    const data: TournamentDto[] = [];
+    const errors: Array<{ id: number; error: string }> = [];
+
+    // Process each chunk sequentially
+    for (const chunk of chunks) {
+      // Within each chunk, process requests in parallel
+      const results = await Promise.allSettled(
+        chunk.map(id => this.getTournament(id))
+      );
+
+      // Collect results and errors
+      results.forEach((result, index) => {
+        const tournamentId = chunk[index];
+        if (result.status === 'fulfilled' && result.value.data) {
+          data.push(result.value.data);
+        } else if (result.status === 'fulfilled' && result.value.error) {
+          errors.push({ id: tournamentId, error: result.value.error });
+        } else if (result.status === 'rejected') {
+          errors.push({
+            id: tournamentId,
+            error: result.reason?.message || 'Unknown error'
+          });
+        }
+      });
+    }
+
+    return { data, errors };
+  }
+
+  /**
+   * Fetch tournament information for multiple group IDs in batches
+   * Note: This fetches the tournament that contains each group
+   *
+   * @param groupIds - Array of group IDs to fetch tournaments for
+   * @param options - Batch processing options
+   * @returns BatchResult containing successfully fetched tournaments and any errors
+   *
+   * @remarks
+   * - **Deduplicates input IDs** - Duplicate IDs are removed before making API calls
+   * - Results may not be in the same order as input IDs
+   * - Failed fetches are returned in the errors array
+   * - Processes requests in batches to avoid overwhelming the API
+   * - May return duplicate tournaments if multiple groups belong to same tournament
+   *
+   * @example
+   * ```typescript
+   * // Input: [1, 2, 2, 3] -> Deduped: [1, 2, 3] -> 3 API calls
+   * const result = await tournamentService.getGroupsBatch([1, 2, 2, 3]);
+   * console.log(`Fetched ${result.data.length} tournaments`);
+   * ```
+   */
+  async getGroupsBatch(
+    groupIds: number[],
+    options: BatchOptions = {}
+  ): Promise<BatchResult<TournamentDto>> {
+    const { concurrency = 10 } = options;
+
+    // Deduplicate IDs before processing
+    const uniqueIds = deduplicateIds(groupIds);
+    const chunks = chunkArray(uniqueIds, concurrency);
+
+    const data: TournamentDto[] = [];
+    const errors: Array<{ id: number; error: string }> = [];
+
+    // Process each chunk sequentially
+    for (const chunk of chunks) {
+      // Within each chunk, process requests in parallel
+      const results = await Promise.allSettled(
+        chunk.map(id => this.getTournamentFromGroup(id))
+      );
+
+      // Collect results and errors
+      results.forEach((result, index) => {
+        const groupId = chunk[index];
+        if (result.status === 'fulfilled' && result.value.data) {
+          data.push(result.value.data);
+        } else if (result.status === 'fulfilled' && result.value.error) {
+          errors.push({ id: groupId, error: result.value.error });
+        } else if (result.status === 'rejected') {
+          errors.push({
+            id: groupId,
+            error: result.reason?.message || 'Unknown error'
+          });
+        }
+      });
+    }
+
+    return { data, errors };
   }
 }
