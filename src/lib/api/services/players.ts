@@ -1,24 +1,22 @@
 import { BaseApiService } from '../base';
 import type { PlayerInfoDto, ApiResponse } from '../types';
-import { deduplicateIds, chunkArray } from '../utils/batchUtils';
+import { chunkArray } from '../utils/batchUtils';
 
 /**
  * Options for batch processing
  */
 export interface BatchOptions {
-  /** Number of parallel requests to execute at once (default: 10) */
+  /** Number of parallel requests to execute at once (default: 10, use Infinity for unlimited) */
   concurrency?: number;
 }
 
 /**
- * Result of a batch operation
+ * Result of a single batch item
+ * Either contains data or an error, never both
  */
-export interface BatchResult<T> {
-  /** Successfully fetched items */
-  data: T[];
-  /** Failed fetches with error details */
-  errors: Array<{ id: number; error: string }>;
-}
+export type BatchItemResult<T> =
+  | { data: T; error: null }
+  | { data: null; error: string };
 
 export class PlayerService extends BaseApiService {
   constructor(baseUrl?: string) {
@@ -78,61 +76,61 @@ export class PlayerService extends BaseApiService {
   /**
    * Fetch player information for multiple player IDs in batches
    *
-   * @param playerIds - Array of player IDs to fetch
+   * @param playerIds - Array of player IDs to fetch (duplicates allowed, order preserved)
    * @param date - Optional date filter (defaults to current date)
    * @param options - Batch processing options
-   * @returns BatchResult containing successfully fetched players and any errors
+   * @returns Array of results matching input order - each item contains either data or error
    *
    * @remarks
-   * - **Deduplicates input IDs** - Duplicate IDs are removed before making API calls
-   * - Results may not be in the same order as input IDs
-   * - Failed fetches are returned in the errors array
+   * - **Preserves input order** - results[i] corresponds to playerIds[i]
+   * - **Allows duplicates** - each ID is fetched separately (caller controls deduplication)
    * - Processes requests in batches to avoid overwhelming the API
+   * - Use concurrency: Infinity for maximum parallelism
    *
    * @example
    * ```typescript
-   * // Input: [1, 2, 2, 3, 3, 3] -> Deduped: [1, 2, 3] -> 3 API calls
-   * const result = await playerService.getPlayerInfoBatch([1, 2, 2, 3, 3, 3]);
-   * console.log(`Fetched ${result.data.length} players`);
+   * const results = await playerService.getPlayerInfoBatch([1, 2, 2, 3]);
+   * results.forEach((result, i) => {
+   *   if (result.data) {
+   *     console.log(`Player ${playerIds[i]}:`, result.data);
+   *   } else {
+   *     console.error(`Player ${playerIds[i]} failed:`, result.error);
+   *   }
+   * });
    * ```
    */
   async getPlayerInfoBatch(
     playerIds: number[],
     date?: Date,
     options: BatchOptions = {}
-  ): Promise<BatchResult<PlayerInfoDto>> {
+  ): Promise<BatchItemResult<PlayerInfoDto>[]> {
     const { concurrency = 10 } = options;
+    const chunks = chunkArray(playerIds, concurrency);
 
-    // Deduplicate IDs before processing
-    const uniqueIds = deduplicateIds(playerIds);
-    const chunks = chunkArray(uniqueIds, concurrency);
-
-    const data: PlayerInfoDto[] = [];
-    const errors: Array<{ id: number; error: string }> = [];
+    const results: BatchItemResult<PlayerInfoDto>[] = [];
 
     // Process each chunk sequentially
     for (const chunk of chunks) {
       // Within each chunk, process requests in parallel
-      const results = await Promise.allSettled(
+      const responses = await Promise.allSettled(
         chunk.map(id => this.getPlayerInfo(id, date))
       );
 
-      // Collect results and errors
-      results.forEach((result, index) => {
-        const playerId = chunk[index];
-        if (result.status === 'fulfilled' && result.value.data) {
-          data.push(result.value.data);
-        } else if (result.status === 'fulfilled' && result.value.error) {
-          errors.push({ id: playerId, error: result.value.error });
-        } else if (result.status === 'rejected') {
-          errors.push({
-            id: playerId,
-            error: result.reason?.message || 'Unknown error'
+      // Collect results in order
+      responses.forEach((response) => {
+        if (response.status === 'fulfilled' && response.value.data) {
+          results.push({ data: response.value.data, error: null });
+        } else if (response.status === 'fulfilled' && response.value.error) {
+          results.push({ data: null, error: response.value.error });
+        } else if (response.status === 'rejected') {
+          results.push({
+            data: null,
+            error: response.reason?.message || 'Unknown error'
           });
         }
       });
     }
 
-    return { data, errors };
+    return results;
   }
 }
