@@ -1,5 +1,5 @@
 import { BaseApiService } from '../base';
-import type { PlayerInfoDto, ApiResponse } from '../types';
+import type { PlayerInfoDto, ApiResponse, PlayerRatingHistory } from '../types';
 import { chunkArray } from '../utils/batchUtils';
 
 /**
@@ -132,5 +132,97 @@ export class PlayerService extends BaseApiService {
     }
 
     return results;
+  }
+
+  /**
+   * Fetch player rating history for a specified number of months
+   *
+   * @param playerId - The Swedish Chess Federation player ID
+   * @param monthsBack - Number of months to look back (default: 12)
+   * @returns Array of rating history sorted by date (latest first)
+   *
+   * @remarks
+   * - Fetches player ratings for each month from today backwards
+   * - Processes in batches of 12 months for efficiency
+   * - **Smart stopping**: Stops when encountering a month with no ratings (all rating fields are null/0)
+   * - Also stops if API call fails (player doesn't exist at that date)
+   * - Returns only months where the player has rating data
+   *
+   * @example
+   * ```typescript
+   * // Get last 12 months of rating history
+   * const history = await playerService.getPlayerEloHistory(12345);
+   *
+   * // Get last 24 months
+   * const history = await playerService.getPlayerEloHistory(12345, 24);
+   * ```
+   */
+  async getPlayerEloHistory(
+    playerId: number,
+    monthsBack: number = 12
+  ): Promise<ApiResponse<PlayerRatingHistory[]>> {
+    try {
+      // Generate dates from today backwards for each month
+      const today = new Date();
+      const dates: Date[] = [];
+      for (let i = 0; i < monthsBack; i++) {
+        dates.push(new Date(today.getFullYear(), today.getMonth() - i, 1));
+      }
+
+      // Process in batches of 12 months
+      const chunks = chunkArray(dates, 12);
+      const ratingHistory: PlayerRatingHistory[] = [];
+      let shouldStop = false;
+
+      // Process each chunk sequentially (most recent first)
+      for (const chunk of chunks) {
+        if (shouldStop) break;
+
+        // Within chunk, fetch in parallel
+        const responses = await Promise.allSettled(
+          chunk.map(date => this.getPlayerInfo(playerId, date))
+        );
+
+        // Process responses and check for stop condition
+        for (const response of responses) {
+          if (response.status === 'fulfilled' && response.value.status === 200 && response.value.data) {
+            const player = response.value.data;
+            const elo = player.elo;
+            const lask = player.lask;
+
+            // Check if player has any ratings at this date
+            const hasAnyRating = elo?.rating || elo?.rapidRating || elo?.blitzRating || lask?.rating;
+
+            if (hasAnyRating) {
+              ratingHistory.push({
+                elo: elo,
+                lask: lask
+              });
+            } else {
+              // No ratings found - player likely didn't exist yet or wasn't rated
+              // Stop processing further (older) dates
+              shouldStop = true;
+              break;
+            }
+          } else {
+            // API call failed or returned error - stop here
+            shouldStop = true;
+            break;
+          }
+        }
+      }
+
+      // Already sorted (latest first) since we processed most recent dates first
+      return {
+        status: 200,
+        data: ratingHistory
+      };
+
+    } catch (error) {
+      return {
+        status: 500,
+        error: error instanceof Error ? error.message : 'Failed to fetch rating history'
+      };
+    }
   }
 }

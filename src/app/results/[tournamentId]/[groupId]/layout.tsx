@@ -106,20 +106,16 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
               });
             });
 
-            // Fetch player info for all unique player IDs in parallel
+            // Fetch player info for all unique player IDs in batches
             if (playerIds.size > 0) {
               const playerService = new PlayerService();
-              const playerInfoPromises = Array.from(playerIds).map(playerId =>
-                playerService.getPlayerInfo(playerId)
-              );
+              const playerInfoResults = await playerService.getPlayerInfoBatch(Array.from(playerIds));
 
-              const playerInfoResponses = await Promise.all(playerInfoPromises);
-
-              // Build player map from responses
+              // Build player map from successful results
               const playersMap = new Map<number, PlayerInfoDto>();
-              playerInfoResponses.forEach((response) => {
-                if (response.status === 200 && response.data) {
-                  playersMap.set(response.data.id, response.data);
+              playerInfoResults.forEach((result) => {
+                if (result.data) {
+                  playersMap.set(result.data.id, result.data);
                 }
               });
 

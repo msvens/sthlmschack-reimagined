@@ -56,36 +56,24 @@ export async function getPlayerTournaments(
       };
     }
 
-    // Step 2: Extract unique group IDs
+    // Step 2: Extract group IDs (preserving order and duplicates if any)
     const groupIds = memberResults.map(result => result.groupId);
 
-    // Step 3: Fetch tournament details for each group (parallel requests)
-    const tournamentPromises = groupIds.map(groupId =>
-      tournamentService.getTournamentFromGroup(groupId)
-    );
-
-    const tournamentResponses = await Promise.allSettled(tournamentPromises);
+    // Step 3: Fetch tournament details in batches
+    const tournamentResults = await tournamentService.getTournamentFromGroupBatch(groupIds);
 
     // Step 4: Process results and combine with player results
     const playerTournamentData: PlayerTournamentData[] = [];
     const errors: string[] = [];
 
-    tournamentResponses.forEach((response, index) => {
-      if (response.status === 'fulfilled') {
-        const apiResponse = response.value;
-        if (apiResponse.status === 200 && apiResponse.data) {
-          const tournament = apiResponse.data;
-          const result = memberResults[index];
-
-          playerTournamentData.push({
-            tournament,
-            result
-          });
-        } else {
-          errors.push(`Failed to fetch tournament for group ${groupIds[index]}: ${apiResponse.error || 'Unknown error'}`);
-        }
+    tournamentResults.forEach((result, index) => {
+      if (result.data) {
+        playerTournamentData.push({
+          tournament: result.data,
+          result: memberResults[index]
+        });
       } else {
-        errors.push(`Request failed for group ${groupIds[index]}: ${response.reason}`);
+        errors.push(`Failed to fetch tournament for group ${groupIds[index]}: ${result.error}`);
       }
     });
 

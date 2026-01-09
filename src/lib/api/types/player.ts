@@ -35,6 +35,16 @@ export interface MemberLASKRatingDTO {
 }
 
 /**
+ * Player rating history point containing FIDE and LASK ratings for a specific date
+ */
+export interface PlayerRatingHistory {
+    /** FIDE rating information */
+    elo: MemberFIDERatingDTO;
+    /** LASK rating information */
+    lask: MemberLASKRatingDTO;
+}
+
+/**
  * Complete player information including ratings and club affiliation
  */
 export interface PlayerInfoDto {
