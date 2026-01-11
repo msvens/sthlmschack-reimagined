@@ -2,6 +2,7 @@
 
 import React, { useState, ReactNode } from 'react';
 import { PlayerTournamentList } from './PlayerTournamentList';
+import { OpponentsTab } from './OpponentsTab';
 import { PlayerTournamentData } from '@/lib/api/utils/playerTournaments';
 import { getTranslation } from '@/lib/translations';
 
@@ -103,9 +104,7 @@ export function PlayerHistory({
       )}
 
       {selectedTab === 'opponents' && (
-        <div className="p-6 text-center text-gray-600 dark:text-gray-400">
-          {translations.components.playerHistory.opponentStatistics}
-        </div>
+        <OpponentsTab language={language} />
       )}
     </div>
   );
