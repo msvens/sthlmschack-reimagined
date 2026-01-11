@@ -6,21 +6,20 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { PlayerHistory } from '@/components/player/PlayerHistory';
 import { EloRatingChart, RatingDataPoint } from '@/components/player/EloRatingChart';
-import { PlayerService, getPlayerTournaments, getPlayerRatingHistory, PlayerTournamentData } from '@/lib/api';
-import { PlayerInfoDto } from '@/lib/api/types';
+import { getPlayerTournaments, getPlayerRatingHistory, PlayerTournamentData } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { addRecentPlayer } from '@/lib/recentPlayers';
+import { usePlayer } from '@/context/PlayerContext';
 
 export default function PlayerPage() {
   const params = useParams();
   const router = useRouter();
   const { language } = useLanguage();
   const t = getTranslation(language);
-  
-  const [player, setPlayer] = useState<PlayerInfoDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  // Get current player from context (fetched by layout)
+  const { currentPlayer: player, currentPlayerLoading: loading, gamesError: error } = usePlayer();
 
   // Tournament state
   const [tournaments, setTournaments] = useState<PlayerTournamentData[]>([]);
@@ -30,44 +29,8 @@ export default function PlayerPage() {
   // Rating history state
   const [ratingHistory, setRatingHistory] = useState<RatingDataPoint[]>([]);
   const [ratingHistoryLoading, setRatingHistoryLoading] = useState(false);
-  
+
   const memberId = params.memberId ? parseInt(params.memberId as string) : null;
-
-  useEffect(() => {
-    if (!memberId || isNaN(memberId)) {
-      setError('Invalid member ID');
-      setLoading(false);
-      return;
-    }
-
-    const fetchPlayer = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Use PlayerService instead of direct API call
-        const playerService = new PlayerService();
-        const response = await playerService.getPlayerInfo(memberId);
-        
-        if (response.status !== 200) {
-          throw new Error(response.error || 'Failed to fetch player data');
-        }
-        
-        if (!response.data) {
-          throw new Error('Player not found');
-        }
-        
-        setPlayer(response.data);
-      } catch (err) {
-        setError('Failed to load player information');
-        console.error('Error fetching player:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPlayer();
-  }, [memberId]);
 
   // Fetch tournaments and rating history after player data is loaded
   useEffect(() => {

@@ -204,6 +204,34 @@ export interface Translations {
         team: string;
         opponents: string;
       };
+      opponentsTab: {
+        title: string;
+        timeControl: {
+          label: string;
+          all: string;
+          standard: string;
+          rapid: string;
+          blitz: string;
+        };
+        charts: {
+          all: string;
+          white: string;
+          black: string;
+        };
+        table: {
+          white: string;
+          black: string;
+          result: string;
+          tournament: string;
+        };
+        stats: {
+          wins: string;
+          draws: string;
+          losses: string;
+        };
+        noOpponents: string;
+        ratingNote: string;
+      };
       matches: string;
       total: string;
       noMatchesFound: string;
@@ -476,6 +504,34 @@ const translations: Record<Language, Translations> = {
           team: 'Team',
           opponents: 'Opponents',
         },
+        opponentsTab: {
+          title: 'Opponents',
+          timeControl: {
+            label: 'Game Type',
+            all: 'All',
+            standard: 'Standard',
+            rapid: 'Rapid',
+            blitz: 'Blitz',
+          },
+          charts: {
+            all: 'All',
+            white: 'White',
+            black: 'Black',
+          },
+          table: {
+            white: 'White',
+            black: 'Black',
+            result: 'Result',
+            tournament: 'Tournament',
+          },
+          stats: {
+            wins: 'Wins',
+            draws: 'Draws',
+            losses: 'Losses',
+          },
+          noOpponents: 'No opponents found',
+          ratingNote: 'Latest ratings shown (may differ from game-time ratings)',
+        },
         matches: 'Matches',
         total: 'Total',
         noMatchesFound: 'No matches found',
@@ -745,6 +801,34 @@ const translations: Record<Language, Translations> = {
           individual: 'Individuell',
           team: 'Lag',
           opponents: 'Motståndare',
+        },
+        opponentsTab: {
+          title: 'Motståndare',
+          timeControl: {
+            label: 'Speltyp',
+            all: 'Alla',
+            standard: 'Normal',
+            rapid: 'Snabbschack',
+            blitz: 'Blixtschack',
+          },
+          charts: {
+            all: 'Alla',
+            white: 'Vit',
+            black: 'Svart',
+          },
+          table: {
+            white: 'Vit',
+            black: 'Svart',
+            result: 'Resultat',
+            tournament: 'Turnering',
+          },
+          stats: {
+            wins: 'Vinster',
+            draws: 'Remier',
+            losses: 'Förluster',
+          },
+          noOpponents: 'Inga motståndare funna',
+          ratingNote: 'Senaste rating visas (kan skilja sig från rating vid partitillfället)',
         },
         matches: 'Partier',
         total: 'Totalt',

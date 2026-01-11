@@ -17,7 +17,7 @@ import { MemberFIDERatingDTO } from '@/lib/api';
  * - Rapid: 10-60 minutes
  * - Standard: > 60 minutes or unspecified
  */
-function parseTimeControl(thinkingTime: string | null | undefined): 'standard' | 'rapid' | 'blitz' {
+export function parseTimeControl(thinkingTime: string | null | undefined): 'standard' | 'rapid' | 'blitz' {
   if (!thinkingTime) {
     return 'standard'; // Default to standard if no time control specified
   }
