@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import { OpponentStats } from '@/lib/api/utils/opponentStats';
 import { sortOpponentStats } from '@/lib/api/utils/opponentStats';
 

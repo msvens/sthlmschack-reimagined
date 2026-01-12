@@ -83,8 +83,17 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
   // Convert games to display format
   const displayGames = useMemo(() => {
     if (!memberId) return [];
-    return gamesToDisplayFormat(filteredGames, memberId, playerMap, tournamentMap, currentPlayerName);
-  }, [filteredGames, memberId, playerMap, tournamentMap, currentPlayerName]);
+    return gamesToDisplayFormat(
+      filteredGames,
+      memberId,
+      playerMap,
+      tournamentMap,
+      currentPlayerName,
+      playersLoading,
+      t.pages.playerDetail.opponentsTab.table.retrieving,
+      t.pages.playerDetail.opponentsTab.table.unknown
+    );
+  }, [filteredGames, memberId, playerMap, tournamentMap, currentPlayerName, playersLoading, t]);
 
   // Loading state
   if (gamesLoading) {

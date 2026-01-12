@@ -291,6 +291,9 @@ export function formatGameResult(result: number): string {
  * @param playerMap - Map of player info
  * @param tournamentMap - Map of tournament info
  * @param currentPlayerName - Current player's full name
+ * @param playersLoading - Whether player data is still loading
+ * @param retrievingText - Text to show while loading (e.g., "Retrieving" or "Hämtar")
+ * @param unknownText - Text to show for unknown players (e.g., "Unknown" or "Okänd")
  * @returns Array of games ready for display (latest-first order)
  */
 export function gamesToDisplayFormat(
@@ -298,7 +301,10 @@ export function gamesToDisplayFormat(
   playerId: number,
   playerMap: Map<number, PlayerInfoDto>,
   tournamentMap: Map<number, TournamentDto>,
-  currentPlayerName: string
+  currentPlayerName: string,
+  playersLoading: boolean = false,
+  retrievingText: string = 'Retrieving',
+  unknownText: string = 'Unknown'
 ): GameDisplay[] {
   const displayGames: GameDisplay[] = [];
 
@@ -321,13 +327,17 @@ export function gamesToDisplayFormat(
       ? currentPlayerName
       : whitePlayer
         ? `${whitePlayer.firstName} ${whitePlayer.lastName}`
-        : `Unknown (${game.whiteId})`;
+        : playersLoading
+          ? `${retrievingText} (${game.whiteId})`
+          : `${unknownText} (${game.whiteId})`;
 
     const blackName = game.blackId === playerId
       ? currentPlayerName
       : blackPlayer
         ? `${blackPlayer.firstName} ${blackPlayer.lastName}`
-        : `Unknown (${game.blackId})`;
+        : playersLoading
+          ? `${retrievingText} (${game.blackId})`
+          : `${unknownText} (${game.blackId})`;
 
     // Get tournament info
     const tournament = tournamentMap.get(game.groupiD);

@@ -223,6 +223,8 @@ export interface Translations {
           black: string;
           result: string;
           tournament: string;
+          retrieving: string;
+          unknown: string;
         };
         stats: {
           wins: string;
@@ -523,6 +525,8 @@ const translations: Record<Language, Translations> = {
             black: 'Black',
             result: 'Result',
             tournament: 'Tournament',
+            retrieving: 'Retrieving',
+            unknown: 'Unknown',
           },
           stats: {
             wins: 'Wins',
@@ -821,6 +825,8 @@ const translations: Record<Language, Translations> = {
             black: 'Svart',
             result: 'Resultat',
             tournament: 'Turnering',
+            retrieving: 'Hämtar',
+            unknown: 'Okänd',
           },
           stats: {
             wins: 'Vinster',

@@ -1,5 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
-import Link from 'next/link';
+import NextLink from 'next/link';
 
 type ButtonVariant = 'text' | 'outlined' | 'contained';
 type ButtonColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error';
@@ -75,9 +75,9 @@ export function Button({
 
   if (href) {
     return (
-      <Link href={href} className={combinedStyles}>
+      <NextLink href={href} className={combinedStyles}>
         {content}
-      </Link>
+      </NextLink>
     );
   }
 

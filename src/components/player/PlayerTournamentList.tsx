@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import { PlayerTournamentData } from '@/lib/api/utils/playerTournaments';
 
 export type TournamentListDensity = 'compact' | 'normal' | 'comfortable';
@@ -120,7 +120,47 @@ export function PlayerTournamentList({
 
   const classes = densityClasses[effectiveDensity];
 
-  const formatTournamentDate = (dateString: string) => {
+  const formatCompactDate = (dateString: string): string => {
+    try {
+      // Use ISO format but remove leading zeros: "2025-06-27" → "2025-6-27"
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      return `${year}-${month}-${day}`;
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatCompactDateRange = (start: string, end: string): string => {
+    if (start === end) {
+      return formatCompactDate(start);
+    }
+
+    try {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      const startYear = startDate.getFullYear();
+      const endYear = endDate.getFullYear();
+      const startMonth = startDate.getMonth() + 1;
+      const endMonth = endDate.getMonth() + 1;
+      const startDay = startDate.getDate();
+      const endDay = endDate.getDate();
+
+      // Same year: "6-27 - 7-6 2025"
+      if (startYear === endYear) {
+        return `${startMonth}-${startDay} - ${endMonth}-${endDay} ${endYear}`;
+      } else {
+        // Different years: "2024-12-27 - 2025-1-6"
+        return `${startYear}-${startMonth}-${startDay} - ${endYear}-${endMonth}-${endDay}`;
+      }
+    } catch {
+      return `${start} - ${end}`;
+    }
+  };
+
+  const formatFullDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString(language === 'sv' ? 'sv-SE' : 'en-US', {
@@ -133,10 +173,13 @@ export function PlayerTournamentList({
     }
   };
 
-  const formatDateRange = (start: string, end: string) => {
-    const startFormatted = formatTournamentDate(start);
-    const endFormatted = formatTournamentDate(end);
-    return start === end ? startFormatted : `${startFormatted} - ${endFormatted}`;
+  const formatFullDateRange = (start: string, end: string) => {
+    if (start === end) {
+      return formatFullDate(start);
+    }
+    const startFormatted = formatFullDate(start);
+    const endFormatted = formatFullDate(end);
+    return `${startFormatted} - ${endFormatted}`;
   };
 
   // Loading state
@@ -174,41 +217,54 @@ export function PlayerTournamentList({
 
   return (
     <div className={`${classes.fontSize}`}>
-      {tournaments.map((tournamentData, index) => (
-        <Link
-          key={`${tournamentData.tournament.id}-${tournamentData.result.groupId}`}
-          href={`/results/${tournamentData.tournament.id}/${tournamentData.result.groupId}`}
-          className={`block ${classes.padding} px-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800`}
-          style={{
-            borderBottom: index < tournaments.length - 1 ? '1px solid' : 'none',
-            borderColor: 'inherit'
-          }}
-        >
-          <div className="flex justify-between items-start">
-            <div className={`flex-1 flex flex-col ${classes.gap}`}>
-              <h3 className={`font-medium text-gray-900 dark:text-gray-200 ${classes.titleSize}`}>
-                {tournamentData.tournament.name}
-              </h3>
-              <div className={`flex flex-wrap gap-x-4 gap-y-0.5 ${classes.metaSize} text-gray-600 dark:text-gray-400`}>
-                <span>{formatDateRange(tournamentData.tournament.start, tournamentData.tournament.end)}</span>
-                {tournamentData.tournament.city && <span>{tournamentData.tournament.city}</span>}
+      {tournaments.map((tournamentData, index) => {
+        // Group info is pre-computed in PlayerTournamentData - no searching needed!
+        const { groupName, groupStartDate, groupEndDate } = tournamentData;
+
+        return (
+          <Link
+            key={`${tournamentData.tournament.id}-${tournamentData.result.groupId}`}
+            href={`/results/${tournamentData.tournament.id}/${tournamentData.result.groupId}`}
+            color="inherit"
+            underline="never"
+            className={`block ${classes.padding} px-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${
+              index < tournaments.length - 1 ? 'border-b border-gray-900 dark:border-gray-200' : ''
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <div className={`flex-1 flex flex-col ${classes.gap}`}>
+                <h3 className={`font-medium text-gray-900 dark:text-gray-200 ${classes.titleSize}`}>
+                  {tournamentData.tournament.name}
+                </h3>
+                {/* Mobile: Group name and compact date on one line */}
+                <div className={`md:hidden flex flex-wrap gap-x-2 ${classes.metaSize} text-gray-600 dark:text-gray-400`}>
+                  {groupName && <span>{groupName}</span>}
+                  {groupName && <span>•</span>}
+                  <span>{formatCompactDateRange(groupStartDate, groupEndDate)}</span>
+                </div>
+                {/* Desktop: Group name, full date, and city */}
+                <div className={`hidden md:flex flex-wrap gap-x-4 gap-y-0.5 ${classes.metaSize} text-gray-600 dark:text-gray-400`}>
+                  {groupName && <span>{groupName}</span>}
+                  <span>{formatFullDateRange(groupStartDate, groupEndDate)}</span>
+                  {tournamentData.tournament.city && <span>{tournamentData.tournament.city}</span>}
+                </div>
+              </div>
+              <div className="text-right ml-4 flex-shrink-0">
+                {tournamentData.result.place && (
+                  <div className={`${classes.fontSize} font-medium text-gray-900 dark:text-gray-200`}>
+                    {t.place}: {tournamentData.result.place}
+                  </div>
+                )}
+                {tournamentData.result.points !== undefined && (
+                  <div className={`${classes.metaSize} text-gray-600 dark:text-gray-400`}>
+                    {t.points}: {tournamentData.result.points}
+                  </div>
+                )}
               </div>
             </div>
-            <div className="text-right ml-4 flex-shrink-0">
-              {tournamentData.result.place && (
-                <div className={`${classes.fontSize} font-medium text-gray-900 dark:text-gray-200`}>
-                  {t.place}: {tournamentData.result.place}
-                </div>
-              )}
-              {tournamentData.result.points !== undefined && (
-                <div className={`${classes.metaSize} text-gray-600 dark:text-gray-400`}>
-                  {t.points}: {tournamentData.result.points}
-                </div>
-              )}
-            </div>
-          </div>
-        </Link>
-      ))}
+          </Link>
+        );
+      })}
     </div>
   );
 }

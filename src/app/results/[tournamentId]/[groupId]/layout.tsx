@@ -3,9 +3,10 @@
 import { ReactNode, useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { ResultsService, TournamentService, PlayerService, formatPlayerRating } from '@/lib/api';
-import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TournamentClassDto, TournamentClassGroupDto, TeamTournamentEndResultDto, TournamentDto, isTeamTournament } from '@/lib/api/types';
+import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TournamentClassGroupDto, TeamTournamentEndResultDto, TournamentDto, isTeamTournament } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
+import { findTournamentGroup } from '@/lib/api/utils/tournamentGroupUtils';
 
 export default function GroupResultsLayout({ children }: { children: ReactNode }) {
   const params = useParams();
@@ -57,19 +58,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
         setThinkingTime(tournamentData.thinkingTime || null);
 
         // Find the group metadata to get start/end dates
-        const findGroupInClasses = (classes: TournamentClassDto[]): TournamentClassGroupDto | null => {
-          for (const tournamentClass of classes) {
-            const group = tournamentClass.groups?.find((g: TournamentClassGroupDto) => g.id === groupId);
-            if (group) return group;
-            if (tournamentClass.subClasses) {
-              const found = findGroupInClasses(tournamentClass.subClasses);
-              if (found) return found;
-            }
-          }
-          return null;
-        };
-
-        const groupMeta = findGroupInClasses(tournamentData.rootClasses || []);
+        const groupMeta = findTournamentGroup(tournamentData, groupId);
         if (groupMeta) {
           setGroupStartDate(groupMeta.start);
           setGroupEndDate(groupMeta.end);

@@ -3,16 +3,17 @@
  */
 
 import type { TournamentEndResultDto, TournamentDto } from '../types';
+import type { PlayerTournamentData } from './playerTournaments';
 
 /**
- * Sort TournamentEndResultDto array by tournament end date (latest first)
+ * Sort PlayerTournamentData array by tournament end date (latest first)
  * Uses the tournament's end date from the nested tournament object for sorting
- * @param results - Array of tournament end results
+ * @param results - Array of player tournament data
  * @returns Sorted array with most recent tournaments first
  */
 export function sortTournamentResultsByDate(
-  results: { tournament: TournamentDto; result: TournamentEndResultDto }[]
-): { tournament: TournamentDto; result: TournamentEndResultDto }[] {
+  results: PlayerTournamentData[]
+): PlayerTournamentData[] {
   return [...results].sort((a, b) => {
     const dateA = new Date(a.tournament.end);
     const dateB = new Date(b.tournament.end);

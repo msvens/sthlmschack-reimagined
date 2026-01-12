@@ -14,6 +14,10 @@ export interface LinkProps {
   underline?: 'always' | 'hover' | 'never';
   /** Additional CSS classes */
   className?: string;
+  /** Title attribute for tooltip */
+  title?: string;
+  /** Click handler */
+  onClick?: () => void;
   /** Open in new tab */
   external?: boolean;
 }
@@ -24,6 +28,8 @@ export function Link({
   color = 'blue',
   underline = 'hover',
   className = '',
+  title,
+  onClick,
   external = false
 }: LinkProps) {
   // Color classes
@@ -47,7 +53,7 @@ export function Link({
     : {};
 
   return (
-    <NextLink href={href} className={combinedClassName} {...externalProps}>
+    <NextLink href={href} className={combinedClassName} title={title} onClick={onClick} {...externalProps}>
       {children}
     </NextLink>
   );

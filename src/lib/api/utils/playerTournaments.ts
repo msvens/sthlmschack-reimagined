@@ -7,6 +7,7 @@ import { ResultsService } from '@/lib/api';
 import { TournamentService } from '@/lib/api';
 import type { TournamentDto, TournamentEndResultDto, ApiResponse } from '../types';
 import { sortTournamentResultsByDate } from './sortingUtils';
+import { findTournamentGroup } from './tournamentGroupUtils';
 
 /**
  * Player tournament data combining tournament info with player result
@@ -16,6 +17,10 @@ export interface PlayerTournamentData {
   tournament: TournamentDto;
   /** Player's result in this tournament */
   result: TournamentEndResultDto;
+  /** Pre-computed group information for quick access */
+  groupName: string;
+  groupStartDate: string;
+  groupEndDate: string;
 }
 
 /**
@@ -68,9 +73,21 @@ export async function getPlayerTournaments(
 
     tournamentResults.forEach((result, index) => {
       if (result.data) {
+        const tournament = result.data;
+        const groupId = groupIds[index];
+
+        // Pre-compute group information for quick access
+        const group = findTournamentGroup(tournament, groupId);
+        const groupName = group?.name || '';
+        const groupStartDate = group?.start || tournament.start;
+        const groupEndDate = group?.end || tournament.end;
+
         playerTournamentData.push({
-          tournament: result.data,
-          result: memberResults[index]
+          tournament,
+          result: memberResults[index],
+          groupName,
+          groupStartDate,
+          groupEndDate,
         });
       } else {
         errors.push(`Failed to fetch tournament for group ${groupIds[index]}: ${result.error}`);

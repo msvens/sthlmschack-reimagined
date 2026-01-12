@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
+import { Link } from '@/components/Link';
 import { Table, TableColumn } from '@/components/Table';
 import { GameDisplay } from '@/lib/api/utils/opponentStats';
 
@@ -36,10 +36,7 @@ export function OpponentGamesTable({
         game.whiteId === currentPlayerId ? (
           <span className="font-medium">{game.whiteName}</span>
         ) : (
-          <Link
-            href={`/players/${game.whiteId}`}
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
+          <Link href={`/players/${game.whiteId}`}>
             {game.whiteName}
           </Link>
         )
@@ -53,10 +50,7 @@ export function OpponentGamesTable({
         game.blackId === currentPlayerId ? (
           <span className="font-medium">{game.blackName}</span>
         ) : (
-          <Link
-            href={`/players/${game.blackId}`}
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
+          <Link href={`/players/${game.blackId}`}>
             {game.blackName}
           </Link>
         )
@@ -77,12 +71,13 @@ export function OpponentGamesTable({
       accessor: (game) => (
         <Link
           href={`/results/${game.tournamentId}/${game.groupId}`}
-          className="text-blue-600 dark:text-blue-400 hover:underline"
-          title={game.tournamentName}
+          className="truncate max-w-md block"
         >
-          {game.tournamentName.length > 50
-            ? `${game.tournamentName.substring(0, 50)}...`
-            : game.tournamentName}
+          <span title={game.tournamentName}>
+            {game.tournamentName.length > 50
+              ? `${game.tournamentName.substring(0, 50)}...`
+              : game.tournamentName}
+          </span>
         </Link>
       ),
       align: 'left'
