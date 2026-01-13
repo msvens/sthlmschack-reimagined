@@ -10,7 +10,8 @@ import { TournamentDto, TournamentClassDto, TournamentClassGroupDto } from '../t
 export interface TournamentGroupResult {
   group: TournamentClassGroupDto;
   parentClass: TournamentClassDto;
-  isRootClass: boolean;
+  /** Whether the tournament has multiple classes that should be distinguished */
+  hasMultipleClasses: boolean;
 }
 
 /**
@@ -64,15 +65,20 @@ export function findTournamentGroup(tournament: TournamentDto, groupId: number):
     return null;
   }
 
-  // Check if the parent class is a root class (direct child of tournament)
-  const isRootClass = tournament.rootClasses.some(
-    rootClass => rootClass.classID === result.parentClass.classID
-  );
+  // Check if the tournament has multiple classes that need to be distinguished
+  // This happens if:
+  // 1. There are multiple root classes, OR
+  // 2. Any root class has subclasses (most common case, e.g., SM with Klass I, II, III)
+  const hasMultipleClasses =
+    tournament.rootClasses.length > 1 ||
+    tournament.rootClasses.some(rootClass =>
+      rootClass.subClasses && rootClass.subClasses.length > 0
+    )
 
   return {
     group: result.group,
     parentClass: result.parentClass,
-    isRootClass
+    hasMultipleClasses
   };
 }
 

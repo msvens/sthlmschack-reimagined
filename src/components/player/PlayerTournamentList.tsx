@@ -219,7 +219,8 @@ export function PlayerTournamentList({
     <div className={`${classes.fontSize}`}>
       {tournaments.map((tournamentData, index) => {
         // Group info is pre-computed in PlayerTournamentData - no searching needed!
-        const { groupName, groupStartDate, groupEndDate } = tournamentData;
+        const { groupName, groupStartDate, groupEndDate, className, hasMultipleClasses } = tournamentData;
+        const shouldShowClassName = hasMultipleClasses && className;
 
         return (
           <Link
@@ -236,15 +237,23 @@ export function PlayerTournamentList({
                 <h3 className={`font-medium text-gray-900 dark:text-gray-200 ${classes.titleSize}`}>
                   {tournamentData.tournament.name}
                 </h3>
-                {/* Mobile: Group name and compact date on one line */}
+                {/* Mobile: Class name (if applicable), group name, and compact date */}
                 <div className={`md:hidden flex flex-wrap gap-x-2 ${classes.metaSize} text-gray-600 dark:text-gray-400`}>
-                  {groupName && <span>{groupName}</span>}
-                  {groupName && <span>•</span>}
+                  {shouldShowClassName ? (
+                    <span>{className}, {groupName}</span>
+                  ) : (
+                    groupName && <span>{groupName}</span>
+                  )}
+                  <span>•</span>
                   <span>{formatCompactDateRange(groupStartDate, groupEndDate)}</span>
                 </div>
-                {/* Desktop: Group name, full date, and city */}
+                {/* Desktop: Class name (if applicable), group name, full date, and city */}
                 <div className={`hidden md:flex flex-wrap gap-x-4 gap-y-0.5 ${classes.metaSize} text-gray-600 dark:text-gray-400`}>
-                  {groupName && <span>{groupName}</span>}
+                  {shouldShowClassName ? (
+                    <span>{className}, {groupName}</span>
+                  ) : (
+                    groupName && <span>{groupName}</span>
+                  )}
                   <span>{formatFullDateRange(groupStartDate, groupEndDate)}</span>
                   {tournamentData.tournament.city && <span>{tournamentData.tournament.city}</span>}
                 </div>

@@ -21,6 +21,10 @@ export interface PlayerTournamentData {
   groupName: string;
   groupStartDate: string;
   groupEndDate: string;
+  /** Class name (only shown if hasMultipleClasses is true) */
+  className: string;
+  /** Whether the tournament has multiple classes that should be distinguished */
+  hasMultipleClasses: boolean;
 }
 
 /**
@@ -81,6 +85,8 @@ export async function getPlayerTournaments(
         const groupName = groupResult?.group.name || '';
         const groupStartDate = groupResult?.group.start || tournament.start;
         const groupEndDate = groupResult?.group.end || tournament.end;
+        const className = groupResult?.parentClass.className || '';
+        const hasMultipleClasses = groupResult?.hasMultipleClasses ?? false;
 
         playerTournamentData.push({
           tournament,
@@ -88,6 +94,8 @@ export async function getPlayerTournaments(
           groupName,
           groupStartDate,
           groupEndDate,
+          className,
+          hasMultipleClasses,
         });
       } else {
         errors.push(`Failed to fetch tournament for group ${groupIds[index]}: ${result.error}`);
