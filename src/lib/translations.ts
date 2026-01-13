@@ -204,6 +204,7 @@ export interface Translations {
         team: string;
         opponents: string;
       };
+      viewFullProfile: string;
       opponentsTab: {
         title: string;
         timeControl: {
@@ -506,6 +507,7 @@ const translations: Record<Language, Translations> = {
           team: 'Team',
           opponents: 'Opponents',
         },
+        viewFullProfile: 'View Full Profile',
         opponentsTab: {
           title: 'Opponents',
           timeControl: {
@@ -806,6 +808,7 @@ const translations: Record<Language, Translations> = {
           team: 'Lag',
           opponents: 'Motståndare',
         },
+        viewFullProfile: 'Visa Full Profil',
         opponentsTab: {
           title: 'Motståndare',
           timeControl: {

@@ -1,14 +1,17 @@
 'use client';
 
+// TODO: Verify rating algorithm implementation against schack.se's actual code
+// Current implementation is based on constant names and educated guesses
+// Waiting for official implementation details from schack.se
+
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { PlayerInfo } from '@/components/player/PlayerInfo';
-import { PlayerHistory } from '@/components/player/PlayerHistory';
 import { EloRatingChart, RatingDataPoint } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { PlayerService, TournamentService, getPlayerTournaments, getPlayerRatingHistory, PlayerTournamentData, formatPlayerRating, getPlayerRatingForTournament, calculateRatingChange, calculateTournamentStats } from '@/lib/api';
+import { PlayerService, TournamentService, getPlayerRatingHistory, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, calculateTournamentStats } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -30,7 +33,7 @@ export default function TournamentPlayerDetailPage() {
   const t = getTranslation(language);
 
   // Get group-level data from context
-  const { isTeamTournament, individualRoundResults, teamRoundResults, playerMap, loading: resultsLoading } = useGroupResults();
+  const { isTeamTournament, individualRoundResults, teamRoundResults, playerMap, groupName, groupStartDate, groupEndDate, rankingAlgorithm, loading: resultsLoading } = useGroupResults();
 
   const [player, setPlayer] = useState<PlayerInfoDto | null>(null); // Current player info for display
   const [tournamentPlayer, setTournamentPlayer] = useState<PlayerInfoDto | null>(null); // Historical player info for calculations
@@ -38,11 +41,6 @@ export default function TournamentPlayerDetailPage() {
   const [matches, setMatches] = useState<PlayerMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Tournament history state
-  const [tournaments, setTournaments] = useState<PlayerTournamentData[]>([]);
-  const [tournamentsLoading, setTournamentsLoading] = useState(false);
-  const [tournamentsError, setTournamentsError] = useState<string | null>(null);
 
   // Rating history state
   const [ratingHistory, setRatingHistory] = useState<RatingDataPoint[]>([]);
@@ -210,26 +208,6 @@ export default function TournamentPlayerDetailPage() {
   useEffect(() => {
     if (!player || !memberId) return;
 
-    const fetchTournaments = async () => {
-      try {
-        setTournamentsLoading(true);
-        setTournamentsError(null);
-
-        const response = await getPlayerTournaments(memberId);
-
-        if (response.status !== 200) {
-          throw new Error(response.error || 'Failed to fetch tournament data');
-        }
-
-        setTournaments(response.data || []);
-      } catch (err) {
-        setTournamentsError('Failed to load tournament history');
-        console.error('Error fetching tournaments:', err);
-      } finally {
-        setTournamentsLoading(false);
-      }
-    };
-
     const fetchRatingHistory = async () => {
       try {
         setRatingHistoryLoading(true);
@@ -246,8 +224,7 @@ export default function TournamentPlayerDetailPage() {
       }
     };
 
-    // Fetch in parallel
-    fetchTournaments();
+    // Fetch rating history
     fetchRatingHistory();
   }, [player, memberId]);
 
@@ -286,16 +263,27 @@ export default function TournamentPlayerDetailPage() {
     );
   }
 
-  // Helper function to get K-factor with fallback
-  const getKFactor = (playerData: PlayerInfoDto): number => {
-    if (playerData.elo?.k) {
-      return playerData.elo.k;
+  // Helper function for date formatting
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString(language === 'sv' ? 'sv-SE' : 'en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
     }
-    // Default K-factor based on rating (FIDE rules approximation)
-    // K=10 for 2400+, K=20 for adults <2400, K=40 for juniors/new players
-    const rating = playerData.elo?.rating || playerData.elo?.rapidRating || playerData.elo?.blitzRating;
-    if (rating && rating >= 2400) return 10;
-    return 20; // Default for most adult players
+  };
+
+  const formatDateRange = (start: string, end: string): string => {
+    if (start === end) {
+      return formatDate(start);
+    }
+    const startFormatted = formatDate(start);
+    const endFormatted = formatDate(end);
+    return `${startFormatted} - ${endFormatted}`;
   };
 
   // Define columns for player matches table
@@ -328,7 +316,8 @@ export default function TournamentPlayerDetailPage() {
       header: t.pages.tournamentResults.roundByRound.elo,
       accessor: (row) => {
         const whitePlayerElo = row.color === 'white' ? tournamentPlayer?.elo : row.opponent.elo;
-        return formatPlayerRating(whitePlayerElo, tournament.thinkingTime);
+        const { rating, ratingType } = getPlayerRatingByAlgorithm(whitePlayerElo, rankingAlgorithm);
+        return formatRatingWithType(rating, ratingType, language);
       },
       align: 'center',
       noWrap: true
@@ -354,7 +343,8 @@ export default function TournamentPlayerDetailPage() {
       header: t.pages.tournamentResults.roundByRound.elo,
       accessor: (row) => {
         const blackPlayerElo = row.color === 'black' ? tournamentPlayer?.elo : row.opponent.elo;
-        return formatPlayerRating(blackPlayerElo, tournament.thinkingTime);
+        const { rating, ratingType } = getPlayerRatingByAlgorithm(blackPlayerElo, rankingAlgorithm);
+        return formatRatingWithType(rating, ratingType, language);
       },
       align: 'center',
       noWrap: true
@@ -373,15 +363,17 @@ export default function TournamentPlayerDetailPage() {
       accessor: (row) => {
         if (!tournamentPlayer) return '-';
 
-        // Get appropriate ratings based on tournament type (historical ratings from tournament)
-        const { rating: playerRating } = getPlayerRatingForTournament(tournamentPlayer.elo, tournament.thinkingTime);
-        const { rating: opponentRating } = getPlayerRatingForTournament(row.opponent.elo, tournament.thinkingTime);
-        const kFactor = getKFactor(tournamentPlayer);
+        // Get appropriate ratings based on group's ranking algorithm
+        const { rating: playerRating, ratingType } = getPlayerRatingByAlgorithm(tournamentPlayer.elo, rankingAlgorithm);
+        const { rating: opponentRating } = getPlayerRatingByAlgorithm(row.opponent.elo, rankingAlgorithm);
 
         // Can't calculate if either player has no rating
         if (!playerRating || !opponentRating) {
           return '-';
         }
+
+        // Get K-factor based on rating type (rapid/blitz use K=40, standard uses K=20)
+        const kFactor = getKFactorForRating(ratingType, playerRating, tournamentPlayer.elo);
 
         // Calculate rating change
         const actualScore = row.result === 'win' ? 1.0 : row.result === 'draw' ? 0.5 : 0.0;
@@ -406,18 +398,8 @@ export default function TournamentPlayerDetailPage() {
           <span className="text-lg font-medium">{tournament.name}</span>
         </Link>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          {new Date(tournament.start).toLocaleDateString(language === 'sv' ? 'sv-SE' : 'en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
-          {tournament.start !== tournament.end && (
-            <> - {new Date(tournament.end).toLocaleDateString(language === 'sv' ? 'sv-SE' : 'en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}</>
-          )}
+          {groupName && <>{groupName}, </>}
+          {groupStartDate && groupEndDate && formatDateRange(groupStartDate, groupEndDate)}
         </p>
       </div>
 
@@ -441,28 +423,36 @@ export default function TournamentPlayerDetailPage() {
           />
 
           {/* Tournament Summary */}
-          {(() => {
-            // Calculate tournament statistics using historical ratings
-            if (!tournamentPlayer?.elo || matches.length === 0) {
-              return null;
-            }
+          {matches.length > 0 && (() => {
+            // Calculate actual score (sum of points)
+            const totalScore = matches.reduce((sum, match) => {
+              const score = match.result === 'win' ? 1.0 : match.result === 'draw' ? 0.5 : 0.0;
+              return sum + score;
+            }, 0);
 
-            const { rating: playerRating } = getPlayerRatingForTournament(tournamentPlayer.elo, tournament.thinkingTime);
-            if (!playerRating) {
-              return null;
-            }
+            // Try to calculate ELO statistics if player has rating
+            let eloChange: string = '-';
+            let performanceRating: string = '-';
 
-            const kFactor = getKFactor(tournamentPlayer);
+            if (tournamentPlayer?.elo) {
+              const { rating: playerRating, ratingType } = getPlayerRatingByAlgorithm(tournamentPlayer.elo, rankingAlgorithm);
 
-            const matchResults = matches.map(match => ({
-              opponentRating: getPlayerRatingForTournament(match.opponent.elo, tournament.thinkingTime).rating,
-              actualScore: match.result === 'win' ? 1.0 : match.result === 'draw' ? 0.5 : 0.0
-            }));
+              if (playerRating) {
+                // Get K-factor based on rating type (rapid/blitz use K=40, standard uses K=20)
+                const kFactor = getKFactorForRating(ratingType, playerRating, tournamentPlayer.elo);
 
-            const stats = calculateTournamentStats(matchResults, playerRating, kFactor);
+                const matchResults = matches.map(match => ({
+                  opponentRating: getPlayerRatingByAlgorithm(match.opponent.elo, rankingAlgorithm).rating,
+                  actualScore: match.result === 'win' ? 1.0 : match.result === 'draw' ? 0.5 : 0.0
+                }));
 
-            if (stats.gamesWithRatedOpponents === 0) {
-              return null;
+                const stats = calculateTournamentStats(matchResults, playerRating, kFactor);
+
+                if (stats.gamesWithRatedOpponents > 0) {
+                  eloChange = stats.totalChange > 0 ? `+${stats.totalChange}` : String(stats.totalChange);
+                  performanceRating = String(stats.performanceRating);
+                }
+              }
             }
 
             return (
@@ -473,7 +463,7 @@ export default function TournamentPlayerDetailPage() {
                       {t.pages.playerDetail.total}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                      {matches.length} {t.pages.playerDetail.of} {matches.length}
+                      {totalScore} {t.pages.playerDetail.of} {matches.length}
                     </div>
                   </div>
                   <div>
@@ -481,7 +471,7 @@ export default function TournamentPlayerDetailPage() {
                       {t.common.eloLabels.eloChange}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                      {stats.totalChange > 0 ? `+${stats.totalChange}` : stats.totalChange}
+                      {eloChange}
                     </div>
                   </div>
                   <div>
@@ -489,7 +479,7 @@ export default function TournamentPlayerDetailPage() {
                       {t.common.eloLabels.performanceRating}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                      {stats.performanceRating}
+                      {performanceRating}
                     </div>
                   </div>
                 </div>
@@ -528,24 +518,16 @@ export default function TournamentPlayerDetailPage() {
           />
         )}
       </div>
-
-      {/* Player History with Tabs */}
-      <div className="mt-8">
-        <PlayerHistory
-          tournaments={tournaments}
-          loading={tournamentsLoading}
-          error={tournamentsError || undefined}
-          t={{
-            loading: t.pages.playerDetail.tournamentHistory.loading,
-            error: t.pages.playerDetail.tournamentHistory.error,
-            noTournaments: t.pages.playerDetail.tournamentHistory.noTournaments,
-            place: t.pages.playerDetail.tournamentHistory.place,
-            points: t.pages.playerDetail.tournamentHistory.points
-          }}
-          tabLabels={t.pages.playerDetail.tabs}
-          language={language}
-        />
+      <div className="mt-4 text-center">
+        <Link
+            href={`/players/${memberId}`}
+            color="blue"
+            className="text-sm font-medium"
+        >
+          {t.pages.playerDetail.viewFullProfile}
+        </Link>
       </div>
+
     </PageLayout>
   );
 }

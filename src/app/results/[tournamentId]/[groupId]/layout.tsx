@@ -2,23 +2,27 @@
 
 import { ReactNode, useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, PlayerService, formatPlayerRating } from '@/lib/api';
+import { ResultsService, TournamentService, PlayerService, formatRatingWithType, getPlayerRatingByAlgorithm } from '@/lib/api';
 import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TournamentClassGroupDto, TeamTournamentEndResultDto, TournamentDto, isTeamTournament } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { findTournamentGroup } from '@/lib/api/utils/tournamentGroupUtils';
 
 export default function GroupResultsLayout({ children }: { children: ReactNode }) {
   const params = useParams();
   const { getClubName: getOrgClubName } = useOrganizations();
+  const { language } = useLanguage();
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
 
   // Tournament metadata
   const [tournament, setTournament] = useState<TournamentDto | null>(null);
   const [thinkingTime, setThinkingTime] = useState<string | null>(null);
+  const [groupName, setGroupName] = useState<string | null>(null);
   const [groupStartDate, setGroupStartDate] = useState<string | null>(null);
   const [groupEndDate, setGroupEndDate] = useState<string | null>(null);
+  const [rankingAlgorithm, setRankingAlgorithm] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,11 +61,13 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
         setTournament(tournamentData);
         setThinkingTime(tournamentData.thinkingTime || null);
 
-        // Find the group metadata to get start/end dates
-        const groupMeta = findTournamentGroup(tournamentData, groupId);
-        if (groupMeta) {
-          setGroupStartDate(groupMeta.start);
-          setGroupEndDate(groupMeta.end);
+        // Find the group metadata to get name, dates, and ranking algorithm
+        const groupResult = findTournamentGroup(tournamentData, groupId);
+        if (groupResult) {
+          setGroupName(groupResult.group.name);
+          setGroupStartDate(groupResult.group.start);
+          setGroupEndDate(groupResult.group.end);
+          setRankingAlgorithm(groupResult.group.rankingAlgorithm);
         }
 
         // Detect tournament type and fetch appropriate results
@@ -184,10 +190,11 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     return `${player.firstName} ${player.lastName}`;
   };
 
-  // Helper to get player ELO from ID based on tournament time control
+  // Helper to get player ELO from ID based on group's ranking algorithm
   const getPlayerElo = (playerId: number): string => {
     const player = playerMap.get(playerId);
-    return formatPlayerRating(player?.elo, thinkingTime);
+    const { rating, ratingType } = getPlayerRatingByAlgorithm(player?.elo, rankingAlgorithm);
+    return formatRatingWithType(rating, ratingType, language);
   };
 
   // Helper to get player club ID from player ID
@@ -212,8 +219,10 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     teamRoundResults,
     playerMap,
     thinkingTime,
+    groupName,
     groupStartDate,
     groupEndDate,
+    rankingAlgorithm,
     loading,
     error,
     getPlayerName,

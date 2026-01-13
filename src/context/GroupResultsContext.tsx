@@ -18,8 +18,10 @@ export interface GroupResultsContextValue {
   // Shared fields
   playerMap: Map<number, PlayerInfoDto>;
   thinkingTime: string | null;
+  groupName: string | null;
   groupStartDate: string | null;
   groupEndDate: string | null;
+  rankingAlgorithm: number | null;
   loading: boolean;
   error: string | null;
 

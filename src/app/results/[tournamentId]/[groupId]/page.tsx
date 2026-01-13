@@ -29,6 +29,7 @@ export default function GroupResultsPage() {
     teamResults,
     teamRoundResults,
     thinkingTime,
+    rankingAlgorithm,
     groupStartDate,
     groupEndDate,
     loading: resultsLoading,
@@ -196,6 +197,7 @@ export default function GroupResultsPage() {
   const selectedClass = getSelectedClass();
   const allClasses = getAllClasses();
   const hasMultipleClasses = allClasses.length > 1;
+  const hasMultipleGroups = selectedClass?.groups ? selectedClass.groups.length > 1 : false;
 
   // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
@@ -220,7 +222,7 @@ export default function GroupResultsPage() {
   };
 
   return (
-    <PageLayout fullScreen>
+    <PageLayout fullScreen maxWidth="5xl">
       {/* Tournament Header */}
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-light mb-2 text-gray-900 dark:text-gray-200">
@@ -234,28 +236,32 @@ export default function GroupResultsPage() {
 
           {/* Responsive Flex Layout */}
           <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-            {/* Class & Group Selection - Desktop: Left sidebar */}
-            <div className="hidden md:block w-56 flex-shrink-0 space-y-4">
-              {/* Class Selector - only shown if multiple classes - always dropdown */}
-              {hasMultipleClasses && (
-                <SelectableList
-                  items={getSelectableClasses()}
-                  selectedId={selectedClass?.classID || null}
-                  onSelect={handleClassSelect}
-                  title="Class"
-                  variant="dropdown"
-                />
-              )}
+            {/* Class & Group Selection - Desktop: Left sidebar - only shown if needed */}
+            {(hasMultipleClasses || hasMultipleGroups) && (
+              <div className="hidden md:block w-56 flex-shrink-0 space-y-4">
+                {/* Class Selector - only shown if multiple classes - always dropdown */}
+                {hasMultipleClasses && (
+                  <SelectableList
+                    items={getSelectableClasses()}
+                    selectedId={selectedClass?.classID || null}
+                    onSelect={handleClassSelect}
+                    title="Class"
+                    variant="dropdown"
+                  />
+                )}
 
-              {/* Group Selector - vertical list */}
-              <SelectableList
-                items={getSelectableGroups()}
-                selectedId={groupId}
-                onSelect={handleGroupSelect}
-                title={t.pages.tournamentResults.groups}
-                variant="vertical"
-              />
-            </div>
+                {/* Group Selector - only shown if multiple groups - vertical list */}
+                {hasMultipleGroups && (
+                  <SelectableList
+                    items={getSelectableGroups()}
+                    selectedId={groupId}
+                    onSelect={handleGroupSelect}
+                    title={t.pages.tournamentResults.groups}
+                    variant="vertical"
+                  />
+                )}
+              </div>
+            )}
 
             {/* Main Content Area */}
             <div className="flex-1 min-w-0 md:pr-2">
@@ -274,16 +280,18 @@ export default function GroupResultsPage() {
                   />
                 )}
 
-                {/* Group Selector */}
-                <SelectableList
-                  items={getSelectableGroups()}
-                  selectedId={groupId}
-                  onSelect={handleGroupSelect}
-                  title={t.pages.tournamentResults.groups}
-                  variant="dropdown"
-                  compact
-                  transparent
-                />
+                {/* Group Selector - only shown if multiple groups */}
+                {hasMultipleGroups && (
+                  <SelectableList
+                    items={getSelectableGroups()}
+                    selectedId={groupId}
+                    onSelect={handleGroupSelect}
+                    title={t.pages.tournamentResults.groups}
+                    variant="dropdown"
+                    compact
+                    transparent
+                  />
+                )}
               </div>
 
               {selectedGroup ? (
@@ -361,7 +369,7 @@ export default function GroupResultsPage() {
                       (groupResults.length > 0 || resultsLoading || resultsError) && (
                         <FinalResultsTable
                           results={groupResults}
-                          thinkingTime={thinkingTime}
+                          rankingAlgorithm={rankingAlgorithm}
                           loading={resultsLoading}
                           error={resultsError || undefined}
                           onRowClick={handlePlayerClick}

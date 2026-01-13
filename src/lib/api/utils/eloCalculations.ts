@@ -43,11 +43,14 @@ export function calculateRatingChange(
 /**
  * Calculate performance rating for a tournament
  *
+ * Uses the inverse ELO formula to calculate performance rating.
+ *
  * @param opponentRatings - Array of opponent ratings
  * @param score - Total score (wins + 0.5 × draws)
  * @returns Performance rating
  *
- * Formula: Performance = Average opponent rating + 400 × (score% - 0.5) / 0.08
+ * Formula: Performance = Average opponent rating + d
+ * where d = -400 × log10((1/p) - 1) and p is the score percentage
  *
  * Special cases:
  * - 100% score: Use average opponent rating + 800
@@ -72,8 +75,11 @@ export function calculatePerformanceRating(
     return Math.round(averageOpponentRating - 800);
   }
 
-  // Standard formula
-  const performanceRating = averageOpponentRating + (400 * (scorePercentage - 0.5)) / 0.08;
+  // Use inverse ELO formula: d = -400 * log10((1/p) - 1)
+  // This is derived by solving the expected score formula for rating difference
+  const ratingDifference = -400 * Math.log10((1 / scorePercentage) - 1);
+  const performanceRating = averageOpponentRating + ratingDifference;
+
   return Math.round(performanceRating);
 }
 

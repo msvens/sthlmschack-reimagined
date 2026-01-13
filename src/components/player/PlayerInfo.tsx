@@ -36,7 +36,13 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
   const [imageError, setImageError] = useState(false);
 
   const formatRating = (rating: number | null | undefined) => {
-    return rating && rating > 0 ? rating.toString() : 'N/A';
+    return rating && rating > 0 ? rating.toString() : '-';
+  };
+
+  const extractYear = (dateString: string | null | undefined): string => {
+    if (!dateString) return '-';
+    // Extract just the year (first 4 characters for YYYY format)
+    return dateString.substring(0, 4);
   };
 
   const photoUrl = `https://resultat.schack.se/getPlayerPhoto?id=${player.id}`;
@@ -64,53 +70,17 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
 
         {/* Player Information - constrained width */}
         <div className="min-w-[320px] max-w-[480px] space-y-1 text-sm">
-          {/* ELO Rating - Bold and bright */}
+          {/* SSF Id (Member ID) */}
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">{t.eloRating.title}:</span>
-            <span className="text-gray-900 dark:text-gray-200 font-bold">{formatRating(player.elo?.rating)}</span>
-          </div>
-
-          {/* LASK Rating - Always show */}
-          <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">{t.laskRating.title}:</span>
-            <span className="text-gray-900 dark:text-gray-200 font-medium">{formatRating(player.lask?.rating)}</span>
-          </div>
-
-          {/* Member ID */}
-          <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">{t.playerInfo.memberId}:</span>
+            <span className="text-gray-600 dark:text-gray-400">SSF Id:</span>
             <span className="text-gray-900 dark:text-gray-200 font-medium">{player.id}</span>
           </div>
 
-          {/* Club */}
-          {player.club && (
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">{t.playerInfo.club}:</span>
-              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.club}</span>
-            </div>
-          )}
-
-          {/* Rapid Rating */}
-          {player.elo?.rapidRating && player.elo.rapidRating > 0 && (
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">{t.eloRating.rapidRating}:</span>
-              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.elo.rapidRating}</span>
-            </div>
-          )}
-
-          {/* Blitz Rating */}
-          {player.elo?.blitzRating && player.elo.blitzRating > 0 && (
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">{t.eloRating.blitzRating}:</span>
-              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.elo.blitzRating}</span>
-            </div>
-          )}
-
-          {/* FIDE ID */}
-          {player.fideid && (
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">{t.additionalInfo.fideId}:</span>
-              <span className="text-gray-900 dark:text-gray-200 font-medium">
+          {/* FIDE Id */}
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">FIDE Id:</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">
+              {player.fideid ? (
                 <a
                   href={`https://ratings.fide.com/profile/${player.fideid}`}
                   target="_blank"
@@ -119,32 +89,52 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
                 >
                   {player.fideid}
                 </a>
-              </span>
-            </div>
-          )}
+              ) : (
+                '-'
+              )}
+            </span>
+          </div>
 
-          {/* Birth Date */}
-          {player.birthdate && (
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">{t.additionalInfo.birthDate}:</span>
-              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.birthdate}</span>
-            </div>
-          )}
+          {/* Birth Year */}
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Birth Year:</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">{extractYear(player.birthdate)}</span>
+          </div>
 
-          {/* FIDE Title */}
-          {player.elo?.title && (
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">{t.eloRating.fideTitle}:</span>
-              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.elo.title}</span>
-            </div>
-          )}
+          {/* Club */}
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">{t.playerInfo.club}:</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">{player.club || '-'}</span>
+          </div>
 
-          {/* K-Factor - Always show */}
+          {/* ELO Rating */}
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">{t.eloRating.title}:</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">{formatRating(player.elo?.rating)}</span>
+          </div>
+
+          {/* Rapid Rating */}
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">{t.eloRating.rapidRating}:</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">{formatRating(player.elo?.rapidRating)}</span>
+          </div>
+
+          {/* Blitz Rating */}
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">{t.eloRating.blitzRating}:</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">{formatRating(player.elo?.blitzRating)}</span>
+          </div>
+
+          {/* LASK Rating */}
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">{t.laskRating.title}:</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">{formatRating(player.lask?.rating)}</span>
+          </div>
+
+          {/* K-Factor */}
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">{t.eloRating.kFactor}:</span>
-            <span className="text-gray-900 dark:text-gray-200 font-medium">
-              {player.elo?.k && player.elo.k > 0 ? player.elo.k : 'N/A'}
-            </span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">{formatRating(player.elo?.k)}</span>
           </div>
         </div>
 

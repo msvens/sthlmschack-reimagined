@@ -77,10 +77,10 @@ export async function getPlayerTournaments(
         const groupId = groupIds[index];
 
         // Pre-compute group information for quick access
-        const group = findTournamentGroup(tournament, groupId);
-        const groupName = group?.name || '';
-        const groupStartDate = group?.start || tournament.start;
-        const groupEndDate = group?.end || tournament.end;
+        const groupResult = findTournamentGroup(tournament, groupId);
+        const groupName = groupResult?.group.name || '';
+        const groupStartDate = groupResult?.group.start || tournament.start;
+        const groupEndDate = groupResult?.group.end || tournament.end;
 
         playerTournamentData.push({
           tournament,

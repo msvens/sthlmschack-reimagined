@@ -5,17 +5,34 @@
 import { TournamentDto, TournamentClassDto, TournamentClassGroupDto } from '../types';
 
 /**
+ * Result of finding a group within tournament class hierarchy
+ */
+export interface TournamentGroupResult {
+  group: TournamentClassGroupDto;
+  parentClass: TournamentClassDto;
+  isRootClass: boolean;
+}
+
+/**
+ * Internal result type for recursive search
+ */
+interface GroupSearchResult {
+  group: TournamentClassGroupDto;
+  parentClass: TournamentClassDto;
+}
+
+/**
  * Recursively searches through tournament classes to find a group by ID
  * @param classes Array of tournament classes to search
  * @param groupId Group ID to find
- * @returns Group object if found, null otherwise
+ * @returns Group and its parent class if found, null otherwise
  */
-function findGroupInClasses(classes: TournamentClassDto[], groupId: number): TournamentClassGroupDto | null {
+function findGroupInClasses(classes: TournamentClassDto[], groupId: number): GroupSearchResult | null {
   for (const tournamentClass of classes) {
     // Search groups in this class
     const group = tournamentClass.groups?.find(g => g.id === groupId);
     if (group) {
-      return group;
+      return { group, parentClass: tournamentClass };
     }
 
     // Recursively search subclasses
@@ -34,14 +51,29 @@ function findGroupInClasses(classes: TournamentClassDto[], groupId: number): Tou
  * Get tournament group metadata by its ID
  * @param tournament Tournament data containing class hierarchy
  * @param groupId Group ID to find
- * @returns Group object if found, null otherwise
+ * @returns Group, parent class, and whether it's a root class, or null if not found
  */
-export function findTournamentGroup(tournament: TournamentDto, groupId: number): TournamentClassGroupDto | null {
+export function findTournamentGroup(tournament: TournamentDto, groupId: number): TournamentGroupResult | null {
   if (!tournament.rootClasses || tournament.rootClasses.length === 0) {
     return null;
   }
 
-  return findGroupInClasses(tournament.rootClasses, groupId);
+  const result = findGroupInClasses(tournament.rootClasses, groupId);
+
+  if (!result) {
+    return null;
+  }
+
+  // Check if the parent class is a root class (direct child of tournament)
+  const isRootClass = tournament.rootClasses.some(
+    rootClass => rootClass.classID === result.parentClass.classID
+  );
+
+  return {
+    group: result.group,
+    parentClass: result.parentClass,
+    isRootClass
+  };
 }
 
 /**
@@ -51,6 +83,6 @@ export function findTournamentGroup(tournament: TournamentDto, groupId: number):
  * @returns Group name if found, empty string otherwise
  */
 export function getGroupName(tournament: TournamentDto, groupId: number): string {
-  const group = findTournamentGroup(tournament, groupId);
-  return group?.name || '';
+  const result = findTournamentGroup(tournament, groupId);
+  return result?.group.name || '';
 }
