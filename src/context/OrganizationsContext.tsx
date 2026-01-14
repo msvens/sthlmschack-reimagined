@@ -9,6 +9,9 @@ interface OrganizationsContextType {
   loading: boolean;
   error: string | null;
   getClubName: (orgNumber: number) => string;
+  getClub: (clubId: number) => ClubDTO | undefined;
+  getAllClubs: (options?: { activeOnly?: boolean; hasRatingPlayersOnly?: boolean }) => ClubDTO[];
+  getClubsByDistrict: (districtId: number, options?: { activeOnly?: boolean; hasRatingPlayersOnly?: boolean }) => ClubDTO[];
   getDistrict: (districtId: number) => DistrictDTO | undefined;
   getOrganizerName: (orgType: number, orgNumber: number) => string;
   getDistrictIdForOrganizer: (orgType: number, orgNumber: number) => number | null;
@@ -108,6 +111,59 @@ export function OrganizationsProvider({ children }: { children: React.ReactNode 
     return null;
   }, [clubDistrictMap]);
 
+  // Get club by ID (instant lookup)
+  const getClub = useCallback((clubId: number): ClubDTO | undefined => {
+    return clubMap.get(clubId);
+  }, [clubMap]);
+
+  // Helper function to filter clubs based on options
+  const filterClubs = useCallback((clubs: ClubDTO[], options?: { activeOnly?: boolean; hasRatingPlayersOnly?: boolean }): ClubDTO[] => {
+    if (!options) return clubs;
+
+    return clubs.filter(club => {
+      // Filter by hasRatingPlayers
+      if (options.hasRatingPlayersOnly && club.hasRatingPlayers !== 1) {
+        return false;
+      }
+
+      // Filter by active status (check most recent district membership)
+      if (options.activeOnly) {
+        if (!club.districts || club.districts.length === 0) {
+          return false;
+        }
+
+        // Find the most recent district membership (highest year)
+        const mostRecentMembership = club.districts.reduce((latest, current) => {
+          return current.year > latest.year ? current : latest;
+        });
+
+        // Check if the most recent membership is active
+        if (mostRecentMembership.active !== 1) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, []);
+
+  // Get all clubs as an array (instant)
+  const getAllClubs = useCallback((options?: { activeOnly?: boolean; hasRatingPlayersOnly?: boolean }): ClubDTO[] => {
+    const allClubs = Array.from(clubMap.values());
+    return filterClubs(allClubs, options);
+  }, [clubMap, filterClubs]);
+
+  // Get clubs filtered by district (instant)
+  const getClubsByDistrict = useCallback((districtId: number, options?: { activeOnly?: boolean; hasRatingPlayersOnly?: boolean }): ClubDTO[] => {
+    const allClubs = Array.from(clubMap.values());
+    const clubsInDistrict = allClubs.filter(club =>
+      club.districts?.some(membership =>
+        membership.districtid === districtId && membership.active === 1
+      )
+    );
+    return filterClubs(clubsInDistrict, options);
+  }, [clubMap, filterClubs]);
+
   return (
     <OrganizationsContext.Provider
       value={{
@@ -115,6 +171,9 @@ export function OrganizationsProvider({ children }: { children: React.ReactNode 
         loading,
         error,
         getClubName,
+        getClub,
+        getAllClubs,
+        getClubsByDistrict,
         getDistrict,
         getOrganizerName,
         getDistrictIdForOrganizer,

@@ -13,6 +13,16 @@ export interface SelectableListItem {
   tooltip?: string;
 }
 
+export type ListDensity = 'compact' | 'normal' | 'comfortable';
+
+export interface DensityThresholds {
+  /** Item count threshold for comfortable density (below this) */
+  comfortable: number;
+  /** Item count threshold for normal density (below this, above comfortable) */
+  normal: number;
+  /** Above normal threshold = compact */
+}
+
 export interface SelectableListProps {
   /** Array of items to display */
   items: SelectableListItem[];
@@ -28,7 +38,17 @@ export interface SelectableListProps {
   className?: string;
   /** Display variant */
   variant?: 'vertical' | 'horizontal' | 'dropdown';
-  /** Compact mode - smaller padding and font size */
+  /**
+   * List density - controls padding and font size.
+   * If not provided, auto-density is enabled (compact on mobile, item-count based on desktop)
+   */
+  density?: ListDensity;
+  /**
+   * Thresholds for auto-density selection on desktop.
+   * Default: comfortable <= 10 items, normal <= 20 items, compact > 20 items
+   */
+  densityThresholds?: DensityThresholds;
+  /** @deprecated Use density prop instead */
   compact?: boolean;
   /** Transparent background for dropdown (default: false) */
   transparent?: boolean;
@@ -42,11 +62,89 @@ export function SelectableList({
   showTitle = true,
   className = '',
   variant = 'vertical',
+  density,
+  densityThresholds = {
+    comfortable: 10,
+    normal: 20
+  },
   compact = false,
   transparent = false
 }: SelectableListProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Track if we're on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Determine effective density
+  const getEffectiveDensity = (): ListDensity => {
+    // If density is explicitly set, use it
+    if (density) {
+      return density;
+    }
+
+    // Backward compatibility: compact prop
+    if (compact) {
+      return 'compact';
+    }
+
+    // Mobile is always compact
+    if (isMobile) {
+      return 'compact';
+    }
+
+    // Desktop: auto-density based on item count
+    const itemCount = items.length;
+    if (itemCount <= densityThresholds.comfortable) {
+      return 'comfortable';
+    } else if (itemCount <= densityThresholds.normal) {
+      return 'normal';
+    } else {
+      return 'compact';
+    }
+  };
+
+  const effectiveDensity = getEffectiveDensity();
+
+  // Map density to classes
+  const densityClasses = {
+    compact: {
+      triggerPadding: 'px-3 py-1.5',
+      itemPadding: 'px-3 py-1',
+      fontSize: 'text-xs',
+      subtitleSize: 'text-[10px]',
+      lineHeight: 'leading-tight'
+    },
+    normal: {
+      triggerPadding: 'px-3 py-2',
+      itemPadding: 'px-3 py-1.5',
+      fontSize: 'text-sm',
+      subtitleSize: 'text-xs',
+      lineHeight: 'leading-normal'
+    },
+    comfortable: {
+      triggerPadding: 'px-4 py-3',
+      itemPadding: 'px-4 py-3',
+      fontSize: 'text-sm',
+      subtitleSize: 'text-xs',
+      lineHeight: 'leading-relaxed'
+    }
+  };
+
+  const triggerPadding = densityClasses[effectiveDensity].triggerPadding;
+  const itemPadding = densityClasses[effectiveDensity].itemPadding;
+  const fontSize = densityClasses[effectiveDensity].fontSize;
+  const subtitleSize = densityClasses[effectiveDensity].subtitleSize;
+  const lineHeight = densityClasses[effectiveDensity].lineHeight;
 
   // Get selected item
   const selectedItem = items.find((item) => item.id === selectedId);
@@ -74,10 +172,6 @@ export function SelectableList({
 
   // Dropdown variant
   if (variant === 'dropdown') {
-    const triggerPadding = compact ? 'px-3 py-2' : 'px-4 py-3';
-    const itemPadding = compact ? 'px-3 py-1.5' : 'px-4 py-3';
-    const fontSize = compact ? 'text-xs' : 'text-sm';
-
     // Background classes based on transparent prop
     const triggerBg = transparent
       ? 'bg-white/90 dark:bg-dark-bg/90 hover:bg-gray-50/90 dark:hover:bg-gray-800/90'
@@ -106,7 +200,7 @@ export function SelectableList({
           {/* Trigger button - takes up normal space */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`w-full ${triggerPadding} text-left flex items-center justify-between border shadow-lg transition-colors ${triggerBg} border-gray-200 dark:border-gray-700 ${
+            className={`w-full ${triggerPadding} ${lineHeight} text-left flex items-center justify-between border shadow-lg transition-colors ${triggerBg} border-gray-200 dark:border-gray-700 ${
               isOpen
                 ? 'rounded-t-lg border-b-0'
                 : 'rounded-lg'
@@ -141,7 +235,7 @@ export function SelectableList({
                   <button
                     key={item.id}
                     onClick={() => handleItemSelect(item.id)}
-                    className={`w-full text-left ${itemPadding} transition-colors ${itemHoverBg} ${
+                    className={`w-full text-left ${itemPadding} ${lineHeight} transition-colors ${itemHoverBg} ${
                       selectedId === item.id
                         ? `${itemSelectedBg} font-medium text-gray-900 dark:text-gray-200`
                         : 'text-gray-600 dark:text-gray-400'
@@ -150,7 +244,7 @@ export function SelectableList({
                   >
                     <div className={fontSize}>{item.label}</div>
                     {item.subtitle && (
-                      <div className="text-xs opacity-70 mt-1">{item.subtitle}</div>
+                      <div className={`${subtitleSize} opacity-70 mt-0.5`}>{item.subtitle}</div>
                     )}
                   </button>
                 ))}

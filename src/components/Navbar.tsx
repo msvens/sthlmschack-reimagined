@@ -11,6 +11,7 @@ import {
   SunIcon,
   MoonIcon,
   UserIcon,
+  BuildingOffice2Icon,
 } from '@heroicons/react/24/outline';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'calendar', href: '/calendar', icon: CalendarIcon },
   { name: 'results', href: '/results', icon: TrophyIcon },
   { name: 'players', href: '/players', icon: UserIcon },
+  { name: 'organizations', href: '/organizations', icon: BuildingOffice2Icon },
 ];
 
 const languages = [

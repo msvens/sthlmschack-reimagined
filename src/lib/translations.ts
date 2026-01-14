@@ -11,6 +11,7 @@ export interface Translations {
       calendar: string;
       results: string;
       players: string;
+      organizations: string;
     };
     language: {
       english: string;
@@ -299,6 +300,58 @@ export interface Translations {
         resultsComing: string;
       };
     };
+    organizations: {
+      title: string;
+      subtitle: string;
+      districtLabel: string;
+      clubLabel: string;
+      allDistricts: string;
+      allClubs: string;
+      selectDistrict: string;
+      selectClub: string;
+      clubsCount: string;
+      street: string;
+      zipcode: string;
+      city: string;
+      email: string;
+      website: string;
+      schoolClub: string;
+      regYear: string;
+      yes: string;
+      no: string;
+      loading: string;
+      ratingList: {
+        title: string;
+        dateLabel: string;
+        ratingTypeLabel: string;
+        memberTypeLabel: string;
+        standard: string;
+        rapid: string;
+        blitz: string;
+        memberTypes: {
+          all: string;
+          women: string;
+          juniors: string;
+          cadets: string;
+          minors: string;
+          kids: string;
+          veterans: string;
+          y2cElementary: string;
+          y2cGrade5: string;
+          y2cGrade6: string;
+          y2cMiddleSchool: string;
+        };
+        tableHeaders: {
+          rank: string;
+          title: string;
+          firstName: string;
+          lastName: string;
+          rating: string;
+        };
+        loading: string;
+        noPlayers: string;
+      };
+    };
   };
 }
 
@@ -314,6 +367,7 @@ const translations: Record<Language, Translations> = {
         calendar: 'Calendar',
         results: 'Results',
         players: 'Players',
+        organizations: 'Clubs & Districts',
       },
       language: {
         english: 'English',
@@ -602,6 +656,58 @@ const translations: Record<Language, Translations> = {
           resultsComing: 'Results coming soon...',
         },
       },
+      organizations: {
+        title: 'Clubs & Districts',
+        subtitle: 'Explore chess clubs and districts in Sweden.',
+        districtLabel: 'DISTRICT',
+        clubLabel: 'CLUB',
+        allDistricts: 'All Districts',
+        allClubs: 'All Clubs',
+        selectDistrict: 'Select district...',
+        selectClub: 'Select club...',
+        clubsCount: 'Clubs',
+        street: 'Street',
+        zipcode: 'Zipcode',
+        city: 'City',
+        email: 'Email',
+        website: 'Website',
+        schoolClub: 'School Club',
+        regYear: 'Registered',
+        yes: 'Yes',
+        no: 'No',
+        loading: 'Loading...',
+        ratingList: {
+          title: 'Rating List',
+          dateLabel: 'RATING PERIOD',
+          ratingTypeLabel: 'ELO TYPE',
+          memberTypeLabel: 'MEMBER TYPE',
+          standard: 'ELO - Standard',
+          rapid: 'ELO - Rapid',
+          blitz: 'ELO - Blitz',
+          memberTypes: {
+            all: 'All',
+            women: 'Women',
+            juniors: 'Juniors',
+            cadets: 'Cadets',
+            minors: 'Minors',
+            kids: 'Kids',
+            veterans: 'Veterans',
+            y2cElementary: 'Y2C - Elementary',
+            y2cGrade5: 'Y2C - Grade 5',
+            y2cGrade6: 'Y2C - Grade 6',
+            y2cMiddleSchool: 'Y2C - Middle School',
+          },
+          tableHeaders: {
+            rank: 'NR',
+            title: 'TITLE',
+            firstName: 'FIRST NAME',
+            lastName: 'LAST NAME',
+            rating: 'ELO 1/1',
+          },
+          loading: 'Loading ratings...',
+          noPlayers: 'No players found',
+        },
+      },
     },
   },
   sv: {
@@ -615,6 +721,7 @@ const translations: Record<Language, Translations> = {
         calendar: 'Kalender',
         results: 'Resultat',
         players: 'Spelare',
+        organizations: 'Klubbar & Distrikt',
       },
       language: {
         english: 'English',
@@ -901,6 +1008,58 @@ const translations: Record<Language, Translations> = {
           noResultsAvailable: 'Inga resultat tillgängliga',
           groupCancelled: 'Denna grupp kan ha ställts in',
           resultsComing: 'Resultat kommer snart...',
+        },
+      },
+      organizations: {
+        title: 'Klubbar & Distrikt',
+        subtitle: 'Utforska schackklubbar och distrikt i Sverige.',
+        districtLabel: 'DISTRIKT',
+        clubLabel: 'KLUBB',
+        allDistricts: 'Alla distrikt',
+        allClubs: 'Alla klubbar',
+        selectDistrict: 'Välj distrikt...',
+        selectClub: 'Välj klubb...',
+        clubsCount: 'Klubbar',
+        street: 'Gata',
+        zipcode: 'Postnummer',
+        city: 'Stad',
+        email: 'E-post',
+        website: 'Webbplats',
+        schoolClub: 'Skolklubb',
+        regYear: 'Registrerad',
+        yes: 'Ja',
+        no: 'Nej',
+        loading: 'Laddar...',
+        ratingList: {
+          title: 'Rankinglista',
+          dateLabel: 'RANKINGPERIOD',
+          ratingTypeLabel: 'ELO-TYP',
+          memberTypeLabel: 'MEDLEMSTYP',
+          standard: 'ELO - Långparti',
+          rapid: 'ELO - Snabb',
+          blitz: 'ELO - Blixt',
+          memberTypes: {
+            all: 'Alla',
+            women: 'Damer',
+            juniors: 'Juniorer',
+            cadets: 'Kadetter',
+            minors: 'Miniorer',
+            kids: 'Knattar',
+            veterans: 'Veteraner',
+            y2cElementary: 'Y2C - Lågstadiet',
+            y2cGrade5: 'Y2C - Femman',
+            y2cGrade6: 'Y2C - Sexan',
+            y2cMiddleSchool: 'Y2C - Högstadiet',
+          },
+          tableHeaders: {
+            rank: 'NR',
+            title: 'TITEL',
+            firstName: 'FÖRNAMN',
+            lastName: 'EFTERNAMN',
+            rating: 'ELO 1/1',
+          },
+          loading: 'Laddar rating...',
+          noPlayers: 'Inga spelare hittades',
         },
       },
     },
