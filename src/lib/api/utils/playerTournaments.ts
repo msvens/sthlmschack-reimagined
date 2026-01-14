@@ -6,8 +6,8 @@
 import { ResultsService } from '@/lib/api';
 import { TournamentService } from '@/lib/api';
 import type { TournamentDto, TournamentEndResultDto, ApiResponse } from '../types';
-import { sortTournamentResultsByDate } from './sortingUtils';
-import { findTournamentGroup } from './tournamentGroupUtils';
+import { sortTournamentResultsByDate } from '@/lib/api';
+import { findTournamentGroup } from '@/lib/api';
 
 /**
  * Player tournament data combining tournament info with player result

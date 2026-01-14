@@ -35,7 +35,15 @@ export enum MemberCategory {
     /** Minors */
     MINORS = 6,
     /** Kids (Knattar) */
-    KIDS = 7
+    KIDS = 7,
+    /** Youth2Chess - Elementary School (Lågstadiet) */
+    Y2C_ELEMENTARY = 10,
+    /** Youth2Chess - Grade 5 (Femman) */
+    Y2C_GRADE5 = 11,
+    /** Youth2Chess - Grade 6 (Sexan) */
+    Y2C_GRADE6 = 12,
+    /** Youth2Chess - Middle School (Högstadiet) */
+    Y2C_MIDDLE_SCHOOL = 13
 }
 
 /**
@@ -56,7 +64,15 @@ export enum PlayerCategory {
     /** Minors */
     MINORS = 6,
     /** Kids (Knattar) */
-    KIDS = 7
+    KIDS = 7,
+    /** Youth2Chess - Elementary School (Lågstadiet) */
+    Y2C_ELEMENTARY = 10,
+    /** Youth2Chess - Grade 5 (Femman) */
+    Y2C_GRADE5 = 11,
+    /** Youth2Chess - Grade 6 (Sexan) */
+    Y2C_GRADE6 = 12,
+    /** Youth2Chess - Middle School (Högstadiet) */
+    Y2C_MIDDLE_SCHOOL = 13
 }
 
 /**
