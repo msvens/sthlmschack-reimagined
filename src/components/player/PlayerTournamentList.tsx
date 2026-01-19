@@ -26,8 +26,7 @@ export interface PlayerTournamentListProps {
     noTournaments?: string;
     place: string;
     points: string;
-    wdl: string;
-    pointsShort: string;
+    outcome: string;
   };
   /** Language for date formatting */
   language?: 'sv' | 'en';
@@ -250,12 +249,12 @@ export function PlayerTournamentList({
                 </div>
               </div>
               <div className="text-right ml-4 flex-shrink-0">
-                {/* W/D/L and total points */}
+                {/* Total points and outcome (W/D/L) */}
                 <div className={`${classes.fontSize} font-medium text-gray-900 dark:text-gray-200`}>
-                  {t.wdl}: {tournamentData.wins}/{tournamentData.draws}/{tournamentData.losses}
+                  {t.points}: {tournamentData.totalPoints}
                 </div>
                 <div className={`${classes.metaSize} text-gray-600 dark:text-gray-400`}>
-                  {tournamentData.totalPoints}{t.pointsShort}
+                  {t.outcome}: {tournamentData.wins}/{tournamentData.draws}/{tournamentData.losses}
                 </div>
               </div>
             </div>

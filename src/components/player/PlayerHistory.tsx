@@ -19,8 +19,7 @@ export interface PlayerHistoryProps {
     noTournaments?: string;
     place: string;
     points: string;
-    wdl: string;
-    pointsShort: string;
+    outcome: string;
   };
   /** Tab labels from translations */
   tabLabels: {
