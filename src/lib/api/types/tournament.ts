@@ -17,6 +17,15 @@ export const TournamentType = {
 } as const;
 
 /**
+ * Tournament state constants
+ */
+export const TournamentState = {
+  REGISTRATION: 1,
+  STARTED: 2,
+  FINISHED: 3,
+} as const;
+
+/**
  * Check if a tournament type is a team tournament
  * @param type Tournament type number
  * @returns true if team tournament (Allsvenskan, Svenska Cupen, Yes2Chess)

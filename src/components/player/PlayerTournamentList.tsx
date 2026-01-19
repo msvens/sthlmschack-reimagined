@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from '@/components/Link';
-import { PlayerTournamentData } from '@/lib/api/utils/playerTournaments';
+import { TournamentParticipation } from '@/context/PlayerContext';
 
 export type TournamentListDensity = 'compact' | 'normal' | 'comfortable';
 
@@ -15,12 +15,10 @@ export interface DensityThresholds {
 }
 
 export interface PlayerTournamentListProps {
-  /** Tournament data to display */
-  tournaments: PlayerTournamentData[];
+  /** Tournament participation data to display */
+  tournaments: TournamentParticipation[];
   /** Optional loading state */
   loading?: boolean;
-  /** Optional error message */
-  error?: string;
   /** Translations object */
   t: {
     loading?: string;
@@ -28,6 +26,8 @@ export interface PlayerTournamentListProps {
     noTournaments?: string;
     place: string;
     points: string;
+    wdl: string;
+    pointsShort: string;
   };
   /** Language for date formatting */
   language?: 'sv' | 'en';
@@ -41,19 +41,21 @@ export interface PlayerTournamentListProps {
    * Default: comfortable <= 10 rows, normal <= 25 rows, compact > 25 rows
    */
   densityThresholds?: DensityThresholds;
+  /** Whether this is for team tournaments (minor display variations) */
+  isTeam?: boolean;
 }
 
 export function PlayerTournamentList({
   tournaments,
   loading = false,
-  error,
   t,
   language = 'sv',
   density,
   densityThresholds = {
     comfortable: 10,
     normal: 25
-  }
+  },
+  isTeam = false
 }: PlayerTournamentListProps) {
   // Track if we're on mobile
   const [isMobile, setIsMobile] = useState(false);
@@ -193,17 +195,6 @@ export function PlayerTournamentList({
     );
   }
 
-  // Error state
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-red-600 dark:text-red-400">
-          {error}
-        </div>
-      </div>
-    );
-  }
-
   // Empty state
   if (!tournaments || tournaments.length === 0) {
     return (
@@ -218,14 +209,14 @@ export function PlayerTournamentList({
   return (
     <div className={`${classes.fontSize}`}>
       {tournaments.map((tournamentData, index) => {
-        // Group info is pre-computed in PlayerTournamentData - no searching needed!
-        const { groupName, groupStartDate, groupEndDate, className, hasMultipleClasses } = tournamentData;
+        // Group info is pre-computed in TournamentParticipation
+        const { groupId, tournament, groupName, groupStartDate, groupEndDate, className, hasMultipleClasses } = tournamentData;
         const shouldShowClassName = hasMultipleClasses && className;
 
         return (
           <Link
-            key={`${tournamentData.tournament.id}-${tournamentData.result.groupId}`}
-            href={`/results/${tournamentData.tournament.id}/${tournamentData.result.groupId}`}
+            key={`${tournament.id}-${groupId}`}
+            href={`/results/${tournament.id}/${groupId}`}
             color="inherit"
             underline="never"
             className={`block ${classes.padding} px-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${
@@ -235,7 +226,7 @@ export function PlayerTournamentList({
             <div className="flex justify-between items-start">
               <div className={`flex-1 flex flex-col ${classes.gap}`}>
                 <h3 className={`font-medium text-gray-900 dark:text-gray-200 ${classes.titleSize}`}>
-                  {tournamentData.tournament.name}
+                  {tournament.name}
                 </h3>
                 {/* Mobile: Class name (if applicable), group name, and compact date */}
                 <div className={`md:hidden flex flex-wrap gap-x-2 ${classes.metaSize} text-gray-600 dark:text-gray-400`}>
@@ -255,20 +246,17 @@ export function PlayerTournamentList({
                     groupName && <span>{groupName}</span>
                   )}
                   <span>{formatFullDateRange(groupStartDate, groupEndDate)}</span>
-                  {tournamentData.tournament.city && <span>{tournamentData.tournament.city}</span>}
+                  {tournament.city && <span>{tournament.city}</span>}
                 </div>
               </div>
               <div className="text-right ml-4 flex-shrink-0">
-                {tournamentData.result.place && (
-                  <div className={`${classes.fontSize} font-medium text-gray-900 dark:text-gray-200`}>
-                    {t.place}: {tournamentData.result.place}
-                  </div>
-                )}
-                {tournamentData.result.points !== undefined && (
-                  <div className={`${classes.metaSize} text-gray-600 dark:text-gray-400`}>
-                    {t.points}: {tournamentData.result.points}
-                  </div>
-                )}
+                {/* W/D/L and total points */}
+                <div className={`${classes.fontSize} font-medium text-gray-900 dark:text-gray-200`}>
+                  {t.wdl}: {tournamentData.wins}/{tournamentData.draws}/{tournamentData.losses}
+                </div>
+                <div className={`${classes.metaSize} text-gray-600 dark:text-gray-400`}>
+                  {tournamentData.totalPoints}{t.pointsShort}
+                </div>
               </div>
             </div>
           </Link>

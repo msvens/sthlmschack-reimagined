@@ -43,22 +43,68 @@ export interface ColorStats {
  * Calculate game result from player's perspective
  * @param game - The game data
  * @param playerId - The player ID to calculate result for
- * @returns 'win', 'draw', or 'loss' from the player's perspective
+ * @returns 'win', 'draw', 'loss', or null if result code is not recognized
+ *
+ * Result codes:
+ * - Standard system: 1 (white win), 0 (draw), -1 (black win)
+ * - 3-1 point system (e.g., Schackfyran): 3 (white win), 10 (draw), -4 (black win)
+ * - Walkovers/forfeits: 2, -2 (excluded)
  */
 export function calculatePlayerResult(
   game: GameDto,
   playerId: number
-): 'win' | 'draw' | 'loss' {
+): 'win' | 'draw' | 'loss' | null {
   const isWhite = game.whiteId === playerId;
+  const result = game.result;
 
-  // game.result is from white's perspective: 1=white win, 0=draw, -1=black win
-  if (game.result === 0) return 'draw';
+  // Draw results
+  if (result === 0 || result === 10) return 'draw';
 
-  if (isWhite) {
-    return game.result === 1 ? 'win' : 'loss';  // 1=win, -1=loss
-  } else {
-    return game.result === -1 ? 'win' : 'loss';  // -1=win, 1=loss
+  // White win results
+  if (result === 1 || result === 3) {
+    return isWhite ? 'win' : 'loss';
   }
+
+  // Black win results
+  if (result === -1 || result === -4) {
+    return isWhite ? 'loss' : 'win';
+  }
+
+  // Unrecognized result code (walkovers, forfeits, etc.)
+  return null;
+}
+
+/**
+ * Calculate points earned by a player for a single game
+ * Uses the appropriate point system based on the result code
+ *
+ * @param game - The game data
+ * @param playerId - The player ID to calculate points for
+ * @returns Points earned, or null if result code is not recognized
+ *
+ * Point systems:
+ * - Standard (result codes 1, 0, -1): Win=1, Draw=0.5, Loss=0
+ * - 3-1 system (result codes 3, 10, -4): Win=3, Draw=2, Loss=1
+ */
+export function calculatePlayerPoints(
+  game: GameDto,
+  playerId: number
+): number | null {
+  const isWhite = game.whiteId === playerId;
+  const result = game.result;
+
+  // Standard system (1 / 0.5 / 0)
+  if (result === 0) return 0.5;  // draw
+  if (result === 1) return isWhite ? 1 : 0;  // white win
+  if (result === -1) return isWhite ? 0 : 1;  // black win
+
+  // 3-1 point system (3 / 2 / 1)
+  if (result === 10) return 2;  // draw
+  if (result === 3) return isWhite ? 3 : 1;  // white win
+  if (result === -4) return isWhite ? 1 : 3;  // black win
+
+  // Unrecognized result code (walkovers, forfeits, etc.)
+  return null;
 }
 
 /**
@@ -87,22 +133,11 @@ export function filterGamesByTimeControl(
 /**
  * Calculate statistics split by color (all, white, black)
  *
- * Note: Only counts games with standard results (-1, 0, 1).
- * Other result codes found in data but excluded:
- *  - 2: W.O. win (walkover win for white)
- *  - -2: W.O. loss (walkover loss for white)
- *  - 3: Possibly not played/cancelled
- *  - -4: Possibly forfeit loss
- *  - 10: Unknown status
+ * Counts games with recognized result codes:
+ *  - Standard: 1 (white win), 0 (draw), -1 (black win)
+ *  - 3-1 point system: 3 (white win), 10 (draw), -4 (black win)
  *
- * These special cases are excluded from statistics as they don't represent
- * actual played head-to-head matches.
- *
- * TODO: Verify exact meaning of non-standard result codes with schack.se:
- *  - Confirm if result codes 2/-2/3/-4/10 should always be excluded
- *  - Check if there's official documentation for these codes
- *  - Consider if any should be included in stats (e.g., 2/-2 as W.O. wins/losses)
- *  - Stats now match old UI after filtering (minor rounding differences may remain)
+ * Excludes walkovers/forfeits (2, -2) and other unrecognized codes.
  *
  * @param games - Array of games
  * @param playerId - The player ID
@@ -121,13 +156,11 @@ export function calculateStatsByColor(
   const black: ColorStats = { wins: 0, draws: 0, losses: 0 };
 
   games.forEach(game => {
-    // Only process games with standard results (actual played games)
-    // Skip W.O., forfeits, cancelled games, etc.
-    if (game.result !== -1 && game.result !== 0 && game.result !== 1) {
-      return; // Skip non-standard results
-    }
-
     const result = calculatePlayerResult(game, playerId);
+
+    // Skip unrecognized results (walkovers, forfeits, etc.)
+    if (result === null) return;
+
     const isWhite = game.whiteId === playerId;
 
     // Update all stats
@@ -178,6 +211,10 @@ export function aggregateOpponentStats(
     if (opponentId === -1) return;  // Skip W.O games
 
     const result = calculatePlayerResult(game, playerId);
+
+    // Skip unrecognized results (walkovers, forfeits, etc.)
+    if (result === null) return;
+
     const record = opponentRecords.get(opponentId) || {
       wins: 0,
       draws: 0,
