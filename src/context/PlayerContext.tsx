@@ -3,6 +3,27 @@
 import { createContext, useContext } from 'react';
 import { GameDto, PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 
+/**
+ * Tournament participation derived from games
+ * Contains all data needed to display tournament in Individual/Team tabs
+ */
+export interface TournamentParticipation {
+  groupId: number;
+  tournament: TournamentDto;
+  gameCount: number;
+  groupName: string;
+  groupStartDate: string;
+  groupEndDate: string;
+  className: string;
+  hasMultipleClasses: boolean;
+  isTeam: boolean;  // Derived from isTeamTournament(tournament.type)
+  // Player's results in this tournament (individual games, even in team tournaments)
+  wins: number;
+  draws: number;
+  losses: number;
+  totalPoints: number;  // Sum of points using the tournament's point system
+}
+
 export interface PlayerContextValue {
   // Current player (fetched first, available immediately for page header)
   currentPlayer: PlayerInfoDto | null;
@@ -18,6 +39,9 @@ export interface PlayerContextValue {
   playersLoading: boolean;
   tournamentMap: Map<number, TournamentDto>;
   tournamentsLoading: boolean;
+
+  // Tournament participation derived from games (unified list)
+  tournaments: TournamentParticipation[];
 
   // Helper functions
   getPlayerName: (playerId: number) => string;

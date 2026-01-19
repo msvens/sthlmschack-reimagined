@@ -4,8 +4,10 @@ import { ReactNode, useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { ResultsService, PlayerService, TournamentService, formatPlayerRating } from '@/lib/api';
 import { GameDto, PlayerInfoDto, TournamentDto } from '@/lib/api/types';
-import { PlayerProvider, PlayerContextValue } from '@/context/PlayerContext';
+import { PlayerProvider, PlayerContextValue, TournamentParticipation } from '@/context/PlayerContext';
 import { parseTimeControl } from '@/lib/api/utils/ratingUtils';
+import { isTeamTournament, findTournamentGroup } from '@/lib/api';
+import { calculatePlayerResult, calculatePlayerPoints } from '@/lib/api/utils/opponentStats';
 
 export default function PlayerLayout({ children }: { children: ReactNode }) {
   const params = useParams();
@@ -25,6 +27,9 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
   const [playersLoading, setPlayersLoading] = useState(true);
   const [tournamentMap, setTournamentMap] = useState<Map<number, TournamentDto>>(new Map());
   const [tournamentsLoading, setTournamentsLoading] = useState(true);
+
+  // Tournament participation derived from games
+  const [tournaments, setTournaments] = useState<TournamentParticipation[]>([]);
 
   // Fetch game data and batch metadata
   useEffect(() => {
@@ -96,9 +101,80 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
         });
 
         setTournamentMap(newTournamentMap);
+
+        // Step 4: Build TournamentParticipation[] from games
+        // Group games by groupId and calculate stats per group
+        interface GroupStats {
+          gameCount: number;
+          wins: number;
+          draws: number;
+          losses: number;
+          totalPoints: number;
+        }
+        const statsByGroup = new Map<number, GroupStats>();
+
+        gameData.forEach(game => {
+          const stats = statsByGroup.get(game.groupiD) || { gameCount: 0, wins: 0, draws: 0, losses: 0, totalPoints: 0 };
+          stats.gameCount++;
+
+          // Calculate result (handles standard and 3-1 point systems)
+          const result = calculatePlayerResult(game, memberId);
+          if (result === 'win') stats.wins++;
+          else if (result === 'draw') stats.draws++;
+          else if (result === 'loss') stats.losses++;
+          // null results (walkovers, forfeits) are not counted in W/D/L
+
+          // Calculate points using the tournament's point system
+          const points = calculatePlayerPoints(game, memberId);
+          if (points !== null) stats.totalPoints += points;
+
+          statsByGroup.set(game.groupiD, stats);
+        });
+
+        // Build tournament participation list
+        const participations: TournamentParticipation[] = [];
+        for (const groupId of groupIds) {
+          const tournament = newTournamentMap.get(groupId);
+          if (!tournament) continue;
+
+          // Get group metadata
+          const groupResult = findTournamentGroup(tournament, groupId);
+          const groupName = groupResult?.group.name || '';
+          const groupStartDate = groupResult?.group.start || tournament.start;
+          const groupEndDate = groupResult?.group.end || tournament.end;
+          const className = groupResult?.parentClass.className || '';
+          const hasMultipleClasses = groupResult?.hasMultipleClasses ?? false;
+
+          const stats = statsByGroup.get(groupId) || { gameCount: 0, wins: 0, draws: 0, losses: 0, totalPoints: 0 };
+
+          participations.push({
+            groupId,
+            tournament,
+            gameCount: stats.gameCount,
+            groupName,
+            groupStartDate,
+            groupEndDate,
+            className,
+            hasMultipleClasses,
+            isTeam: isTeamTournament(tournament.type),
+            wins: stats.wins,
+            draws: stats.draws,
+            losses: stats.losses,
+            totalPoints: stats.totalPoints,
+          });
+        }
+
+        // Sort by date (latest first)
+        participations.sort((a, b) => {
+          const dateA = new Date(a.groupEndDate);
+          const dateB = new Date(b.groupEndDate);
+          return dateB.getTime() - dateA.getTime();
+        });
+
+        setTournaments(participations);
         setTournamentsLoading(false); // Tournaments ready
 
-        // Step 4: Fetch opponent player info SECOND (only needed for Opponents tab)
+        // Step 5: Fetch opponent player info LAST (only needed for Opponents tab)
         // Note: Current player already fetched in Step 0
         const playerInfoResults = await playerService.getPlayerInfoBatch(Array.from(opponentIds));
 
@@ -169,6 +245,7 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
     playersLoading,
     tournamentMap,
     tournamentsLoading,
+    tournaments,
     getPlayerName,
     getPlayerRating,
     getTournamentName,

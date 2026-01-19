@@ -199,6 +199,8 @@ export interface Translations {
         noTournaments: string;
         place: string;
         points: string;
+        wdl: string;
+        pointsShort: string;
       };
       tabs: {
         individual: string;
@@ -555,6 +557,8 @@ const translations: Record<Language, Translations> = {
           noTournaments: 'No tournament history found.',
           place: 'Place',
           points: 'Points',
+          wdl: 'W/D/L',
+          pointsShort: 'p',
         },
         tabs: {
           individual: 'Individual',
@@ -909,6 +913,8 @@ const translations: Record<Language, Translations> = {
           noTournaments: 'Ingen turneringshistorik hittades.',
           place: 'Placering',
           points: 'Poäng',
+          wdl: 'V/R/F',
+          pointsShort: 'p',
         },
         tabs: {
           individual: 'Individuell',

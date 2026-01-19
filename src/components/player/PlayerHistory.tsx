@@ -1,20 +1,17 @@
 'use client';
 
-import React, { useState, ReactNode } from 'react';
+import React, { useState, ReactNode, useMemo } from 'react';
 import { PlayerTournamentList } from './PlayerTournamentList';
 import { OpponentsTab } from './OpponentsTab';
-import { PlayerTournamentData } from '@/lib/api/utils/playerTournaments';
-import { getTranslation } from '@/lib/translations';
+import { TournamentParticipation } from '@/context/PlayerContext';
 
 export type PlayerTabType = 'individual' | 'team' | 'opponents';
 
 export interface PlayerHistoryProps {
-  /** Individual tournament data */
-  tournaments: PlayerTournamentData[];
+  /** Tournament participation data (unified list, will be filtered by isTeam) */
+  tournaments: TournamentParticipation[];
   /** Optional loading state for tournaments */
   loading?: boolean;
-  /** Optional error message */
-  error?: string;
   /** Translations for tournament list */
   t: {
     loading?: string;
@@ -22,6 +19,8 @@ export interface PlayerHistoryProps {
     noTournaments?: string;
     place: string;
     points: string;
+    wdl: string;
+    pointsShort: string;
   };
   /** Tab labels from translations */
   tabLabels: {
@@ -38,14 +37,22 @@ export interface PlayerHistoryProps {
 export function PlayerHistory({
   tournaments,
   loading = false,
-  error,
   t,
   tabLabels,
   language = 'sv',
   prependToIndividual
 }: PlayerHistoryProps) {
   const [selectedTab, setSelectedTab] = useState<PlayerTabType>('individual');
-  const translations = getTranslation(language);
+
+  // Filter tournaments by type
+  const individualTournaments = useMemo(
+    () => tournaments.filter(t => !t.isTeam),
+    [tournaments]
+  );
+  const teamTournaments = useMemo(
+    () => tournaments.filter(t => t.isTeam),
+    [tournaments]
+  );
 
   return (
     <div>
@@ -88,19 +95,24 @@ export function PlayerHistory({
         <div>
           {prependToIndividual && <div className="mb-6">{prependToIndividual}</div>}
           <PlayerTournamentList
-            tournaments={tournaments}
+            tournaments={individualTournaments}
             loading={loading}
-            error={error}
             t={t}
             language={language}
+            density="compact"
           />
         </div>
       )}
 
       {selectedTab === 'team' && (
-        <div className="p-6 text-center text-gray-600 dark:text-gray-400">
-          {translations.components.playerHistory.teamTournamentHistory}
-        </div>
+        <PlayerTournamentList
+          tournaments={teamTournaments}
+          loading={loading}
+          t={t}
+          language={language}
+          density="compact"
+          isTeam
+        />
       )}
 
       {selectedTab === 'opponents' && (

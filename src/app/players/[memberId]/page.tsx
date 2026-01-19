@@ -6,7 +6,7 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { PlayerHistory } from '@/components/player/PlayerHistory';
 import { EloRatingChart, RatingDataPoint } from '@/components/player/EloRatingChart';
-import { getPlayerTournaments, getPlayerRatingHistory, PlayerTournamentData } from '@/lib/api';
+import { getPlayerRatingHistory } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { addRecentPlayer } from '@/lib/recentPlayers';
@@ -18,13 +18,14 @@ export default function PlayerPage() {
   const { language } = useLanguage();
   const t = getTranslation(language);
 
-  // Get current player from context (fetched by layout)
-  const { currentPlayer: player, currentPlayerLoading: loading, gamesError: error } = usePlayer();
-
-  // Tournament state
-  const [tournaments, setTournaments] = useState<PlayerTournamentData[]>([]);
-  const [tournamentsLoading, setTournamentsLoading] = useState(false);
-  const [tournamentsError, setTournamentsError] = useState<string | null>(null);
+  // Get current player and tournaments from context (fetched by layout)
+  const {
+    currentPlayer: player,
+    currentPlayerLoading: loading,
+    gamesError: error,
+    tournaments,
+    tournamentsLoading,
+  } = usePlayer();
 
   // Rating history state
   const [ratingHistory, setRatingHistory] = useState<RatingDataPoint[]>([]);
@@ -32,29 +33,9 @@ export default function PlayerPage() {
 
   const memberId = params.memberId ? parseInt(params.memberId as string) : null;
 
-  // Fetch tournaments and rating history after player data is loaded
+  // Fetch rating history after player data is loaded
   useEffect(() => {
     if (!player || !memberId) return;
-
-    const fetchTournaments = async () => {
-      try {
-        setTournamentsLoading(true);
-        setTournamentsError(null);
-
-        const response = await getPlayerTournaments(memberId);
-
-        if (response.status !== 200) {
-          throw new Error(response.error || 'Failed to fetch tournament data');
-        }
-
-        setTournaments(response.data || []);
-      } catch (err) {
-        setTournamentsError('Failed to load tournament history');
-        console.error('Error fetching tournaments:', err);
-      } finally {
-        setTournamentsLoading(false);
-      }
-    };
 
     const fetchRatingHistory = async () => {
       try {
@@ -72,8 +53,6 @@ export default function PlayerPage() {
       }
     };
 
-    // Fetch in parallel
-    fetchTournaments();
     fetchRatingHistory();
   }, [player, memberId]);
 
@@ -173,13 +152,14 @@ export default function PlayerPage() {
         <PlayerHistory
           tournaments={tournaments}
           loading={tournamentsLoading}
-          error={tournamentsError || undefined}
           t={{
             loading: t.pages.playerDetail.tournamentHistory.loading,
             error: t.pages.playerDetail.tournamentHistory.error,
             noTournaments: t.pages.playerDetail.tournamentHistory.noTournaments,
             place: t.pages.playerDetail.tournamentHistory.place,
-            points: t.pages.playerDetail.tournamentHistory.points
+            points: t.pages.playerDetail.tournamentHistory.points,
+            wdl: t.pages.playerDetail.tournamentHistory.wdl,
+            pointsShort: t.pages.playerDetail.tournamentHistory.pointsShort
           }}
           tabLabels={t.pages.playerDetail.tabs}
           language={language}
