@@ -4,9 +4,19 @@
 
 /**
  * Check if a player ID represents a walkover (missing player)
+ * Negative IDs indicate walkovers: -1 is standard, but other negative values
+ * like -200 are also used in some tournaments
  */
 export function isWalkoverPlayer(playerId: number): boolean {
-  return playerId === -1;
+  return playerId < 0;
+}
+
+/**
+ * Check if a club/organization ID represents a walkover (missing team)
+ * Negative IDs like -100 indicate walkovers
+ */
+export function isWalkoverClub(clubId: number): boolean {
+  return clubId < 0;
 }
 
 /**

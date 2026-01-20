@@ -27,6 +27,7 @@ export {
 } from './utils/eloCalculations';
 export {
   isWalkoverPlayer,
+  isWalkoverClub,
   isWalkoverResult,
   isWalkover,
   formatGameResult,
@@ -37,3 +38,11 @@ export {
   getGroupName,
   type TournamentGroupResult
 } from './utils/tournamentGroupUtils';
+export {
+  toRomanNumeral,
+  countTeamsByClub,
+  formatTeamName,
+  createTeamNameFormatter,
+  countTeamsFromRoundResults,
+  createRoundResultsTeamNameFormatter
+} from './utils/teamFormatting';

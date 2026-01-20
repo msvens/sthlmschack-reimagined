@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Table, TableColumn, TableDensity, DensityThresholds } from '@/components/Table';
 import { TeamTournamentEndResultDto } from '@/lib/api/types';
+import { createTeamNameFormatter } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 
@@ -41,6 +42,12 @@ export function TeamFinalResultsTable({
   const { language } = useLanguage();
   const t = getTranslation(language);
 
+  // Create team name formatter that adds Roman numerals for multi-team clubs
+  const formatTeamName = useMemo(
+    () => createTeamNameFormatter(results, getClubName),
+    [results, getClubName]
+  );
+
   const columns: TableColumn<TeamTournamentEndResultDto>[] = [
     {
       id: 'pos',
@@ -52,7 +59,7 @@ export function TeamFinalResultsTable({
     {
       id: 'team',
       header: t.pages.tournamentResults.teamFinalResultsTable.team,
-      accessor: (row) => getClubName(row.contenderId),
+      accessor: (row) => formatTeamName(row.contenderId, row.teamNumber),
       align: 'left'
     },
     {
@@ -112,7 +119,7 @@ export function TeamFinalResultsTable({
       emptyMessage={t.pages.tournamentResults.teamFinalResultsTable.noResults}
       loadingMessage={t.pages.tournamentResults.teamFinalResultsTable.loadingResults}
       onRowClick={onRowClick}
-      getRowKey={(row) => row.contenderId}
+      getRowKey={(row) => `${row.contenderId}-${row.teamNumber}`}
       density={density}
       densityThresholds={densityThresholds}
     />

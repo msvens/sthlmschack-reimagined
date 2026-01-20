@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { TournamentRoundResultDto, GameDto } from '@/lib/api/types';
-import { isWalkoverPlayer } from '@/lib/api';
+import { isWalkoverPlayer, isWalkoverClub, createRoundResultsTeamNameFormatter } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { Link } from '@/components/Link';
@@ -30,6 +30,8 @@ interface TeamMatch {
   roundNr: number;
   homeId: number;
   awayId: number;
+  homeTeamNumber: number;
+  awayTeamNumber: number;
   homeScore: number;
   awayScore: number;
   date: string;
@@ -64,7 +66,8 @@ export function TeamRoundResults({
   const [selectedRound, setSelectedRound] = useState<number | null>(null);
   const [expandedMatchIndex, setExpandedMatchIndex] = useState<number | null>(null);
 
-  // Group round results by round number and then by match (homeId, awayId)
+  // Group round results by round number and then by match (homeId, homeTeamNumber, awayId, awayTeamNumber)
+  // Team numbers are important because the same two clubs can have multiple teams playing each other
   const matchesByRound = useMemo(() => {
     const grouped: Record<number, TeamMatch[]> = {};
 
@@ -72,15 +75,19 @@ export function TeamRoundResults({
       const round = result.roundNr || 1;
       if (!grouped[round]) grouped[round] = [];
 
-      // Find existing match or create new one
-      const matchKey = `${result.homeId}-${result.awayId}`;
-      let match = grouped[round].find(m => `${m.homeId}-${m.awayId}` === matchKey);
+      // Include team numbers in match key - clubs can have multiple teams (e.g., Rockaden 1, Rockaden 2)
+      const matchKey = `${result.homeId}-${result.homeTeamNumber}-${result.awayId}-${result.awayTeamNumber}`;
+      let match = grouped[round].find(m =>
+        `${m.homeId}-${m.homeTeamNumber}-${m.awayId}-${m.awayTeamNumber}` === matchKey
+      );
 
       if (!match) {
         match = {
           roundNr: round,
           homeId: result.homeId,
           awayId: result.awayId,
+          homeTeamNumber: result.homeTeamNumber,
+          awayTeamNumber: result.awayTeamNumber,
           homeScore: 0,
           awayScore: 0,
           date: result.date,
@@ -98,6 +105,12 @@ export function TeamRoundResults({
 
     return grouped;
   }, [roundResults]);
+
+  // Create team name formatter that adds Roman numerals for multi-team clubs
+  const formatTeamDisplayName = useMemo(
+    () => createRoundResultsTeamNameFormatter(roundResults, getClubName),
+    [roundResults, getClubName]
+  );
 
   const rounds = Object.keys(matchesByRound)
     .map(Number)
@@ -313,11 +326,11 @@ export function TeamRoundResults({
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <span className="font-medium text-gray-900 dark:text-gray-200">
-                      {getClubName(match.homeId)}
+                      {isWalkoverClub(match.homeId) ? 'W.O' : formatTeamDisplayName(match.homeId, match.homeTeamNumber)}
                     </span>
                     <span className="mx-2 text-gray-500 dark:text-gray-400">-</span>
                     <span className="font-medium text-gray-900 dark:text-gray-200">
-                      {getClubName(match.awayId)}
+                      {isWalkoverClub(match.awayId) ? 'W.O' : formatTeamDisplayName(match.awayId, match.awayTeamNumber)}
                     </span>
                   </div>
                   <div className="ml-4 flex items-center gap-3">
@@ -354,9 +367,9 @@ export function TeamRoundResults({
                       // Sort by board number
                       const sortedGames = [...processedGames].sort((a, b) => a.boardNumber - b.boardNumber);
 
-                      // Get club names for headers (truncated for mobile)
-                      const homeClubName = getClubName(match.homeId);
-                      const awayClubName = getClubName(match.awayId);
+                      // Get team names for headers (use W.O for walkover clubs, include Roman numeral for multi-team clubs)
+                      const homeClubName = isWalkoverClub(match.homeId) ? 'W.O' : formatTeamDisplayName(match.homeId, match.homeTeamNumber);
+                      const awayClubName = isWalkoverClub(match.awayId) ? 'W.O' : formatTeamDisplayName(match.awayId, match.awayTeamNumber);
 
                       // Create columns for board games table
                       const boardColumns: TableColumn<DisplayGame>[] = [
@@ -372,7 +385,7 @@ export function TeamRoundResults({
                           header: homeClubName,
                           headerClassName: 'max-w-[10ch] sm:max-w-none truncate',
                           accessor: (game) => {
-                            if (game.homePlayerId === -1) {
+                            if (isWalkoverPlayer(game.homePlayerId)) {
                               return <span className="text-gray-500 dark:text-gray-400">W.O</span>;
                             }
                             return (
@@ -398,7 +411,7 @@ export function TeamRoundResults({
                           header: awayClubName,
                           headerClassName: 'max-w-[10ch] sm:max-w-none truncate',
                           accessor: (game) => {
-                            if (game.awayPlayerId === -1) {
+                            if (isWalkoverPlayer(game.awayPlayerId)) {
                               return <span className="text-gray-500 dark:text-gray-400">W.O</span>;
                             }
                             return (
