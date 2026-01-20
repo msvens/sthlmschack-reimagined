@@ -2,6 +2,13 @@
  * Utility functions for formatting tournament results
  */
 
+import {
+  isWalkoverResultCode,
+  isTouristBye,
+  isCountableResult,
+  getResultDisplayString
+} from './gameResults';
+
 /**
  * Check if a player ID represents a walkover (missing player)
  * Negative IDs indicate walkovers: -1 is standard, but other negative values
@@ -21,11 +28,12 @@ export function isWalkoverClub(clubId: number): boolean {
 
 /**
  * Check if a game result indicates a walkover
+ * Supports all point systems: DEFAULT, SCHACK4AN, POINT310
  * @param result Game result value
  * @returns true if result indicates W.O (walkover)
  */
 export function isWalkoverResult(result: number): boolean {
-  return Math.abs(result) === 2;
+  return isWalkoverResultCode(result);
 }
 
 /**
@@ -41,34 +49,33 @@ export function isWalkover(homeId: number, awayId: number, result?: number): boo
 
 /**
  * Format a game result from white's perspective
+ * Supports all point systems: DEFAULT, SCHACK4AN, POINT310
  * Used in team tournaments where games have result field
- * @param result Game result (1 = white wins, -1 = black wins, 0 = draw, 2 = white wins W.O, -2 = black wins W.O)
- * @param whiteId White player ID
- * @param blackId Black player ID
+ *
+ * @param result Game result code
+ * @param whiteId White player ID (optional, to check for W.O)
+ * @param blackId Black player ID (optional, to check for W.O)
  * @returns Formatted result string
  */
 export function formatGameResult(result: number, whiteId?: number, blackId?: number): string {
-  const hasWalkover = (whiteId !== undefined && isWalkoverPlayer(whiteId)) ||
-                      (blackId !== undefined && isWalkoverPlayer(blackId)) ||
-                      isWalkoverResult(result);
+  // Get the base display string from centralized utility
+  const displayString = getResultDisplayString(result);
 
-  if (result === 2) {
-    // White wins on W.O
-    return '1 - 0 w.o';
-  } else if (result === -2) {
-    // Black wins on W.O
-    return '0 - 1 w.o';
-  } else if (result === 1) {
-    // White wins
-    return hasWalkover ? '1 - 0 w.o' : '1 - 0';
-  } else if (result === -1) {
-    // Black wins
-    return hasWalkover ? '0 - 1 w.o' : '0 - 1';
-  } else if (result === 0) {
-    // Draw
-    return '½ - ½';
+  // If result code already indicates walkover or tourist bye, return as-is
+  if (isWalkoverResultCode(result) || isTouristBye(result)) {
+    return displayString;
   }
-  return '-';
+
+  // Check if walkover is indicated by player IDs (negative IDs)
+  const hasWalkoverPlayer = (whiteId !== undefined && isWalkoverPlayer(whiteId)) ||
+                            (blackId !== undefined && isWalkoverPlayer(blackId));
+
+  // If we detected walkover via player IDs and result is countable, append w.o
+  if (hasWalkoverPlayer && isCountableResult(result)) {
+    return `${displayString} w.o`;
+  }
+
+  return displayString;
 }
 
 /**

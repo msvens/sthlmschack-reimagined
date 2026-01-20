@@ -46,3 +46,30 @@ export {
   countTeamsFromRoundResults,
   createRoundResultsTeamNameFormatter
 } from './utils/teamFormatting';
+export {
+  // Constants
+  PointSystem,
+  ResultCode,
+  ResultDisplay,
+  PointValues,
+  // Types
+  type PointSystemType,
+  type ResultCodeType,
+  type GameOutcome,
+  type ParsedGameResult,
+  // Functions
+  getPointSystemFromResult,
+  isWhiteWin,
+  isBlackWin,
+  isDraw,
+  isWalkoverResultCode,
+  isTouristBye,
+  isCountableResult,
+  getGameOutcome,
+  calculatePoints,
+  getResultDisplayString,
+  parseGameResult,
+  getPlayerOutcome,
+  getPlayerPoints,
+  getPointSystemName
+} from './utils/gameResults';

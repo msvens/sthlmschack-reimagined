@@ -1,5 +1,12 @@
 import { GameDto, PlayerInfoDto, TournamentDto } from '../types';
 import { parseTimeControl, formatPlayerRating } from './ratingUtils';
+import {
+  getPlayerOutcome,
+  getPlayerPoints,
+  isCountableResult,
+  getResultDisplayString,
+  isWalkoverResultCode
+} from './gameResults';
 
 export interface TournamentInfo {
   groupId: number;
@@ -45,33 +52,14 @@ export interface ColorStats {
  * @param playerId - The player ID to calculate result for
  * @returns 'win', 'draw', 'loss', or null if result code is not recognized
  *
- * Result codes:
- * - Standard system: 1 (white win), 0 (draw), -1 (black win)
- * - 3-1 point system (e.g., Schackfyran): 3 (white win), 10 (draw), -4 (black win)
- * - Walkovers/forfeits: 2, -2 (excluded)
+ * Supports all point systems: DEFAULT (1/0.5/0), SCHACK4AN (3/2/1), POINT310 (3/1/0)
  */
 export function calculatePlayerResult(
   game: GameDto,
   playerId: number
 ): 'win' | 'draw' | 'loss' | null {
   const isWhite = game.whiteId === playerId;
-  const result = game.result;
-
-  // Draw results
-  if (result === 0 || result === 10) return 'draw';
-
-  // White win results
-  if (result === 1 || result === 3) {
-    return isWhite ? 'win' : 'loss';
-  }
-
-  // Black win results
-  if (result === -1 || result === -4) {
-    return isWhite ? 'loss' : 'win';
-  }
-
-  // Unrecognized result code (walkovers, forfeits, etc.)
-  return null;
+  return getPlayerOutcome(game.result, isWhite);
 }
 
 /**
@@ -82,29 +70,14 @@ export function calculatePlayerResult(
  * @param playerId - The player ID to calculate points for
  * @returns Points earned, or null if result code is not recognized
  *
- * Point systems:
- * - Standard (result codes 1, 0, -1): Win=1, Draw=0.5, Loss=0
- * - 3-1 system (result codes 3, 10, -4): Win=3, Draw=2, Loss=1
+ * Supports all point systems: DEFAULT (1/0.5/0), SCHACK4AN (3/2/1), POINT310 (3/1/0)
  */
 export function calculatePlayerPoints(
   game: GameDto,
   playerId: number
 ): number | null {
   const isWhite = game.whiteId === playerId;
-  const result = game.result;
-
-  // Standard system (1 / 0.5 / 0)
-  if (result === 0) return 0.5;  // draw
-  if (result === 1) return isWhite ? 1 : 0;  // white win
-  if (result === -1) return isWhite ? 0 : 1;  // black win
-
-  // 3-1 point system (3 / 2 / 1)
-  if (result === 10) return 2;  // draw
-  if (result === 3) return isWhite ? 3 : 1;  // white win
-  if (result === -4) return isWhite ? 1 : 3;  // black win
-
-  // Unrecognized result code (walkovers, forfeits, etc.)
-  return null;
+  return getPlayerPoints(game.result, isWhite);
 }
 
 /**
@@ -133,11 +106,8 @@ export function filterGamesByTimeControl(
 /**
  * Calculate statistics split by color (all, white, black)
  *
- * Counts games with recognized result codes:
- *  - Standard: 1 (white win), 0 (draw), -1 (black win)
- *  - 3-1 point system: 3 (white win), 10 (draw), -4 (black win)
- *
- * Excludes walkovers/forfeits (2, -2) and other unrecognized codes.
+ * Supports all point systems: DEFAULT (1/0.5/0), SCHACK4AN (3/2/1), POINT310 (3/1/0)
+ * Excludes walkovers, forfeits, and non-countable results.
  *
  * @param games - Array of games
  * @param playerId - The player ID
@@ -306,22 +276,20 @@ export function sortOpponentStats(
 }
 
 /**
- * Format game result as string (e.g., "1-0", "0.5-0.5", "0-1")
- * @param result - Game result (1=white win, 0=draw, -1=black win from white's perspective)
- * @returns Formatted result string
+ * Format game result as string
+ * Supports all point systems: DEFAULT, SCHACK4AN, POINT310
+ * @param result - Game result code
+ * @returns Formatted result string (e.g., "1 - 0", "½ - ½", "3 - 1")
  */
 export function formatGameResult(result: number): string {
-  if (result === 1) return '1-0';
-  if (result === 0) return '0.5-0.5';
-  if (result === -1) return '0-1';
-  return '-';
+  return getResultDisplayString(result);
 }
 
 /**
  * Convert filtered games to display format with player names
  *
- * Note: Only displays games with standard results (-1, 0, 1).
- * Filters out W.O., forfeits, cancelled games (result codes: 2, -2, 3, -4, 10).
+ * Displays games with countable results from all point systems.
+ * Filters out walkovers, forfeits, cancelled games, and non-countable results.
  *
  * @param games - Array of games (oldest-first from API)
  * @param playerId - Current player ID
@@ -346,11 +314,11 @@ export function gamesToDisplayFormat(
   const displayGames: GameDisplay[] = [];
 
   games.forEach(game => {
-    // Skip games with non-standard results (W.O., forfeits, cancelled, etc.)
-    if (game.result !== -1 && game.result !== 0 && game.result !== 1) return;
+    // Skip non-countable results and walkovers (show only real played games)
+    if (!isCountableResult(game.result) || isWalkoverResultCode(game.result)) return;
 
-    // Skip W.O games with missing players
-    if (game.whiteId === -1 || game.blackId === -1) return;
+    // Skip W.O games with missing players (negative IDs indicate walkover)
+    if (game.whiteId < 0 || game.blackId < 0) return;
 
     // Get player names
     const whitePlayer = game.whiteId === playerId
