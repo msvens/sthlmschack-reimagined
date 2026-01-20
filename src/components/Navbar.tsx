@@ -93,7 +93,7 @@ export default function Navbar() {
 
             {/* Mobile: Show only results + players */}
             <div className="flex md:hidden space-x-1">
-              {navigation.slice(-2).map((item) => {
+              {navigation.slice(1, 3).map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <Link
