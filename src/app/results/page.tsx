@@ -61,8 +61,29 @@ export default function ResultsPage() {
     return `${dateString}T00:00:00`;
   };
 
+  // Helper: Deduplicate tournaments by ID, keeping the one with the most recent latestUpdated
+  const deduplicateTournaments = (tournaments: TournamentDto[]): TournamentDto[] => {
+    const uniqueTournaments = new Map<number, TournamentDto>();
+
+    tournaments.forEach(tournament => {
+      const existing = uniqueTournaments.get(tournament.id);
+      if (!existing) {
+        uniqueTournaments.set(tournament.id, tournament);
+      } else {
+        // Keep the one with the most recent latestUpdated
+        const existingDate = existing.latestUpdated ? new Date(existing.latestUpdated).getTime() : 0;
+        const newDate = tournament.latestUpdated ? new Date(tournament.latestUpdated).getTime() : 0;
+        if (newDate > existingDate) {
+          uniqueTournaments.set(tournament.id, tournament);
+        }
+      }
+    });
+
+    return Array.from(uniqueTournaments.values());
+  };
+
   // Helper: Deduplicate tournament groups and create tournament objects from text search results
-  // Note: Only used for text search, which still returns GroupSearchAnswerDto[]
+  // Note: Only used for text search, which returns GroupSearchAnswerDto[]
   const deduplicateAndConvertTournaments = (groups: GroupSearchAnswerDto[]): TournamentDto[] => {
     const uniqueTournaments = new Map<number, GroupSearchAnswerDto>();
 
@@ -125,8 +146,9 @@ export default function ResultsPage() {
       );
 
       if (response.data) {
-        // Sort tournaments by latestUpdated timestamp (descending - most recent first)
-        const sortedTournaments = [...response.data].sort((a, b) => {
+        // Deduplicate and sort by latestUpdated (descending - most recent first)
+        const dedupedTournaments = deduplicateTournaments(response.data);
+        const sortedTournaments = dedupedTournaments.sort((a, b) => {
           const dateA = a.latestUpdated ? new Date(a.latestUpdated).getTime() : 0;
           const dateB = b.latestUpdated ? new Date(b.latestUpdated).getTime() : 0;
           return dateB - dateA;
@@ -170,8 +192,9 @@ export default function ResultsPage() {
       );
 
       if (response.data) {
-        // Sort tournaments by latestUpdated timestamp (descending - most recent first)
-        const sortedTournaments = [...response.data].sort((a, b) => {
+        // Deduplicate and sort by latestUpdated (descending - most recent first)
+        const dedupedTournaments = deduplicateTournaments(response.data);
+        const sortedTournaments = dedupedTournaments.sort((a, b) => {
           const dateA = a.latestUpdated ? new Date(a.latestUpdated).getTime() : 0;
           const dateB = b.latestUpdated ? new Date(b.latestUpdated).getTime() : 0;
           return dateB - dateA;
