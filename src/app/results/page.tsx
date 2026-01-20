@@ -1,15 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
 import { DistrictFilter } from "@/components/DistrictFilter";
 import { TournamentList } from "@/components/TournamentList";
+import { TournamentCategoryFilter, TournamentTypeFilter, TournamentStateFilter } from "@/components/filters";
 import { useLanguage } from "@/context/LanguageContext";
 import { getTranslation } from "@/lib/translations";
 import { TournamentService } from "@/lib/api/services/tournaments";
 import type { TournamentDto, GroupSearchAnswerDto } from "@/lib/api/types";
+import {
+  TournamentCategory,
+  countByCategory,
+  countByType,
+  countByState,
+  filterByCategory,
+  filterByType,
+  filterByState,
+} from '@/lib/utils/tournamentFilters';
 
 export default function ResultsPage() {
   const { language } = useLanguage();
@@ -28,13 +38,18 @@ export default function ResultsPage() {
 
   const defaultDates = getDefaultDateRange();
 
-  // Filter states
+  // Search states
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null);
   const [startDate, setStartDate] = useState<string>(defaultDates.start);
   const [endDate, setEndDate] = useState<string>(defaultDates.end);
   const [searchText, setSearchText] = useState<string>('');
 
-  // Data states
+  // Filter states (for client-side filtering of results)
+  const [selectedCategory, setSelectedCategory] = useState<TournamentCategory>('all');
+  const [selectedType, setSelectedType] = useState<number | null>(null);
+  const [selectedState, setSelectedState] = useState<number | null>(null);
+
+  // Data states - tournaments from API search
   const [tournaments, setTournaments] = useState<TournamentDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -200,6 +215,43 @@ export default function ResultsPage() {
     }
   };
 
+  // Client-side filtering chain: Category → Type → State
+  // Calculate category counts (based on all search results)
+  const categoryCounts = useMemo(
+    () => countByCategory(tournaments),
+    [tournaments]
+  );
+
+  // Filter by category
+  const categoryFilteredTournaments = useMemo(
+    () => filterByCategory(tournaments, selectedCategory),
+    [tournaments, selectedCategory]
+  );
+
+  // Calculate type counts (based on category-filtered data)
+  const typeCounts = useMemo(
+    () => countByType(categoryFilteredTournaments),
+    [categoryFilteredTournaments]
+  );
+
+  // Filter by type
+  const typeFilteredTournaments = useMemo(
+    () => filterByType(categoryFilteredTournaments, selectedType),
+    [categoryFilteredTournaments, selectedType]
+  );
+
+  // Calculate state counts (based on type-filtered data)
+  const stateCounts = useMemo(
+    () => countByState(typeFilteredTournaments),
+    [typeFilteredTournaments]
+  );
+
+  // Final filtered tournaments
+  const filteredTournaments = useMemo(
+    () => filterByState(typeFilteredTournaments, selectedState),
+    [typeFilteredTournaments, selectedState]
+  );
+
   return (
     <PageLayout maxWidth="4xl">
       <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-200">
@@ -209,85 +261,112 @@ export default function ResultsPage() {
         {t.pages.results.subtitle}
       </p>
 
-      {/* Compact Search Filters */}
+      {/* Search Section */}
       <div className="mb-6 space-y-3">
-        {/* Date Range Search Section */}
-        <div className="space-y-3">
-          {/* Date Range - Line 1 */}
-          <div className="grid grid-cols-2 gap-3">
+        {/* Line 1: Start date | End date | District | Search button */}
+        <div className="flex gap-3 items-end">
+          <div className="flex-1 min-w-0">
             <TextField
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               fullWidth
+              compact
             />
+          </div>
+          <div className="flex-1 min-w-0">
             <TextField
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               fullWidth
+              compact
             />
           </div>
-
-          {/* District + Search button - Line 2 */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <DistrictFilter
-                selectedDistrictId={selectedDistrictId}
-                onDistrictSelect={setSelectedDistrictId}
-                variant="dropdown"
-                language={language}
-                showLabel={false}
-              />
-            </div>
-            <Button
-              onClick={handleDateRangeSearch}
-              variant="outlined"
-              disabled={loading}
-            >
-              {t.pages.results.filters.dateRange.searchButton}
-            </Button>
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div className="border-t border-gray-200 dark:border-gray-700"></div>
-
-        {/* Text Search Section */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <TextField
-              type="text"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder={t.pages.results.filters.textSearch.placeholder}
-              fullWidth
+          <div className="flex-1 min-w-0">
+            <DistrictFilter
+              selectedDistrictId={selectedDistrictId}
+              onDistrictSelect={setSelectedDistrictId}
+              variant="dropdown"
+              language={language}
+              showLabel={false}
+              compact
+              transparent
             />
-            <Button
-              onClick={handleTextSearch}
-              variant="outlined"
-              disabled={loading}
-            >
-              {t.pages.results.filters.textSearch.searchButton}
-            </Button>
           </div>
-          {/* Beta Notice */}
-          <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-            {t.pages.results.filters.textSearch.betaNotice}
-          </p>
+          <Button
+            onClick={handleDateRangeSearch}
+            variant="outlined"
+            disabled={loading}
+            compact
+          >
+            {t.pages.results.filters.dateRange.searchButton}
+          </Button>
         </div>
+
+        {/* Line 2: Free text search */}
+        <div className="flex items-center gap-3">
+          <TextField
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder={t.pages.results.filters.textSearch.placeholder}
+            fullWidth
+            compact
+          />
+          <Button
+            onClick={handleTextSearch}
+            variant="outlined"
+            disabled={loading}
+            compact
+          >
+            {t.pages.results.filters.textSearch.searchButton}
+          </Button>
+        </div>
+      </div>
+
+      {/* Divider - separating search from filters */}
+      <div className="border-t border-gray-200 dark:border-gray-700 mb-6"></div>
+
+      {/* Filters Section: Category | Type | Status */}
+      <div className="mb-6 grid grid-cols-3 gap-4">
+        <TournamentCategoryFilter
+          selectedCategory={selectedCategory}
+          onCategorySelect={setSelectedCategory}
+          counts={categoryCounts}
+          language={language}
+          variant="dropdown"
+          transparent
+          compact
+        />
+        <TournamentTypeFilter
+          selectedType={selectedType}
+          onTypeSelect={setSelectedType}
+          counts={typeCounts}
+          language={language}
+          variant="dropdown"
+          transparent
+          compact
+        />
+        <TournamentStateFilter
+          selectedState={selectedState}
+          onStateSelect={setSelectedState}
+          counts={stateCounts}
+          language={language}
+          variant="dropdown"
+          transparent
+          compact
+        />
       </div>
 
       {/* Results */}
-      <div>
-        <TournamentList
-          tournaments={tournaments}
-          loading={loading}
-          error={error}
-          language={language}
-          showUpdatedColumn={true}
-        />
-      </div>
+      <TournamentList
+        tournaments={filteredTournaments}
+        loading={loading}
+        error={error}
+        language={language}
+        showUpdatedColumn={true}
+      />
     </PageLayout>
   );
 }

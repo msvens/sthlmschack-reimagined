@@ -13,6 +13,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   startIcon?: ReactNode;
   endIcon?: ReactNode;
   fullWidth?: boolean;
+  compact?: boolean;
 }
 
 const colorStyles = {
@@ -57,13 +58,15 @@ export function Button({
   startIcon,
   endIcon,
   fullWidth = false,
+  compact = false,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'inline-flex items-center justify-center px-4 py-2 rounded transition-colors';
+  const baseStyles = 'inline-flex items-center justify-center rounded transition-colors';
+  const sizeStyles = compact ? 'px-3 py-1.5 text-sm' : 'px-4 py-2';
   const widthStyles = fullWidth ? 'w-full' : '';
   const variantStyles = colorStyles[color][variant];
 
-  const combinedStyles = `${baseStyles} ${widthStyles} ${variantStyles} ${className}`;
+  const combinedStyles = `${baseStyles} ${sizeStyles} ${widthStyles} ${variantStyles} ${className}`;
 
   const content = (
     <>

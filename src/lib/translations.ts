@@ -94,6 +94,31 @@ export interface Translations {
       teamTournamentHistory: string;
       opponentStatistics: string;
     };
+    tournamentCategoryFilter: {
+      label: string;
+      all: string;
+      team: string;
+      individual: string;
+    };
+    tournamentTypeFilter: {
+      label: string;
+      all: string;
+      allsvenskan: string;
+      individual: string;
+      smTree: string;
+      schoolSm: string;
+      svenskaCupen: string;
+      grandPrix: string;
+      yes2chess: string;
+      schackfyran: string;
+    };
+    tournamentStateFilter: {
+      label: string;
+      all: string;
+      registration: string;
+      started: string;
+      finished: string;
+    };
   };
   pages: {
     events: {
@@ -451,6 +476,31 @@ const translations: Record<Language, Translations> = {
         teamTournamentHistory: 'Team tournament history coming soon',
         opponentStatistics: 'Opponent statistics coming soon',
       },
+      tournamentCategoryFilter: {
+        label: 'Category',
+        all: 'All',
+        team: 'Team',
+        individual: 'Individual',
+      },
+      tournamentTypeFilter: {
+        label: 'Type',
+        all: 'All',
+        allsvenskan: 'Allsvenskan',
+        individual: 'Individual',
+        smTree: 'SM-Trean',
+        schoolSm: 'Skol-SM',
+        svenskaCupen: 'Svenska Cupen',
+        grandPrix: 'Grand Prix',
+        yes2chess: 'Yes2Chess',
+        schackfyran: 'Schackfyran',
+      },
+      tournamentStateFilter: {
+        label: 'Status',
+        all: 'All',
+        registration: 'Registration',
+        started: 'In Progress',
+        finished: 'Finished',
+      },
     },
     pages: {
       events: {
@@ -805,6 +855,31 @@ const translations: Record<Language, Translations> = {
       playerHistory: {
         teamTournamentHistory: 'Lagturneringshistorik kommer snart',
         opponentStatistics: 'Motståndarstatistik kommer snart',
+      },
+      tournamentCategoryFilter: {
+        label: 'Kategori',
+        all: 'Alla',
+        team: 'Lag',
+        individual: 'Individuell',
+      },
+      tournamentTypeFilter: {
+        label: 'Typ',
+        all: 'Alla',
+        allsvenskan: 'Allsvenskan',
+        individual: 'Individuell',
+        smTree: 'SM-Trean',
+        schoolSm: 'Skol-SM',
+        svenskaCupen: 'Svenska Cupen',
+        grandPrix: 'Grand Prix',
+        yes2chess: 'Yes2Chess',
+        schackfyran: 'Schackfyran',
+      },
+      tournamentStateFilter: {
+        label: 'Status',
+        all: 'Alla',
+        registration: 'Anmälan öppen',
+        started: 'Pågående',
+        finished: 'Avslutad',
       },
     },
     pages: {

@@ -14,6 +14,7 @@ export interface TextFieldProps {
   placeholder?: string;
   type?: string;
   disabled?: boolean;
+  compact?: boolean;
 }
 
 export function TextField({
@@ -28,6 +29,7 @@ export function TextField({
   placeholder,
   type = 'text',
   disabled = false,
+  compact = false,
 }: TextFieldProps) {
   const marginClass = {
     none: '',
@@ -36,20 +38,14 @@ export function TextField({
   }[margin];
 
   const widthClass = fullWidth ? 'w-full' : '';
+  const sizeClasses = compact ? 'px-3 py-1.5 text-sm' : 'px-3 py-2';
 
-  const baseInputClasses = `
-    px-3 py-2
-    bg-transparent
-    border border-gray-300 dark:border-gray-600
-    rounded
-    text-gray-900 dark:text-gray-200
-    placeholder:text-gray-600 dark:placeholder:text-gray-400
-    focus:outline-none
-    focus:border-blue-500
-    hover:border-gray-900 dark:hover:border-white
-    ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-    ${widthClass}
-  `;
+  // Date inputs need special handling for the calendar icon in dark mode
+  const dateInputClasses = type === 'date'
+    ? 'min-w-0 dark:[&::-webkit-calendar-picker-indicator]:invert dark:[&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer'
+    : '';
+
+  const baseInputClasses = `${sizeClasses} bg-transparent border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-200 placeholder:text-gray-600 dark:placeholder:text-gray-400 focus:outline-none focus:border-blue-500 hover:border-gray-900 dark:hover:border-white ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${widthClass} ${dateInputClasses}`;
 
   return (
     <div className={`${marginClass} ${widthClass}`}>
