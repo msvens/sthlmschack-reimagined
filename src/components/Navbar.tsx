@@ -59,8 +59,8 @@ export default function Navbar() {
           {/* App Name - Left aligned (matching mphotos-ui exactly) */}
           <div className="flex items-center flex-shrink-0 pl-1">
             <Link href="/" className="text-base font-light leading-tight tracking-widest uppercase text-gray-900 dark:text-gray-200">
-              <span className="block">Stockholm</span>
-              <span className="block">Chess</span>
+              <span className="block">msvens</span>
+              <span className="block">chess</span>
             </Link>
           </div>
           

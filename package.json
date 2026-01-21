@@ -10,7 +10,10 @@
     "test:api": "tsx src/lib/api/test-runner.ts",
     "test": "jest",
     "test:watch": "jest --watch",
-    "translations:check": "tsx scripts/check-translations.ts"
+    "translations:check": "tsx scripts/check-translations.ts",
+    "generate:changelog": "tsx scripts/generate-changelog.ts",
+    "predev": "yarn generate:changelog",
+    "prebuild": "yarn generate:changelog"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

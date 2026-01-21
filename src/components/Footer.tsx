@@ -18,7 +18,7 @@ function FooterLink({ href, children, external = false }: FooterLinkProps) {
   return (
     <Link
       href={href}
-      className="uppercase mx-2 text-[10px] text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+      className="uppercase mx-2 text-xs sm:text-sm font-light text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
       {...externalProps}
     >
       {children}
@@ -32,10 +32,10 @@ export function Footer() {
 
   return (
     <footer className="w-full">
-      <div className="max-w-7xl mx-auto px-4 pt-6 pb-2 flex justify-center items-center">
+      <div className="max-w-7xl mx-auto px-4 pt-6 pb-6 flex justify-center items-center">
         <FooterLink href="/about">{t.footer.navigation.about}</FooterLink>
-        <FooterLink href="https://schack.se/" external>schack.se</FooterLink>
-        <FooterLink href="https://www.stockholmsschack.se/" external>stockholmsschack.se</FooterLink>
+        <FooterLink href="/contact">{t.footer.navigation.contact}</FooterLink>
+        <FooterLink href="/changelog">{t.footer.navigation.changelog}</FooterLink>
       </div>
     </footer>
   );
