@@ -2,10 +2,6 @@ import { Language } from '@/context/LanguageContext';
 
 export interface Translations {
   navbar: {
-    brand: {
-      line1: string;
-      line2: string;
-    };
     navigation: {
       upcomingEvents: string;
       calendar: string;
@@ -24,11 +20,9 @@ export interface Translations {
       subtitle: string;
     };
     navigation: {
-      events: string;
-      calendar: string;
-      results: string;
-      players: string;
       about: string;
+      contact: string;
+      changelog: string;
     };
     external: {
       poweredBy: string;
@@ -134,6 +128,20 @@ export interface Translations {
     };
   };
   pages: {
+    contact: {
+      title: string;
+      subtitle: string;
+      form: {
+        email: string;
+        emailPlaceholder: string;
+        message: string;
+        messagePlaceholder: string;
+        submit: string;
+        sending: string;
+        success: string;
+        error: string;
+      };
+    };
     events: {
       title: string;
       subtitle: string;
@@ -398,10 +406,6 @@ export interface Translations {
 const translations: Record<Language, Translations> = {
   en: {
     navbar: {
-      brand: {
-        line1: 'Stockholm',
-        line2: 'Chess',
-      },
       navigation: {
         upcomingEvents: 'Upcoming Events',
         calendar: 'Calendar',
@@ -416,15 +420,13 @@ const translations: Record<Language, Translations> = {
     },
     footer: {
       projectInfo: {
-        title: 'Stockholm Chess Reimagined',
-        subtitle: 'Modernizing chess tournament discovery in Stockholm',
+        title: 'msvens chess',
+        subtitle: 'Modernizing chess tournament discovery in Sweden',
       },
       navigation: {
-        events: 'Events',
-        calendar: 'Calendar',
-        results: 'Results',
-        players: 'Players',
         about: 'About',
+        contact: 'Contact',
+        changelog: 'Changelog',
       },
       external: {
         poweredBy: 'Powered by',
@@ -433,13 +435,13 @@ const translations: Record<Language, Translations> = {
     home: {
       hero: {
         title: 'Welcome to',
-        titleHighlight: 'Stockholm Chess',
-        subtitle: 'Discover upcoming tournaments, view results, and stay connected with the chess community in Stockholm.',
+        titleHighlight: 'msvens chess',
+        subtitle: 'Discover upcoming tournaments, view results, and stay connected with the chess community in Sweden.',
       },
       cards: {
         upcomingEvents: {
           title: 'Upcoming Events',
-          description: 'Find the latest tournaments and events happening in Stockholm.',
+          description: 'Find the latest tournaments and events happening in Sweden.',
           link: 'Browse Events',
         },
         calendar: {
@@ -459,9 +461,9 @@ const translations: Record<Language, Translations> = {
         },
       },
       about: {
-        title: 'About Stockholm Chess Reimagined',
-        paragraph1: 'This modern chess portal complements the existing Stockholm Schackförbund and Svenska Schackförbundet websites, focusing specifically on tournament discovery and management. We\'re building a user-friendly interface that makes it easy for chess players of all levels to find and participate in chess events across Stockholm.',
-        paragraph2: 'Whether you\'re a beginner looking for your first tournament or an experienced player tracking results, Stockholm Chess Reimagined provides the tools you need to stay connected with the local chess community.',
+        title: 'About msvens chess',
+        paragraph1: 'This modern chess portal complements the existing Svenska Schackförbundet website, focusing specifically on tournament discovery and management. We\'re building a user-friendly interface that makes it easy for chess players of all levels to find and participate in chess events across Sweden.',
+        paragraph2: 'Whether you\'re a beginner looking for your first tournament or an experienced player tracking results, msvens chess provides the tools you need to stay connected with the chess community.',
       },
     },
     common: {
@@ -530,9 +532,23 @@ const translations: Record<Language, Translations> = {
       },
     },
     pages: {
+      contact: {
+        title: 'Feedback',
+        subtitle: 'Have a suggestion or found a bug? Let us know!',
+        form: {
+          email: 'Your Email',
+          emailPlaceholder: 'name@example.com',
+          message: 'Message',
+          messagePlaceholder: 'Share your thoughts, suggestions, or report an issue...',
+          submit: 'Send Feedback',
+          sending: 'Sending...',
+          success: 'Thank you for your feedback! We\'ll get back to you if needed.',
+          error: 'Something went wrong. Please try again later.',
+        },
+      },
       events: {
         title: 'Upcoming Events',
-        subtitle: 'Discover the latest chess tournaments and events happening in Stockholm.',
+        subtitle: 'Discover the latest chess tournaments and events happening in Sweden.',
         placeholder: 'Event listings coming soon. This page will display upcoming tournaments with details, dates, and registration information.',
       },
       calendar: {
@@ -792,10 +808,6 @@ const translations: Record<Language, Translations> = {
   },
   sv: {
     navbar: {
-      brand: {
-        line1: 'Stockholm',
-        line2: 'Schack',
-      },
       navigation: {
         upcomingEvents: 'Kommande Evenemang',
         calendar: 'Kalender',
@@ -810,15 +822,13 @@ const translations: Record<Language, Translations> = {
     },
     footer: {
       projectInfo: {
-        title: 'Stockholm Schack Omskapat',
-        subtitle: 'Moderniserar schackturneringar i Stockholm',
+        title: 'msvens schack',
+        subtitle: 'Moderniserar schackturneringar i Sverige',
       },
       navigation: {
-        events: 'Evenemang',
-        calendar: 'Kalender',
-        results: 'Resultat',
-        players: 'Spelare',
         about: 'Om',
+        contact: 'Kontakt',
+        changelog: 'Ändringslogg',
       },
       external: {
         poweredBy: 'Drivs av',
@@ -827,13 +837,13 @@ const translations: Record<Language, Translations> = {
     home: {
       hero: {
         title: 'Välkommen till',
-        titleHighlight: 'Stockholm Schack',
-        subtitle: 'Upptäck kommande turneringar, se resultat och håll dig uppdaterad med schackgemenskapen i Stockholm.',
+        titleHighlight: 'msvens schack',
+        subtitle: 'Upptäck kommande turneringar, se resultat och håll dig uppdaterad med schackgemenskapen i Sverige.',
       },
       cards: {
         upcomingEvents: {
           title: 'Kommande Evenemang',
-          description: 'Hitta de senaste turneringarna och evenemangen som händer i Stockholm.',
+          description: 'Hitta de senaste turneringarna och evenemangen som händer i Sverige.',
           link: 'Bläddra Evenemang',
         },
         calendar: {
@@ -853,9 +863,9 @@ const translations: Record<Language, Translations> = {
         },
       },
       about: {
-        title: 'Om Stockholm Schack Omskapat',
-        paragraph1: 'Denna moderna schackportal kompletterar de befintliga webbplatserna för Stockholm Schackförbund och Svenska Schackförbundet, med fokus specifikt på turneringsupptäckt och hantering. Vi bygger ett användarvänligt gränssnitt som gör det enkelt för schackspelare på alla nivåer att hitta och delta i schackevenemang över hela Stockholm.',
-        paragraph2: 'Oavsett om du är en nybörjare som letar efter din första turnering eller en erfaren spelare som spårar resultat, ger Stockholm Schack Omskapat dig verktygen du behöver för att hålla dig uppdaterad med den lokala schackgemenskapen.',
+        title: 'Om msvens schack',
+        paragraph1: 'Denna moderna schackportal kompletterar Svenska Schackförbundets webbplats, med fokus specifikt på turneringsupptäckt och hantering. Vi bygger ett användarvänligt gränssnitt som gör det enkelt för schackspelare på alla nivåer att hitta och delta i schackevenemang över hela Sverige.',
+        paragraph2: 'Oavsett om du är en nybörjare som letar efter din första turnering eller en erfaren spelare som spårar resultat, ger msvens schack dig verktygen du behöver för att hålla dig uppdaterad med schackgemenskapen.',
       },
     },
     common: {
@@ -924,9 +934,23 @@ const translations: Record<Language, Translations> = {
       },
     },
     pages: {
+      contact: {
+        title: 'Feedback',
+        subtitle: 'Har du ett förslag eller hittat en bugg? Hör av dig!',
+        form: {
+          email: 'Din e-post',
+          emailPlaceholder: 'namn@example.com',
+          message: 'Meddelande',
+          messagePlaceholder: 'Dela dina tankar, förslag eller rapportera ett problem...',
+          submit: 'Skicka feedback',
+          sending: 'Skickar...',
+          success: 'Tack för din feedback! Vi återkommer om det behövs.',
+          error: 'Något gick fel. Försök igen senare.',
+        },
+      },
       events: {
         title: 'Kommande Evenemang',
-        subtitle: 'Upptäck de senaste schackturneringarna och evenemangen som händer i Stockholm.',
+        subtitle: 'Upptäck de senaste schackturneringarna och evenemangen som händer i Sverige.',
         placeholder: 'Evenemangslistor kommer snart. Denna sida kommer att visa kommande turneringar med detaljer, datum och registreringsinformation.',
       },
       calendar: {

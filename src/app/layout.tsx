@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stockholm Chess Reimagined",
-  description: "Modern chess tournament portal for Stockholm, Sweden. Find upcoming tournaments, view results, and stay informed about chess events.",
+  title: "msvens chess",
+  description: "Modern chess tournament portal for Sweden. Find upcoming tournaments, view results, and explore player ratings and history.",
 };
 
 export default function RootLayout({
