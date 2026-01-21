@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { PageLayout } from '@/components/layout/PageLayout';
+import { PageTitle } from '@/components/PageTitle';
 import { DropdownMenu, DropdownMenuItem } from '@/components/DropdownMenu';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
@@ -120,14 +121,7 @@ export default function PlayersPage() {
   return (
     <PageLayout fullScreen maxWidth="4xl">
       {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-light tracking-wide mb-4 text-gray-900 dark:text-gray-200">
-          {t.pages.players.title}
-        </h1>
-        <p className="text-lg font-light text-gray-600 dark:text-gray-400">
-          {t.pages.players.subtitle}
-        </p>
-      </div>
+      <PageTitle title={t.pages.players.title} subtitle={t.pages.players.subtitle} />
 
       {/* Unified Search Form */}
       <form onSubmit={handleSearch} className="space-y-4 mb-12">

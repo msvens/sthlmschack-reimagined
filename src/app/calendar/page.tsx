@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { PageLayout } from "@/components/layout/PageLayout";
+import { PageTitle } from "@/components/PageTitle";
 import { TournamentList } from "@/components/TournamentList";
 import { DistrictFilter, DistrictCount } from "@/components/DistrictFilter";
 import { TournamentCategoryFilter, TournamentTypeFilter, TournamentStateFilter } from "@/components/filters";
@@ -139,12 +140,7 @@ export default function CalendarPage() {
 
   return (
     <PageLayout maxWidth="4xl">
-      <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-200">
-        {t.pages.calendar.title}
-      </h1>
-      <p className="mb-8 text-gray-600 dark:text-gray-400">
-        {t.pages.calendar.subtitle}
-      </p>
+      <PageTitle title={t.pages.calendar.title} subtitle={t.pages.calendar.subtitle} />
 
       {/* Filters - 2x2 grid on small screens, 4 columns on medium+ */}
       <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">

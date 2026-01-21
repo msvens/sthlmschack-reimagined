@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
 import { PageLayout } from '@/components/layout/PageLayout';
+import { PageTitle } from '@/components/PageTitle';
 import { SearchableSelectableList, SearchableSelectableListItem } from '@/components/SearchableSelectableList';
 import { SelectableList, SelectableListItem } from '@/components/SelectableList';
 import { RatingTable } from '@/components/RatingTable';
@@ -114,15 +115,7 @@ export default function OrganizationsPage() {
   return (
     <PageLayout maxWidth="4xl">
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-200 mb-4">
-            {t.pages.organizations.title}
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            {t.pages.organizations.subtitle}
-          </p>
-        </div>
+        <PageTitle title={t.pages.organizations.title} subtitle={t.pages.organizations.subtitle} />
 
         {/* Dropdowns */}
         <div className="space-y-4">

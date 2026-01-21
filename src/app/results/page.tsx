@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { PageLayout } from "@/components/layout/PageLayout";
+import { PageTitle } from "@/components/PageTitle";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
 import { DistrictFilter } from "@/components/DistrictFilter";
@@ -277,12 +278,7 @@ export default function ResultsPage() {
 
   return (
     <PageLayout maxWidth="4xl">
-      <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-200">
-        {t.pages.results.title}
-      </h1>
-      <p className="mb-8 text-gray-600 dark:text-gray-400">
-        {t.pages.results.subtitle}
-      </p>
+      <PageTitle title={t.pages.results.title} subtitle={t.pages.results.subtitle} />
 
       {/* Search Section */}
       <div className="mb-6 space-y-3">
