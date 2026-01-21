@@ -32,7 +32,7 @@ export function TournamentTypeFilter({
   const items: SelectableListItem[] = [
     {
       id: 'all',
-      label: counts ? `${typeTranslations.all} (${counts.all})` : typeTranslations.all,
+      label: counts ? `${t.common.filters.all} (${counts.all})` : t.common.filters.all,
     },
   ];
 

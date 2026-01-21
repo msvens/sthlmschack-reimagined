@@ -169,14 +169,14 @@ export default function PlayersPage() {
             onClick={clearSearches}
             variant="outlined"
           >
-            {t.pages.players.search.clearButton}
+            {t.common.actions.clear}
           </Button>
           <Button
             type="submit"
             disabled={isSearching}
             variant="outlined"
           >
-            {isSearching ? '...' : t.pages.players.search.searchButton}
+            {isSearching ? '...' : t.common.actions.search}
           </Button>
         </div>
 

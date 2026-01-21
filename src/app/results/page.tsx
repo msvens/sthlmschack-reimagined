@@ -319,7 +319,7 @@ export default function ResultsPage() {
             disabled={loading}
             compact
           >
-            {t.pages.results.filters.dateRange.searchButton}
+            {t.common.actions.search}
           </Button>
         </div>
 
@@ -339,7 +339,7 @@ export default function ResultsPage() {
             disabled={loading}
             compact
           >
-            {t.pages.results.filters.textSearch.searchButton}
+            {t.common.actions.search}
           </Button>
         </div>
       </div>

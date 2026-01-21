@@ -79,6 +79,19 @@ export interface Translations {
       eloChange: string;
       performanceRating: string;
     };
+    actions: {
+      search: string;
+      clear: string;
+    };
+    filters: {
+      all: string;
+    };
+    labels: {
+      date: string;
+    };
+    states: {
+      loading: string;
+    };
   };
   components: {
     districtFilter: {
@@ -216,6 +229,7 @@ export interface Translations {
         title: string;
         fideId: string;
         birthDate: string;
+        birthYear: string;
       };
       tournamentHistory: {
         title: string;
@@ -461,6 +475,19 @@ const translations: Record<Language, Translations> = {
         eloChange: 'ELO +/-',
         performanceRating: 'Performance Rating',
       },
+      actions: {
+        search: 'Search',
+        clear: 'Clear',
+      },
+      filters: {
+        all: 'All',
+      },
+      labels: {
+        date: 'Date',
+      },
+      states: {
+        loading: 'Loading...',
+      },
     },
     components: {
       districtFilter: {
@@ -510,7 +537,7 @@ const translations: Record<Language, Translations> = {
       },
       calendar: {
         title: 'Tournament Calendar',
-        subtitle: 'View the full calendar of chess events and tournaments across Stockholm.',
+        subtitle: 'View the full calendar of chess events and tournaments across Sweden.',
         placeholder: 'Calendar view coming soon. This page will display a comprehensive calendar of all chess events with filtering and search capabilities.',
         tournamentList: {
           tournament: 'Tournament',
@@ -579,17 +606,17 @@ const translations: Record<Language, Translations> = {
           club: 'Club',
         },
         eloRating: {
-          title: 'ELO Rating',
-          standardRating: 'Standard Rating',
-          rapidRating: 'Rapid Rating',
-          blitzRating: 'Blitz Rating',
+          title: 'ELO',
+          standardRating: 'ELO',
+          rapidRating: 'Rapid ELO',
+          blitzRating: 'Blitz ELO',
           fideTitle: 'Title',
           date: 'Date',
           kFactor: 'K-Factor',
           noData: 'No ELO rating data available',
         },
         laskRating: {
-          title: 'LASK Rating',
+          title: 'LASK',
           rating: 'Rating',
           date: 'Date',
           noData: 'No LASK rating data available',
@@ -598,6 +625,7 @@ const translations: Record<Language, Translations> = {
           title: 'Additional Information',
           fideId: 'FIDE ID',
           birthDate: 'Birth Date',
+          birthYear: 'Birth Year',
         },
         tournamentHistory: {
           title: 'Tournament History',
@@ -833,13 +861,26 @@ const translations: Record<Language, Translations> = {
     common: {
       eloLabels: {
         standard: 'ELO',
-        rapid: 'Snabb-ELO',
-        blitz: 'Blixt-ELO',
+        rapid: 'Snabb ELO',
+        blitz: 'Blixt ELO',
         lask: 'LASK',
         ratingHistory: 'Rankingutveckling',
         loadingHistory: 'Laddar historik...',
         eloChange: 'ELO +/-',
         performanceRating: 'ELO prestation',
+      },
+      actions: {
+        search: 'Sök',
+        clear: 'Rensa',
+      },
+      filters: {
+        all: 'Alla',
+      },
+      labels: {
+        date: 'Datum',
+      },
+      states: {
+        loading: 'Laddar...',
       },
     },
     components: {
@@ -890,7 +931,7 @@ const translations: Record<Language, Translations> = {
       },
       calendar: {
         title: 'Turneringskalender',
-        subtitle: 'Se den fullständiga kalendern för schackevenemang och turneringar över hela Stockholm.',
+        subtitle: 'Se den fullständiga kalendern för schackevenemang och turneringar över hela Sverige.',
         placeholder: 'Kalendervy kommer snart. Denna sida kommer att visa en omfattande kalender över alla schackevenemang med filtrering och sökfunktioner.',
         tournamentList: {
           tournament: 'Turnering',
@@ -959,17 +1000,17 @@ const translations: Record<Language, Translations> = {
           club: 'Klubb',
         },
         eloRating: {
-          title: 'ELO Rating',
-          standardRating: 'Standard Rating',
-          rapidRating: 'Rapid Rating',
-          blitzRating: 'Blitz Rating',
+          title: 'ELO',
+          standardRating: 'ELO',
+          rapidRating: 'Snabb ELO',
+          blitzRating: 'Blixt ELO',
           fideTitle: 'Titel',
           date: 'Datum',
           kFactor: 'K-Faktor',
           noData: 'Ingen ELO ratingdata tillgänglig',
         },
         laskRating: {
-          title: 'LASK Rating',
+          title: 'LASK',
           rating: 'Rating',
           date: 'Datum',
           noData: 'Ingen LASK ratingdata tillgänglig',
@@ -978,6 +1019,7 @@ const translations: Record<Language, Translations> = {
           title: 'Ytterligare Information',
           fideId: 'FIDE ID',
           birthDate: 'Födelsedatum',
+          birthYear: 'Födelseår',
         },
         tournamentHistory: {
           title: 'Turneringshistorik',
@@ -1146,20 +1188,4 @@ const translations: Record<Language, Translations> = {
 
 export function getTranslation(language: Language): Translations {
   return translations[language];
-}
-
-export function t(language: Language, key: string): string {
-  const keys = key.split('.');
-  let value: unknown = translations[language];
-  
-  for (const k of keys) {
-    if (value && typeof value === 'object' && k in value) {
-      value = (value as Record<string, unknown>)[k];
-    } else {
-      console.warn(`Translation key not found: ${key} for language ${language}`);
-      return key; // Fallback to key if translation not found
-    }
-  }
-  
-  return typeof value === 'string' ? value : key;
 }

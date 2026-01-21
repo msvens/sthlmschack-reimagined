@@ -53,7 +53,7 @@ export function DistrictFilter({
     {
       id: 'all',
       label: totalCount !== undefined
-        ? `${t.components.districtFilter.all} (${totalCount})`
+        ? `${t.common.filters.all} (${totalCount})`
         : t.components.districtFilter.allDistricts,
       tooltip: t.components.districtFilter.showAll
     },

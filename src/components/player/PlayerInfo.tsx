@@ -24,6 +24,7 @@ export interface PlayerInfoProps {
       title: string;
       fideId: string;
       birthDate: string;
+      birthYear: string;
     };
     playerInfo: {
       memberId: string;
@@ -97,7 +98,7 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
 
           {/* Birth Year */}
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Birth Year:</span>
+            <span className="text-gray-600 dark:text-gray-400">{t.additionalInfo.birthYear}:</span>
             <span className="text-gray-900 dark:text-gray-200 font-medium">{extractYear(player.birthdate)}</span>
           </div>
 

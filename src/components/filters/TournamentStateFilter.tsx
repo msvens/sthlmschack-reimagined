@@ -32,7 +32,7 @@ export function TournamentStateFilter({
   const items: SelectableListItem[] = [
     {
       id: 'all',
-      label: counts ? `${stateTranslations.all} (${counts.all})` : stateTranslations.all,
+      label: counts ? `${t.common.filters.all} (${counts.all})` : t.common.filters.all,
     },
   ];
 

@@ -30,7 +30,7 @@ export function TournamentCategoryFilter({
   const items: SelectableListItem[] = [
     {
       id: 'all',
-      label: counts ? `${t.components.tournamentCategoryFilter.all} (${counts.all})` : t.components.tournamentCategoryFilter.all,
+      label: counts ? `${t.common.filters.all} (${counts.all})` : t.common.filters.all,
     },
     {
       id: 'team',

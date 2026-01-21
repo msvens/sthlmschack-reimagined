@@ -1,6 +1,8 @@
 'use client';
 
 import { Link } from '@/components/Link';
+import { useLanguage } from '@/context/LanguageContext';
+import { getTranslation } from '@/lib/translations';
 
 interface FooterLinkProps {
   href: string;
@@ -25,10 +27,13 @@ function FooterLink({ href, children, external = false }: FooterLinkProps) {
 }
 
 export function Footer() {
+  const { language } = useLanguage();
+  const t = getTranslation(language);
+
   return (
     <footer className="w-full">
       <div className="max-w-7xl mx-auto px-4 pt-6 pb-2 flex justify-center items-center">
-        <FooterLink href="/about">About</FooterLink>
+        <FooterLink href="/about">{t.footer.navigation.about}</FooterLink>
         <FooterLink href="https://schack.se/" external>schack.se</FooterLink>
         <FooterLink href="https://www.stockholmsschack.se/" external>stockholmsschack.se</FooterLink>
       </div>
