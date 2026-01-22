@@ -4,6 +4,10 @@ All notable changes to msvens chess will be documented in this file.
 
 ## [Unreleased]
 
+---
+
+## [0.5.0] - 2025-01-22
+
 ### Added
 - Contact page for user feedback (Formspree integration pending)
 - Changelog page with structured version history

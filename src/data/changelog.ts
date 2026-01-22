@@ -16,6 +16,11 @@ export const changelog: ChangelogEntry[] = [
   {
     "version": "Unreleased",
     "date": null,
+    "sections": []
+  },
+  {
+    "version": "0.5.0",
+    "date": "2025-01-22",
     "sections": [
       {
         "type": "Added",
