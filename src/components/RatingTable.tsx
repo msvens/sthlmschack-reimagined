@@ -21,16 +21,8 @@ interface RatingTableProps {
 export function RatingTable({ players, ratingType, loading, t }: RatingTableProps) {
   const router = useRouter();
 
-  // Add rank to each player
-  const playersWithRank = useMemo<PlayerWithRank[]>(() => {
-    return players.map((player, index) => ({
-      ...player,
-      rank: index + 1
-    }));
-  }, [players]);
-
-  // Get the appropriate rating value based on rating type
-  const getRating = (player: PlayerInfoDto): number => {
+  // Get rating value for a player based on rating type
+  const getRatingValue = (player: PlayerInfoDto): number => {
     switch (ratingType) {
       case RatingType.STANDARD:
         return player.elo?.rating || 0;
@@ -42,6 +34,15 @@ export function RatingTable({ players, ratingType, loading, t }: RatingTableProp
         return 0;
     }
   };
+
+  // Sort by rating (descending) and add rank
+  const playersWithRank = useMemo<PlayerWithRank[]>(() => {
+    const sorted = [...players].sort((a, b) => getRatingValue(b) - getRatingValue(a));
+    return sorted.map((player, index) => ({
+      ...player,
+      rank: index + 1
+    }));
+  }, [players, ratingType]);
 
   // Handle row click - navigate to player page
   const handleRowClick = (player: PlayerWithRank) => {
@@ -81,7 +82,7 @@ export function RatingTable({ players, ratingType, loading, t }: RatingTableProp
     {
       id: 'rating',
       header: t.pages.organizations.ratingList.tableHeaders.rating,
-      accessor: (player) => getRating(player) || '-',
+      accessor: (player) => getRatingValue(player) || '-',
       align: 'left',
       noWrap: true
     },
@@ -96,6 +97,14 @@ export function RatingTable({ players, ratingType, loading, t }: RatingTableProp
       loadingMessage={t.pages.organizations.ratingList.loading}
       onRowClick={handleRowClick}
       getRowKey={(player) => player.id}
+      pagination={{
+        pageSize: 50,
+        labels: {
+          showing: t.pages.organizations.pagination.showing,
+          of: t.pages.organizations.pagination.of,
+          itemName: t.pages.organizations.pagination.players,
+        },
+      }}
     />
   );
 }
