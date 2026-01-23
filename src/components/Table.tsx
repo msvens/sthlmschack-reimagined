@@ -1,6 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Pagination } from '@/components/Pagination';
+
+export interface PaginationLabels {
+  showing: string;
+  of: string;
+  itemName?: string;
+}
+
+export interface PaginationConfig {
+  /** Number of rows per page (default: 50) */
+  pageSize?: number;
+  /** Labels for pagination info. If omitted, shows "1-50 / 3334" format */
+  labels?: PaginationLabels;
+  /** Whether to show pagination info above table (default: true) */
+  showInfo?: boolean;
+}
 
 export interface TableColumn<T = Record<string, unknown>> {
   /** Unique identifier for the column */
@@ -74,6 +90,11 @@ export interface TableProps<T = Record<string, unknown>> {
   densityThresholds?: DensityThresholds;
   /** @deprecated Use density prop instead */
   size?: 'small' | 'medium';
+  /**
+   * Enable pagination. Pass true for defaults or a config object.
+   * Default pageSize is 50. Info text shows "1-50 / 3334" unless labels provided.
+   */
+  pagination?: boolean | PaginationConfig;
 }
 
 export function Table<T = Record<string, unknown>>({
@@ -95,10 +116,55 @@ export function Table<T = Record<string, unknown>>({
     comfortable: 10,
     normal: 20
   },
-  size = 'medium'
+  size = 'medium',
+  pagination
 }: TableProps<T>) {
   // Track if we're on mobile
   const [isMobile, setIsMobile] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Parse pagination config
+  const paginationConfig = useMemo(() => {
+    if (!pagination) return null;
+    if (pagination === true) {
+      return { pageSize: 50, labels: undefined, showInfo: true };
+    }
+    return {
+      pageSize: pagination.pageSize ?? 50,
+      labels: pagination.labels,
+      showInfo: pagination.showInfo ?? true
+    };
+  }, [pagination]);
+
+  // Reset to page 1 when data changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [data]);
+
+  // Get paginated data
+  const paginatedData = useMemo(() => {
+    if (!paginationConfig) return data;
+    const startIndex = (currentPage - 1) * paginationConfig.pageSize;
+    return data.slice(startIndex, startIndex + paginationConfig.pageSize);
+  }, [data, currentPage, paginationConfig]);
+
+  // Format pagination info text
+  const getPaginationInfo = () => {
+    if (!paginationConfig || data.length === 0) return null;
+    const startItem = (currentPage - 1) * paginationConfig.pageSize + 1;
+    const endItem = Math.min(currentPage * paginationConfig.pageSize, data.length);
+    const total = data.length;
+
+    if (paginationConfig.labels) {
+      const { showing, of, itemName } = paginationConfig.labels;
+      const itemText = itemName ? ` ${itemName}` : '';
+      return `${showing} ${startItem}-${endItem} ${of} ${total}${itemText}`;
+    }
+
+    return `${startItem}-${endItem} / ${total}`;
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -122,8 +188,8 @@ export function Table<T = Record<string, unknown>>({
       return 'compact';
     }
 
-    // Desktop: auto-density based on row count
-    const rowCount = data.length;
+    // Desktop: auto-density based on visible row count
+    const rowCount = paginatedData.length;
     if (rowCount <= densityThresholds.comfortable) {
       return 'comfortable';
     } else if (rowCount <= densityThresholds.normal) {
@@ -223,33 +289,43 @@ export function Table<T = Record<string, unknown>>({
     );
   }
 
+  const paginationInfo = getPaginationInfo();
+
   return (
-    <div className={`overflow-x-auto ${className}`} style={style}>
-      <table className={`w-full ${fontSizeClass} ${lineHeightClass}`}>
-        <thead>
-          <tr className={border ? "border-b border-gray-200 dark:border-gray-700" : ""}>
-            {columns.map((column) => (
-              <th
-                key={column.id}
-                className={`${paddingClass} font-medium text-gray-900 dark:text-gray-200 ${
-                  column.align === 'center'
-                    ? 'text-center'
-                    : column.align === 'right'
-                    ? 'text-right'
-                    : 'text-left'
-                } ${column.noWrap ? 'whitespace-nowrap' : ''} ${column.headerClassName || ''}`}
-                style={{
-                  width: column.width,
-                  ...column.headerStyle
-                }}
-              >
-                {column.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, index) => (
+    <div className={`${className}`} style={style}>
+      {/* Pagination info */}
+      {paginationConfig && paginationConfig.showInfo && paginationInfo && (
+        <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+          {paginationInfo}
+        </div>
+      )}
+
+      <div className="overflow-x-auto">
+        <table className={`w-full ${fontSizeClass} ${lineHeightClass}`}>
+          <thead>
+            <tr className={border ? "border-b border-gray-200 dark:border-gray-700" : ""}>
+              {columns.map((column) => (
+                <th
+                  key={column.id}
+                  className={`${paddingClass} font-medium text-gray-900 dark:text-gray-200 ${
+                    column.align === 'center'
+                      ? 'text-center'
+                      : column.align === 'right'
+                      ? 'text-right'
+                      : 'text-left'
+                  } ${column.noWrap ? 'whitespace-nowrap' : ''} ${column.headerClassName || ''}`}
+                  style={{
+                    width: column.width,
+                    ...column.headerStyle
+                  }}
+                >
+                  {column.header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedData.map((row, index) => (
             <tr
               key={getKey(row, index)}
               className={`${border ? 'border-b border-gray-200 dark:border-gray-700' : ''} ${
@@ -280,6 +356,19 @@ export function Table<T = Record<string, unknown>>({
           ))}
         </tbody>
       </table>
+      </div>
+
+      {/* Pagination controls */}
+      {paginationConfig && data.length > paginationConfig.pageSize && (
+        <div className="mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={data.length}
+            pageSize={paginationConfig.pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
     </div>
   );
 }

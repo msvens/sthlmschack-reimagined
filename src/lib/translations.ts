@@ -364,7 +364,6 @@ export interface Translations {
       email: string;
       website: string;
       schoolClub: string;
-      regYear: string;
       yes: string;
       no: string;
       loading: string;
@@ -398,6 +397,35 @@ export interface Translations {
         };
         loading: string;
         noPlayers: string;
+      };
+      ssf: {
+        title: string;
+        subtitle: string;
+        description: string;
+      };
+      districts: {
+        title: string;
+        subtitle: string;
+        selectDistrict: string;
+      };
+      clubs: {
+        title: string;
+        subtitle: string;
+        searchPlaceholder: string;
+        browseByDistrict: string;
+        activeClubs: string;
+        district: string;
+      };
+      navigation: {
+        ssfRanking: string;
+        districts: string;
+        clubs: string;
+        searchClubs: string;
+      };
+      pagination: {
+        showing: string;
+        of: string;
+        players: string;
       };
     };
   };
@@ -768,7 +796,6 @@ const translations: Record<Language, Translations> = {
         email: 'Email',
         website: 'Website',
         schoolClub: 'School Club',
-        regYear: 'Registered',
         yes: 'Yes',
         no: 'No',
         loading: 'Loading...',
@@ -802,6 +829,35 @@ const translations: Record<Language, Translations> = {
           },
           loading: 'Loading ratings...',
           noPlayers: 'No players found',
+        },
+        ssf: {
+          title: 'SSF National Ranking',
+          subtitle: 'Swedish Chess Federation national ranking list.',
+          description: 'View the complete ranking of all rated players in Sweden.',
+        },
+        districts: {
+          title: 'Districts',
+          subtitle: 'Explore chess districts in Sweden.',
+          selectDistrict: 'Select District',
+        },
+        clubs: {
+          title: 'Clubs',
+          subtitle: 'Find and explore chess clubs in Sweden.',
+          searchPlaceholder: 'Search for a club...',
+          browseByDistrict: 'Or browse by district',
+          activeClubs: 'active clubs',
+          district: 'District',
+        },
+        navigation: {
+          ssfRanking: 'SSF Ranking',
+          districts: 'Districts',
+          clubs: 'Clubs',
+          searchClubs: 'Search Clubs',
+        },
+        pagination: {
+          showing: 'Showing',
+          of: 'of',
+          players: 'players',
         },
       },
     },
@@ -1170,7 +1226,6 @@ const translations: Record<Language, Translations> = {
         email: 'E-post',
         website: 'Webbplats',
         schoolClub: 'Skolklubb',
-        regYear: 'Registrerad',
         yes: 'Ja',
         no: 'Nej',
         loading: 'Laddar...',
@@ -1204,6 +1259,35 @@ const translations: Record<Language, Translations> = {
           },
           loading: 'Laddar rating...',
           noPlayers: 'Inga spelare hittades',
+        },
+        ssf: {
+          title: 'SSF Nationell Ranking',
+          subtitle: 'Svenska Schackförbundets nationella rankinglista.',
+          description: 'Se den kompletta rankingen av alla rankade spelare i Sverige.',
+        },
+        districts: {
+          title: 'Distrikt',
+          subtitle: 'Utforska schackdistrikt i Sverige.',
+          selectDistrict: 'Välj distrikt',
+        },
+        clubs: {
+          title: 'Klubbar',
+          subtitle: 'Hitta och utforska schackklubbar i Sverige.',
+          searchPlaceholder: 'Sök efter en klubb...',
+          browseByDistrict: 'Eller bläddra efter distrikt',
+          activeClubs: 'aktiva klubbar',
+          district: 'Distrikt',
+        },
+        navigation: {
+          ssfRanking: 'SSF Ranking',
+          districts: 'Distrikt',
+          clubs: 'Klubbar',
+          searchClubs: 'Sök klubbar',
+        },
+        pagination: {
+          showing: 'Visar',
+          of: 'av',
+          players: 'spelare',
         },
       },
     },
