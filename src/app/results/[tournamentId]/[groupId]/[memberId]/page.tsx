@@ -11,7 +11,7 @@ import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { EloRatingChart, RatingDataPoint } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { PlayerService, TournamentService, getPlayerRatingHistory, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, calculateTournamentStats } from '@/lib/api';
+import { PlayerService, TournamentService, getPlayerRatingHistory, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, calculateTournamentStats, isWalkoverResultCode, getResultDisplayString } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -24,6 +24,8 @@ interface PlayerMatch {
   color: 'white' | 'black';
   homeResult: number;
   awayResult: number;
+  isWalkover: boolean;
+  gameResultCode?: number; // Original result code from games array
 }
 
 export default function TournamentPlayerDetailPage() {
@@ -150,20 +152,25 @@ export default function TournamentPlayerDetailPage() {
                 awayResult = 1;
               }
 
+              // Check for walkover in team games
+              const isWalkover = isWalkoverResultCode(game.result);
+
               playerMatches.push({
                 round: roundResult.roundNr,
                 opponent,
                 result,
                 color: isWhite ? 'white' : 'black',
                 homeResult,
-                awayResult
+                awayResult,
+                isWalkover,
+                gameResultCode: game.result
               });
             }
           }
         });
       }
     } else {
-      // Individual tournament: use existing logic
+      // Individual tournament: check games array for walkover detection
       if (individualRoundResults.length === 0) return;
 
       for (const roundResult of individualRoundResults) {
@@ -185,13 +192,19 @@ export default function TournamentPlayerDetailPage() {
               result = 'loss';
             }
 
+            // Check games array for walkover - the result code is in games[0].result
+            const gameResultCode = roundResult.games?.[0]?.result;
+            const isWalkover = gameResultCode !== undefined && isWalkoverResultCode(gameResultCode);
+
             playerMatches.push({
               round: roundResult.roundNr,
               opponent,
               result,
               color: isHome ? 'white' : 'black',
               homeResult: roundResult.homeResult,
-              awayResult: roundResult.awayResult
+              awayResult: roundResult.awayResult,
+              isWalkover,
+              gameResultCode
             });
           }
         }
@@ -352,7 +365,13 @@ export default function TournamentPlayerDetailPage() {
     {
       id: 'result',
       header: t.pages.tournamentResults.roundByRound.result,
-      accessor: (row) => `${row.homeResult} - ${row.awayResult}`,
+      accessor: (row) => {
+        // Use the display string from gameResultCode if available, otherwise format manually
+        if (row.gameResultCode !== undefined) {
+          return getResultDisplayString(row.gameResultCode);
+        }
+        return `${row.homeResult} - ${row.awayResult}`;
+      },
       align: 'center',
       noWrap: true,
       cellStyle: { fontWeight: 'medium' }
@@ -361,6 +380,9 @@ export default function TournamentPlayerDetailPage() {
       id: 'eloChange',
       header: t.common.eloLabels.eloChange,
       accessor: (row) => {
+        // Walkovers don't count for ELO
+        if (row.isWalkover) return '-';
+
         if (!tournamentPlayer) return '-';
 
         // Get appropriate ratings based on group's ranking algorithm
@@ -424,8 +446,11 @@ export default function TournamentPlayerDetailPage() {
 
           {/* Tournament Summary */}
           {matches.length > 0 && (() => {
-            // Calculate actual score (sum of points)
-            const totalScore = matches.reduce((sum, match) => {
+            // Filter out walkovers for calculations
+            const playedMatches = matches.filter(m => !m.isWalkover);
+
+            // Calculate actual score (sum of points) - only from played games
+            const totalScore = playedMatches.reduce((sum, match) => {
               const score = match.result === 'win' ? 1.0 : match.result === 'draw' ? 0.5 : 0.0;
               return sum + score;
             }, 0);
@@ -434,14 +459,15 @@ export default function TournamentPlayerDetailPage() {
             let eloChange: string = '-';
             let performanceRating: string = '-';
 
-            if (tournamentPlayer?.elo) {
+            if (tournamentPlayer?.elo && playedMatches.length > 0) {
               const { rating: playerRating, ratingType } = getPlayerRatingByAlgorithm(tournamentPlayer.elo, rankingAlgorithm);
 
               if (playerRating) {
                 // Get K-factor based on rating type (rapid/blitz use K=40, standard uses K=20)
                 const kFactor = getKFactorForRating(ratingType, playerRating, tournamentPlayer.elo);
 
-                const matchResults = matches.map(match => ({
+                // Only include played matches (not walkovers) in ELO calculation
+                const matchResults = playedMatches.map(match => ({
                   opponentRating: getPlayerRatingByAlgorithm(match.opponent.elo, rankingAlgorithm).rating,
                   actualScore: match.result === 'win' ? 1.0 : match.result === 'draw' ? 0.5 : 0.0
                 }));
@@ -463,7 +489,7 @@ export default function TournamentPlayerDetailPage() {
                       {t.pages.playerDetail.total}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                      {totalScore} {t.pages.playerDetail.of} {matches.length}
+                      {totalScore} {t.pages.playerDetail.of} {playedMatches.length}
                     </div>
                   </div>
                   <div>
