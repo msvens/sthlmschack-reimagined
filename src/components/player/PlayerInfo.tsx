@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { PlayerInfoDto } from '@/lib/api/types';
+import { Link } from '@/components/Link';
 
 export interface PlayerInfoProps {
   player: PlayerInfoDto;
@@ -105,7 +106,15 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
           {/* Club */}
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">{t.playerInfo.club}:</span>
-            <span className="text-gray-900 dark:text-gray-200 font-medium">{player.club || '-'}</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium">
+              {player.clubId ? (
+                <Link href={`/organizations/clubs/${player.clubId}`}>
+                  {player.club || `Club ${player.clubId}`}
+                </Link>
+              ) : (
+                player.club || '-'
+              )}
+            </span>
           </div>
 
           {/* ELO Rating */}

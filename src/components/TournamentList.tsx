@@ -47,7 +47,7 @@ export function TournamentList({
       const timestamp = formatTimestamp(tournament.latestUpdated || '');
       return {
         name: tournament.name,
-        club: tournament.orgType && tournament.orgNumber
+        club: tournament.orgType != null && tournament.orgNumber
           ? getOrganizerName(tournament.orgType, tournament.orgNumber)
           : '-',
         start: formatDate(tournament.start),
@@ -79,15 +79,15 @@ export function TournamentList({
         align: 'left',
       },
       {
-        id: 'end',
-        header: t.pages.calendar.tournamentList.end,
-        accessor: 'end',
-        align: 'left',
-      },
-      {
         id: 'start',
         header: t.pages.calendar.tournamentList.start,
         accessor: 'start',
+        align: 'left',
+      },
+      {
+        id: 'end',
+        header: t.pages.calendar.tournamentList.end,
+        accessor: 'end',
         align: 'left',
       },
     ];

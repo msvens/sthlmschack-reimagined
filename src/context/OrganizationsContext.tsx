@@ -84,12 +84,23 @@ export function OrganizationsProvider({ children }: { children: React.ReactNode 
     // orgType 0 = District
     if (orgType === 0) {
       const district = districtMap.get(orgNumber);
-      return district ? district.name : `District ${orgNumber}`;
+      return district ? district.name : '-';
     }
 
-    // orgType 1 = Club
-    return getClubName(orgNumber);
-  }, [districtMap, getClubName]);
+    // orgType 1 = Club - try club first, then district as fallback
+    const club = clubMap.get(orgNumber);
+    if (club) {
+      return club.name;
+    }
+
+    // Fallback: check if orgNumber matches a district
+    const district = districtMap.get(orgNumber);
+    if (district) {
+      return district.name;
+    }
+
+    return '-';
+  }, [clubMap, districtMap]);
 
   // Get district ID for a given organizer (instant lookup, no async)
   const getDistrictIdForOrganizer = useCallback((orgType: number, orgNumber: number): number | null => {
