@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { TournamentRoundResultDto, GameDto } from '@/lib/api/types';
 import { isWalkoverPlayer, isWalkoverClub, createRoundResultsTeamNameFormatter } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { Link } from '@/components/Link';
 import { Table, TableColumn } from '@/components/Table';
+import { PlayerDateRequest } from '@/context/GroupResultsContext';
 
 export interface TeamRoundResultsProps {
   /** Team round results data */
@@ -15,7 +16,7 @@ export interface TeamRoundResultsProps {
   getClubName: (clubId: number) => string;
   /** Function to get player name from player ID */
   getPlayerName: (playerId: number) => string;
-  /** Function to get player ELO from player ID */
+  /** Function to get player ELO from player ID (current) */
   getPlayerElo: (playerId: number) => string;
   /** Function to get player club ID from player ID */
   getPlayerClubId: (playerId: number) => number | null;
@@ -23,6 +24,10 @@ export interface TeamRoundResultsProps {
   tournamentId: number;
   /** Group ID for player links */
   groupId: number;
+  /** Function to fetch player info for specific dates (historical ELO) */
+  fetchPlayersByDate?: (requests: PlayerDateRequest[]) => Promise<void>;
+  /** Function to get player ELO at a specific historical date */
+  getPlayerEloByDate?: (playerId: number, date: number) => string;
 }
 
 // Match represents a team matchup (multiple boards)
@@ -52,6 +57,20 @@ interface DisplayGame {
   couldNotDeduceClub: boolean; // Debug flag when we can't determine player teams
 }
 
+/**
+ * Parse a date string to Unix timestamp in milliseconds
+ * Handles both numeric timestamp strings and ISO date strings
+ */
+function parseDateToTimestamp(dateStr: string): number {
+  // Try parsing as number first (timestamp string)
+  const asNumber = Number(dateStr);
+  if (!isNaN(asNumber) && asNumber > 0) {
+    return asNumber;
+  }
+  // Fall back to Date parsing (ISO string or other formats)
+  return new Date(dateStr).getTime();
+}
+
 export function TeamRoundResults({
   roundResults,
   getClubName,
@@ -59,7 +78,9 @@ export function TeamRoundResults({
   getPlayerElo,
   getPlayerClubId,
   tournamentId,
-  groupId
+  groupId,
+  fetchPlayersByDate,
+  getPlayerEloByDate
 }: TeamRoundResultsProps) {
   const { language } = useLanguage();
   const t = getTranslation(language);
@@ -121,6 +142,39 @@ export function TeamRoundResults({
     setSelectedRound(rounds[0]);
   }
 
+  // Fetch historical ELO data when a match is expanded
+  useEffect(() => {
+    if (expandedMatchIndex === null || !selectedRound || !fetchPlayersByDate) return;
+
+    const selectedMatches = matchesByRound[selectedRound] || [];
+    const match = selectedMatches[expandedMatchIndex];
+    if (!match) return;
+
+    // Get all games from this match
+    const allGames = match.boards[0]?.games || [];
+    if (allGames.length === 0) return;
+
+    // Parse match date to timestamp
+    const matchDate = parseDateToTimestamp(match.date);
+    if (isNaN(matchDate) || matchDate <= 0) return;
+
+    // Collect all player IDs from the games
+    const requests: PlayerDateRequest[] = [];
+    allGames.forEach(game => {
+      if (!isWalkoverPlayer(game.whiteId)) {
+        requests.push({ playerId: game.whiteId, date: matchDate });
+      }
+      if (!isWalkoverPlayer(game.blackId)) {
+        requests.push({ playerId: game.blackId, date: matchDate });
+      }
+    });
+
+    if (requests.length === 0) return;
+
+    // Fetch historical player data (fire and forget - cache will update)
+    fetchPlayersByDate(requests);
+  }, [expandedMatchIndex, selectedRound, matchesByRound, fetchPlayersByDate]);
+
   if (rounds.length === 0) {
     return (
       <div className="p-6 text-center">
@@ -139,7 +193,8 @@ export function TeamRoundResults({
   };
 
   // Process a game to determine home/away players and calculate result
-  const processGame = (game: GameDto, homeClubId: number, awayClubId: number): DisplayGame => {
+  // Optional matchDate parameter enables historical ELO lookup
+  const processGame = (game: GameDto, homeClubId: number, awayClubId: number, matchDate?: number): DisplayGame => {
     // Step 1: Pull the club from each player
     const whiteClubId = getPlayerClubId(game.whiteId);
     const blackClubId = getPlayerClubId(game.blackId);
@@ -260,12 +315,21 @@ export function TeamRoundResults({
       }
     }
 
+    // Use historical ELO if date is provided and function is available, otherwise fall back to current ELO
+    const getElo = (playerId: number): string => {
+      if (isWalkoverPlayer(playerId)) return '-';
+      if (matchDate && getPlayerEloByDate) {
+        return getPlayerEloByDate(playerId, matchDate);
+      }
+      return getPlayerElo(playerId);
+    };
+
     return {
       boardNumber: (game.tableNr !== undefined ? game.tableNr + 1 : 0),
       homePlayerId,
-      homePlayerElo: isWalkoverPlayer(homePlayerId) ? '-' : getPlayerElo(homePlayerId),
+      homePlayerElo: getElo(homePlayerId),
       awayPlayerId,
-      awayPlayerElo: isWalkoverPlayer(awayPlayerId) ? '-' : getPlayerElo(awayPlayerId),
+      awayPlayerElo: getElo(awayPlayerId),
       homeScore,
       awayScore,
       isWalkover,
@@ -359,9 +423,14 @@ export function TeamRoundResults({
                       // Get all games from this match
                       const allGames = match.boards[0]?.games || [];
 
+                      // Parse match date for historical ELO lookup
+                      const matchDate = parseDateToTimestamp(match.date);
+                      const validMatchDate = !isNaN(matchDate) && matchDate > 0 ? matchDate : undefined;
+
                       // Process games to ensure home team is always in left column
+                      // Pass match date to enable historical ELO lookup
                       const processedGames = allGames.map(game =>
-                        processGame(game, match.homeId, match.awayId)
+                        processGame(game, match.homeId, match.awayId, validMatchDate)
                       );
 
                       // Sort by board number

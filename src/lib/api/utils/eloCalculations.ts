@@ -110,7 +110,8 @@ export function calculateTournamentStats(
   let totalScore = 0;
 
   for (const match of matches) {
-    if (match.opponentRating !== null) {
+    // Only include matches where opponent has a valid rating (not null, undefined, 0, or NaN)
+    if (match.opponentRating && match.opponentRating > 0) {
       // Calculate rating change for this match
       const change = calculateRatingChange(
         playerRating,
