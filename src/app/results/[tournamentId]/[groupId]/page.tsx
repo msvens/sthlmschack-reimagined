@@ -1,19 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { TournamentService, formatMatchResult } from '@/lib/api';
 import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TeamTournamentEndResultDto, TournamentRoundResultDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
-import { useGroupResults } from '@/context/GroupResultsContext';
+import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { FinalResultsTable } from '@/components/results/FinalResultsTable';
 import { TeamFinalResultsTable } from '@/components/results/TeamFinalResultsTable';
 import { TeamRoundResults } from '@/components/results/TeamRoundResults';
 import { SelectableList, SelectableListItem } from '@/components/SelectableList';
 import { Link } from '@/components/Link';
 import { Table, TableColumn } from '@/components/Table';
+
+/**
+ * Parse a date string to Unix timestamp in milliseconds
+ */
+function parseDateToTimestamp(dateStr: string): number {
+  const asNumber = Number(dateStr);
+  if (!isNaN(asNumber) && asNumber > 0) return asNumber;
+  return new Date(dateStr).getTime();
+}
 
 export default function GroupResultsPage() {
   const params = useParams();
@@ -37,7 +46,9 @@ export default function GroupResultsPage() {
     getPlayerName,
     getPlayerElo,
     getPlayerClubId,
-    getClubName
+    getClubName,
+    fetchPlayersByDate,
+    getPlayerEloByDate
   } = useGroupResults();
 
   // Use appropriate results based on tournament type
@@ -51,6 +62,40 @@ export default function GroupResultsPage() {
 
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
+
+  // Group round results by round number for individual tournaments
+  const resultsByRound = useMemo(() => {
+    if (isTeamTournament) return {};
+    return roundResults.reduce((acc, result) => {
+      const round = result.roundNr || 1;
+      if (!acc[round]) acc[round] = [];
+      acc[round].push(result);
+      return acc;
+    }, {} as Record<number, TournamentRoundResultDto[]>);
+  }, [isTeamTournament, roundResults]);
+
+  // Fetch historical player data when selecting a round in individual tournaments
+  useEffect(() => {
+    if (isTeamTournament || !selectedRound || resultsLoading) return;
+
+    const roundGames = resultsByRound[selectedRound];
+    if (!roundGames || roundGames.length === 0) return;
+
+    // Collect all (playerId, roundDate) pairs for this round
+    const requests: PlayerDateRequest[] = [];
+    for (const game of roundGames) {
+      const roundDate = parseDateToTimestamp(game.date);
+      if (isNaN(roundDate) || roundDate <= 0) continue;
+
+      requests.push({ playerId: game.homeId, date: roundDate });
+      requests.push({ playerId: game.awayId, date: roundDate });
+    }
+
+    if (requests.length > 0) {
+      // Fetch historical data (function will skip already cached entries)
+      fetchPlayersByDate(requests);
+    }
+  }, [isTeamTournament, selectedRound, resultsByRound, resultsLoading, fetchPlayersByDate]);
 
   useEffect(() => {
     if (!tournamentId || isNaN(tournamentId)) {
@@ -390,6 +435,8 @@ export default function GroupResultsPage() {
                         getPlayerClubId={getPlayerClubId}
                         tournamentId={tournamentId}
                         groupId={groupId}
+                        fetchPlayersByDate={fetchPlayersByDate}
+                        getPlayerEloByDate={getPlayerEloByDate}
                       />
                     )
                   ) : (
@@ -413,14 +460,6 @@ export default function GroupResultsPage() {
                         <>
                           {/* Round Tabs */}
                           {(() => {
-                            // Group round results by round number
-                            const resultsByRound = roundResults.reduce((acc, result) => {
-                              const round = result.roundNr || 1;
-                              if (!acc[round]) acc[round] = [];
-                              acc[round].push(result);
-                              return acc;
-                            }, {} as Record<number, TournamentRoundResultDto[]>);
-
                             const rounds = Object.keys(resultsByRound)
                               .map(Number)
                               .sort((a, b) => a - b);
@@ -477,7 +516,10 @@ export default function GroupResultsPage() {
                                       {
                                         id: 'whiteElo',
                                         header: t.pages.tournamentResults.roundByRound.elo,
-                                        accessor: (row) => getPlayerElo(row.homeId),
+                                        accessor: (row) => {
+                                          const roundDate = parseDateToTimestamp(row.date);
+                                          return getPlayerEloByDate(row.homeId, roundDate);
+                                        },
                                         align: 'center',
                                         noWrap: true
                                       },
@@ -497,7 +539,10 @@ export default function GroupResultsPage() {
                                       {
                                         id: 'blackElo',
                                         header: t.pages.tournamentResults.roundByRound.elo,
-                                        accessor: (row) => getPlayerElo(row.awayId),
+                                        accessor: (row) => {
+                                          const roundDate = parseDateToTimestamp(row.date);
+                                          return getPlayerEloByDate(row.awayId, roundDate);
+                                        },
                                         align: 'center',
                                         noWrap: true
                                       },

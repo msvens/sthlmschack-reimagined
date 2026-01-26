@@ -11,7 +11,7 @@ import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { EloRatingChart, RatingDataPoint } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { PlayerService, TournamentService, getPlayerRatingHistory, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, calculateTournamentStats, isWalkoverResultCode, getResultDisplayString } from '@/lib/api';
+import { PlayerService, TournamentService, getPlayerRatingHistory, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, getResultDisplayString } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -19,6 +19,7 @@ import { useGroupResults } from '@/context/GroupResultsContext';
 
 interface PlayerMatch {
   round: number;
+  roundDate: number; // Unix timestamp for historical ELO lookup
   opponent: PlayerInfoDto;
   result: 'win' | 'draw' | 'loss';
   color: 'white' | 'black';
@@ -35,7 +36,19 @@ export default function TournamentPlayerDetailPage() {
   const t = getTranslation(language);
 
   // Get group-level data from context
-  const { isTeamTournament, individualRoundResults, teamRoundResults, playerMap, groupName, groupStartDate, groupEndDate, rankingAlgorithm, loading: resultsLoading } = useGroupResults();
+  const {
+    isTeamTournament,
+    individualRoundResults,
+    teamRoundResults,
+    playerMap,
+    groupName,
+    groupStartDate,
+    groupEndDate,
+    rankingAlgorithm,
+    loading: resultsLoading,
+    fetchPlayersByDate,
+    getPlayerByDate
+  } = useGroupResults();
 
   const [player, setPlayer] = useState<PlayerInfoDto | null>(null); // Current player info for display
   const [tournamentPlayer, setTournamentPlayer] = useState<PlayerInfoDto | null>(null); // Historical player info for calculations
@@ -47,6 +60,9 @@ export default function TournamentPlayerDetailPage() {
   // Rating history state
   const [ratingHistory, setRatingHistory] = useState<RatingDataPoint[]>([]);
   const [ratingHistoryLoading, setRatingHistoryLoading] = useState(false);
+
+  // Track when historical player data has been fetched (for team tournaments)
+  const [historicalDataFetched, setHistoricalDataFetched] = useState(false);
 
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
@@ -96,21 +112,107 @@ export default function TournamentPlayerDetailPage() {
     fetchData();
   }, [tournamentId, memberId, groupId]);
 
-  // Get historical tournament player info from playerMap
+  // Get historical tournament player info
   useEffect(() => {
-    if (!memberId || !playerMap || resultsLoading) {
+    if (!memberId || resultsLoading || !historicalDataFetched) {
       return;
     }
 
-    const historicalPlayer = playerMap.get(memberId);
-    if (historicalPlayer) {
-      setTournamentPlayer(historicalPlayer);
+    // For both tournament types, get player from historical data using group start date
+    if (groupStartDate) {
+      const startDate = new Date(groupStartDate).getTime();
+      const historicalPlayer = getPlayerByDate(memberId, startDate);
+      if (historicalPlayer) {
+        setTournamentPlayer(historicalPlayer);
+        return;
+      }
     }
-  }, [memberId, playerMap, resultsLoading]);
+
+    // Fallback to playerMap if historical data not available
+    const fallbackPlayer = playerMap.get(memberId);
+    if (fallbackPlayer) {
+      setTournamentPlayer(fallbackPlayer);
+    }
+  }, [memberId, playerMap, resultsLoading, historicalDataFetched, groupStartDate, getPlayerByDate]);
+
+  // Fetch historical player data for the player and all opponents
+  // This applies to both team tournaments and multi-month individual tournaments
+  useEffect(() => {
+    if (!memberId || resultsLoading) {
+      return;
+    }
+
+    // Collect all (playerId, roundDate) pairs needed
+    const requests: { playerId: number; date: number }[] = [];
+
+    if (isTeamTournament) {
+      // Team tournament: extract from teamRoundResults
+      if (teamRoundResults.length === 0) return;
+
+      for (const roundResult of teamRoundResults) {
+        const roundDate = parseDateToTimestamp(roundResult.date);
+        if (isNaN(roundDate) || roundDate <= 0) continue;
+
+        roundResult.games?.forEach(game => {
+          if (game.whiteId === memberId || game.blackId === memberId) {
+            // Add the player at this round's date
+            requests.push({ playerId: memberId, date: roundDate });
+
+            // Add the opponent at this round's date
+            const opponentId = game.whiteId === memberId ? game.blackId : game.whiteId;
+            if (opponentId > 0) { // Skip walkover IDs
+              requests.push({ playerId: opponentId, date: roundDate });
+            }
+          }
+        });
+      }
+    } else {
+      // Individual tournament: extract from individualRoundResults
+      if (individualRoundResults.length === 0) return;
+
+      for (const roundResult of individualRoundResults) {
+        if (roundResult.homeId === memberId || roundResult.awayId === memberId) {
+          const roundDate = parseDateToTimestamp(roundResult.date);
+          if (isNaN(roundDate) || roundDate <= 0) continue;
+
+          // Add the player at this round's date
+          requests.push({ playerId: memberId, date: roundDate });
+
+          // Add the opponent at this round's date
+          const opponentId = roundResult.homeId === memberId ? roundResult.awayId : roundResult.homeId;
+          if (opponentId > 0) { // Skip walkover IDs
+            requests.push({ playerId: opponentId, date: roundDate });
+          }
+        }
+      }
+    }
+
+    if (requests.length === 0) {
+      setHistoricalDataFetched(true);
+      return;
+    }
+
+    // Fetch all historical player data (function will skip already cached entries)
+    fetchPlayersByDate(requests).then(() => {
+      setHistoricalDataFetched(true);
+    });
+  }, [isTeamTournament, memberId, teamRoundResults, individualRoundResults, resultsLoading, fetchPlayersByDate]);
+
+  // Helper to parse date string to timestamp
+  function parseDateToTimestamp(dateStr: string): number {
+    const asNumber = Number(dateStr);
+    if (!isNaN(asNumber) && asNumber > 0) return asNumber;
+    return new Date(dateStr).getTime();
+  }
 
   // Extract player's matches from context round results once available
   useEffect(() => {
-    if (!memberId || !tournamentPlayer || resultsLoading) {
+    if (!memberId || resultsLoading) {
+      return;
+    }
+
+    // Wait for historical data to be fetched (applies to both tournament types)
+    if (!historicalDataFetched) {
       return;
     }
 
@@ -121,14 +223,16 @@ export default function TournamentPlayerDetailPage() {
       if (teamRoundResults.length === 0) return;
 
       for (const roundResult of teamRoundResults) {
+        const roundDate = parseDateToTimestamp(roundResult.date);
+
         // Look through all games in this round result
         roundResult.games?.forEach(game => {
           if (game.whiteId === memberId || game.blackId === memberId) {
             const isWhite = game.whiteId === memberId;
             const opponentId = isWhite ? game.blackId : game.whiteId;
 
-            // Get opponent info from playerMap
-            const opponent = playerMap.get(opponentId);
+            // Get opponent info using historical date lookup
+            const opponent = getPlayerByDate(opponentId, roundDate);
             if (opponent) {
               // Determine result based on game.result and player color
               let result: 'win' | 'draw' | 'loss';
@@ -157,6 +261,7 @@ export default function TournamentPlayerDetailPage() {
 
               playerMatches.push({
                 round: roundResult.roundNr,
+                roundDate,
                 opponent,
                 result,
                 color: isWhite ? 'white' : 'black',
@@ -178,9 +283,10 @@ export default function TournamentPlayerDetailPage() {
           const isHome = roundResult.homeId === memberId;
           const opponentId = isHome ? roundResult.awayId : roundResult.homeId;
           const playerResult = isHome ? roundResult.homeResult : roundResult.awayResult;
+          const roundDate = parseDateToTimestamp(roundResult.date);
 
-          // Get opponent info from playerMap
-          const opponent = playerMap.get(opponentId);
+          // Get opponent info using historical date lookup
+          const opponent = getPlayerByDate(opponentId, roundDate);
           if (opponent) {
             // Determine result
             let result: 'win' | 'draw' | 'loss';
@@ -198,6 +304,7 @@ export default function TournamentPlayerDetailPage() {
 
             playerMatches.push({
               round: roundResult.roundNr,
+              roundDate,
               opponent,
               result,
               color: isHome ? 'white' : 'black',
@@ -215,7 +322,7 @@ export default function TournamentPlayerDetailPage() {
     playerMatches.sort((a, b) => a.round - b.round);
 
     setMatches(playerMatches);
-  }, [memberId, tournamentPlayer, isTeamTournament, individualRoundResults, teamRoundResults, playerMap, resultsLoading]);
+  }, [memberId, tournamentPlayer, isTeamTournament, individualRoundResults, teamRoundResults, playerMap, resultsLoading, historicalDataFetched, getPlayerByDate]);
 
   // Fetch tournament history and rating history after player data is loaded
   useEffect(() => {
@@ -328,7 +435,10 @@ export default function TournamentPlayerDetailPage() {
       id: 'whiteElo',
       header: t.pages.tournamentResults.roundByRound.elo,
       accessor: (row) => {
-        const whitePlayerElo = row.color === 'white' ? tournamentPlayer?.elo : row.opponent.elo;
+        // Use historical ELO at round date for both tournament types
+        const whitePlayerElo = row.color === 'white'
+          ? getPlayerByDate(memberId!, row.roundDate)?.elo
+          : row.opponent.elo;
         const { rating, ratingType } = getPlayerRatingByAlgorithm(whitePlayerElo, rankingAlgorithm);
         return formatRatingWithType(rating, ratingType, language);
       },
@@ -355,7 +465,10 @@ export default function TournamentPlayerDetailPage() {
       id: 'blackElo',
       header: t.pages.tournamentResults.roundByRound.elo,
       accessor: (row) => {
-        const blackPlayerElo = row.color === 'black' ? tournamentPlayer?.elo : row.opponent.elo;
+        // Use historical ELO at round date for both tournament types
+        const blackPlayerElo = row.color === 'black'
+          ? getPlayerByDate(memberId!, row.roundDate)?.elo
+          : row.opponent.elo;
         const { rating, ratingType } = getPlayerRatingByAlgorithm(blackPlayerElo, rankingAlgorithm);
         return formatRatingWithType(rating, ratingType, language);
       },
@@ -383,10 +496,13 @@ export default function TournamentPlayerDetailPage() {
         // Walkovers don't count for ELO
         if (row.isWalkover) return '-';
 
-        if (!tournamentPlayer) return '-';
+        // Use historical player data at round date for both tournament types
+        const playerData = getPlayerByDate(memberId!, row.roundDate);
+
+        if (!playerData) return '-';
 
         // Get appropriate ratings based on group's ranking algorithm
-        const { rating: playerRating, ratingType } = getPlayerRatingByAlgorithm(tournamentPlayer.elo, rankingAlgorithm);
+        const { rating: playerRating, ratingType } = getPlayerRatingByAlgorithm(playerData.elo, rankingAlgorithm);
         const { rating: opponentRating } = getPlayerRatingByAlgorithm(row.opponent.elo, rankingAlgorithm);
 
         // Can't calculate if either player has no rating
@@ -395,7 +511,7 @@ export default function TournamentPlayerDetailPage() {
         }
 
         // Get K-factor based on rating type (rapid/blitz use K=40, standard uses K=20)
-        const kFactor = getKFactorForRating(ratingType, playerRating, tournamentPlayer.elo);
+        const kFactor = getKFactorForRating(ratingType, playerRating, playerData.elo);
 
         // Calculate rating change
         const actualScore = row.result === 'win' ? 1.0 : row.result === 'draw' ? 0.5 : 0.0;
@@ -459,24 +575,57 @@ export default function TournamentPlayerDetailPage() {
             let eloChange: string = '-';
             let performanceRating: string = '-';
 
-            if (tournamentPlayer?.elo && playedMatches.length > 0) {
-              const { rating: playerRating, ratingType } = getPlayerRatingByAlgorithm(tournamentPlayer.elo, rankingAlgorithm);
+            if (playedMatches.length > 0) {
+              // Use historical per-round data for consistency with per-row display
+              // This applies to both team and individual tournaments
+              const matchResults = playedMatches.map(match => {
+                // Get player rating at this round's date
+                const playerData = getPlayerByDate(memberId!, match.roundDate);
 
-              if (playerRating) {
-                // Get K-factor based on rating type (rapid/blitz use K=40, standard uses K=20)
-                const kFactor = getKFactorForRating(ratingType, playerRating, tournamentPlayer.elo);
+                const { rating: playerRating, ratingType } = getPlayerRatingByAlgorithm(playerData?.elo, rankingAlgorithm);
+                const { rating: opponentRating } = getPlayerRatingByAlgorithm(match.opponent.elo, rankingAlgorithm);
 
-                // Only include played matches (not walkovers) in ELO calculation
-                const matchResults = playedMatches.map(match => ({
-                  opponentRating: getPlayerRatingByAlgorithm(match.opponent.elo, rankingAlgorithm).rating,
+                return {
+                  playerRating,
+                  ratingType,
+                  playerElo: playerData?.elo,
+                  opponentRating,
                   actualScore: match.result === 'win' ? 1.0 : match.result === 'draw' ? 0.5 : 0.0
-                }));
+                };
+              });
 
-                const stats = calculateTournamentStats(matchResults, playerRating, kFactor);
+              // Calculate total ELO change by summing per-match changes
+              let totalChange = 0;
+              const ratedOpponentRatings: number[] = [];
+              let ratedScore = 0;
 
-                if (stats.gamesWithRatedOpponents > 0) {
-                  eloChange = stats.totalChange > 0 ? `+${stats.totalChange}` : String(stats.totalChange);
-                  performanceRating = String(stats.performanceRating);
+              for (const result of matchResults) {
+                // Only include matches where both players have valid ratings
+                if (result.playerRating && result.playerRating > 0 &&
+                    result.opponentRating && result.opponentRating > 0) {
+                  const kFactor = getKFactorForRating(result.ratingType, result.playerRating, result.playerElo);
+                  const change = calculateRatingChange(result.playerRating, result.opponentRating, result.actualScore, kFactor);
+                  totalChange += change;
+                  ratedOpponentRatings.push(result.opponentRating);
+                  ratedScore += result.actualScore;
+                }
+              }
+
+              if (ratedOpponentRatings.length > 0) {
+                totalChange = Math.round(totalChange * 10) / 10;
+                eloChange = totalChange > 0 ? `+${totalChange}` : String(totalChange);
+
+                // Calculate performance rating
+                const avgOpponentRating = ratedOpponentRatings.reduce((sum, r) => sum + r, 0) / ratedOpponentRatings.length;
+                const scorePercentage = ratedScore / ratedOpponentRatings.length;
+
+                if (scorePercentage === 1.0) {
+                  performanceRating = String(Math.round(avgOpponentRating + 800));
+                } else if (scorePercentage === 0.0) {
+                  performanceRating = String(Math.round(avgOpponentRating - 800));
+                } else {
+                  const ratingDiff = -400 * Math.log10((1 / scorePercentage) - 1);
+                  performanceRating = String(Math.round(avgOpponentRating + ratingDiff));
                 }
               }
             }

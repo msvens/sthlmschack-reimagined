@@ -3,6 +3,14 @@
 import { createContext, useContext } from 'react';
 import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto } from '@/lib/api/types';
 
+/**
+ * Request for fetching a player's info at a specific historical date
+ */
+export interface PlayerDateRequest {
+  playerId: number;
+  date: number;  // Unix timestamp in milliseconds
+}
+
 export interface GroupResultsContextValue {
   // Tournament type detection
   isTeamTournament: boolean;
@@ -30,6 +38,11 @@ export interface GroupResultsContextValue {
   getPlayerElo: (playerId: number) => string;
   getPlayerClubId: (playerId: number) => number | null;
   getClubName: (clubId: number) => string;
+
+  // Historical ELO functions for team tournaments
+  fetchPlayersByDate: (requests: PlayerDateRequest[]) => Promise<void>;
+  getPlayerByDate: (playerId: number, date: number) => PlayerInfoDto | undefined;
+  getPlayerEloByDate: (playerId: number, date: number) => string;
 }
 
 const GroupResultsContext = createContext<GroupResultsContextValue | null>(null);
