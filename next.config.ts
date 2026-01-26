@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'resultat.schack.se',
+        pathname: '/getPlayerPhoto*'
+      }
+    ]
+  },
   async rewrites() {
     return [
       // Production API rewrite (used by default via SSF_PROXY_URL)

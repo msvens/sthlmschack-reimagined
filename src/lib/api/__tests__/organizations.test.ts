@@ -6,11 +6,9 @@
 import { OrganizationService } from '../index';
 import { CURRENT_TEST_API_URL } from '../constants';
 import {
-  TEST_FEDERATION_ID,
   TEST_DISTRICT_ID,
   TEST_CLUB_ID,
-  TEST_CLUB_NAME,
-  TEST_ORGANIZATION_ID
+  TEST_CLUB_NAME
 } from './test-data';
 
 describe('Organization Service Integration Tests', () => {

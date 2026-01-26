@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { PlayerInfoDto } from '@/lib/api/types';
 import { Link } from '@/components/Link';
 
@@ -61,11 +62,14 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
         {/* Mobile: Photo (left-aligned, before info) */}
         {!imageError && (
           <div className="sm:hidden">
-            <img
+            <Image
               src={photoUrl}
               alt={`${player.firstName} ${player.lastName}`}
-              className="max-w-[160px] max-h-[160px] object-contain rounded"
+              width={160}
+              height={160}
+              className="object-contain rounded"
               onError={() => setImageError(true)}
+              unoptimized
             />
           </div>
         )}
@@ -151,11 +155,14 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
         {/* Right: Player Photo (Desktop: >= sm) */}
         {!imageError && (
           <div className="hidden sm:block flex-shrink-0">
-            <img
+            <Image
               src={photoUrl}
               alt={`${player.firstName} ${player.lastName}`}
-              className="max-w-[240px] max-h-[240px] object-contain rounded"
+              width={240}
+              height={240}
+              className="object-contain rounded"
               onError={() => setImageError(true)}
+              unoptimized
             />
           </div>
         )}

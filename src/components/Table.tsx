@@ -116,6 +116,7 @@ export function Table<T = Record<string, unknown>>({
     comfortable: 10,
     normal: 20
   },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   size = 'medium',
   pagination
 }: TableProps<T>) {

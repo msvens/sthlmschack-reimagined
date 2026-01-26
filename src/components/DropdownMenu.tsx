@@ -103,9 +103,6 @@ export function DropdownMenu({
     return null;
   }
 
-  // Show all items when there are more than maxItems to enable scrolling
-  const displayItems = items.length > maxItems ? items : items.slice(0, maxItems);
-
   return (
     <div
       ref={dropdownRef}

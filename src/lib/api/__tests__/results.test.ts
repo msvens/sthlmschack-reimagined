@@ -145,4 +145,24 @@ describe('Results Service Integration Tests', () => {
       }
     }, 10000);
   });
+
+  describe('Member Games API', () => {
+    test('should fetch all games for a member', async () => {
+      const response = await resultsService.getMemberGames(TEST_RESULTS_MEMBER_ID);
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+
+      if (response.data) {
+        expect(Array.isArray(response.data)).toBe(true);
+
+        if (response.data.length > 0) {
+          const game = response.data[0];
+          // Games should have basic game info
+          expect(game.groupiD).toBeDefined();
+          expect(game.result).toBeDefined();
+        }
+      }
+    }, 10000);
+  });
 });

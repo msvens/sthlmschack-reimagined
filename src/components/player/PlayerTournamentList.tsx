@@ -54,6 +54,7 @@ export function PlayerTournamentList({
     comfortable: 10,
     normal: 25
   },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isTeam = false
 }: PlayerTournamentListProps) {
   // Track if we're on mobile

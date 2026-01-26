@@ -35,15 +35,8 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
       blitz: 0
     };
 
-    games.forEach(game => {
-      const tournament = tournamentMap.get(game.groupiD);
-      const timeControl = tournament?.thinkingTime
-        ? (tournamentMap.get(game.groupiD) && t.pages.playerDetail.opponentsTab.timeControl.standard)
-        : 'standard';
-
-      // This is a simplified count - the actual filtering happens in filterGamesByTimeControl
-      // For now, just count all as standard (we could improve this later)
-    });
+    // Time control counts are calculated below using filterGamesByTimeControl
+    // This forEach was a placeholder that's no longer needed
 
     // Properly calculate counts using filterGamesByTimeControl
     counts.standard = filterGamesByTimeControl(games, tournamentMap, 'standard').length;
@@ -51,7 +44,7 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
     counts.blitz = filterGamesByTimeControl(games, tournamentMap, 'blitz').length;
 
     return counts;
-  }, [games, tournamentMap, t]);
+  }, [games, tournamentMap]);
 
   // Filter games by selected time control
   const filteredGames = useMemo(() => {

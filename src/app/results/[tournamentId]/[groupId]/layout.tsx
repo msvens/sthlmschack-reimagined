@@ -4,7 +4,7 @@ import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { ResultsService, TournamentService, PlayerService, formatRatingWithType, getPlayerRatingByAlgorithm } from '@/lib/api';
 import { chunkArray } from '@/lib/api/utils/batchUtils';
-import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TournamentClassGroupDto, TeamTournamentEndResultDto, TournamentDto, isTeamTournament } from '@/lib/api/types';
+import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, isTeamTournament } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
 import { useLanguage } from '@/context/LanguageContext';

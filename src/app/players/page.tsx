@@ -11,7 +11,7 @@ import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { PlayerService } from '@/lib/api';
 import { PlayerInfoDto } from '@/lib/api/types';
-import { getRecentPlayers, addRecentPlayer, RecentPlayer } from '@/lib/recentPlayers';
+import { getRecentPlayers, RecentPlayer } from '@/lib/recentPlayers';
 
 export default function PlayersPage() {
   const { language } = useLanguage();

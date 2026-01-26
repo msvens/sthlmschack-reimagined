@@ -105,6 +105,59 @@ describe('Player Service Integration Tests', () => {
     }, 10000);
   });
 
+  describe('Player Search API', () => {
+    test('should search player by name', async () => {
+      const response = await playerService.searchPlayer(
+        EXPECTED_PLAYER_FIRST_NAME,
+        EXPECTED_PLAYER_LAST_NAME
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+      expect(Array.isArray(response.data)).toBe(true);
+
+      if (response.data && response.data.length > 0) {
+        // Should find our test player
+        const foundPlayer = response.data.find(p => p.id === TEST_PLAYER_ID);
+        expect(foundPlayer).toBeDefined();
+      }
+    }, 10000);
+
+    test('should handle search with no results', async () => {
+      const response = await playerService.searchPlayer('Xyzzy', 'Nonexistent');
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+      // May return empty array
+      expect(Array.isArray(response.data)).toBe(true);
+    }, 10000);
+  });
+
+  describe('Player Rating History API', () => {
+    test('should fetch player ELO history', async () => {
+      const response = await playerService.getPlayerEloHistory(TEST_PLAYER_ID);
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+      expect(Array.isArray(response.data)).toBe(true);
+
+      if (response.data && response.data.length > 0) {
+        // Each history entry should have elo and lask rating info
+        const entry = response.data[0];
+        expect(entry.elo).toBeDefined();
+        expect(entry.lask).toBeDefined();
+      }
+    }, 15000); // Longer timeout as this makes multiple API calls
+
+    test('should fetch player ELO history with custom months back', async () => {
+      const response = await playerService.getPlayerEloHistory(TEST_PLAYER_ID, 6);
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+      expect(Array.isArray(response.data)).toBe(true);
+    }, 15000);
+  });
+
   describe('Date Formatting', () => {
     test('should format dates correctly for API calls', () => {
       const testDate = new Date('2024-03-15T10:30:00Z');
