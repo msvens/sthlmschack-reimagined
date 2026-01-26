@@ -3,14 +3,13 @@
  * Tests real API calls with known data points
  */
 
-import {ApiResponse, TournamentDto, TournamentService} from '../index';
+import { TournamentService } from '../index';
 import { CURRENT_TEST_API_URL } from '../constants';
 import {
   TEST_TOURNAMENT_ID,
   TEST_TOURNAMENT_GROUP_ID,
   TEST_TOURNAMENT_CLASS_ID,
   TEST_SEARCH_TERM,
-  TEST_LOCATION_TERM,
   EXPECTED_TOURNAMENT_NAME
 } from './test-data';
 
@@ -20,8 +19,6 @@ describe('Tournament Service Integration Tests', () => {
 
   beforeEach(() => {
     tournamentService = new TournamentService(CURRENT_TEST_API_URL);
-    // Suppress unused variable warning for now
-    void tournamentService;
   });
 
   describe('Tournament Structure API', () => {
@@ -55,12 +52,30 @@ describe('Tournament Service Integration Tests', () => {
       expect(response.data).toBeDefined();
       expect(response.data?.length).toBeGreaterThan(0);
       expect(response.data?.[0].name).toBe("SM-gruppen");
-    
     }, 10000);
 
-    test('should search tournaments by location', async () => {
-      // TODO: Implement when test location terms are available
-      expect(true).toBe(true); // Placeholder
+    test('should fetch upcoming tournaments', async () => {
+      const response = await tournamentService.searchComingTournaments();
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+      // May return empty array if no upcoming tournaments, that's valid
+      expect(Array.isArray(response.data)).toBe(true);
+    }, 10000);
+
+    test('should search recently updated tournaments', async () => {
+      // Search for tournaments updated in the last 30 days
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+
+      const response = await tournamentService.searchUpdatedTournaments(
+        startDate.toISOString(),
+        endDate.toISOString()
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data).toBeDefined();
+      expect(Array.isArray(response.data)).toBe(true);
     }, 10000);
   });
 });

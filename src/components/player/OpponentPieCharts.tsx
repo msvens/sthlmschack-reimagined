@@ -123,7 +123,7 @@ export function OpponentPieCharts({
               cx="50%"
               cy="50%"
               outerRadius="90%"
-              label={({ cx, cy, midAngle, innerRadius, outerRadius, value, percent }) => {
+              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                 // Type guard for required values
                 if (midAngle === undefined || percent === undefined) return null;
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { TournamentService, formatMatchResult } from '@/lib/api';
-import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TeamTournamentEndResultDto, TournamentRoundResultDto } from '@/lib/api/types';
+import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -64,15 +64,16 @@ export default function GroupResultsPage() {
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
 
   // Group round results by round number for individual tournaments
+  // Use individualRoundResults directly for stable reference
   const resultsByRound = useMemo(() => {
     if (isTeamTournament) return {};
-    return roundResults.reduce((acc, result) => {
+    return individualRoundResults.reduce((acc, result) => {
       const round = result.roundNr || 1;
       if (!acc[round]) acc[round] = [];
       acc[round].push(result);
       return acc;
     }, {} as Record<number, TournamentRoundResultDto[]>);
-  }, [isTeamTournament, roundResults]);
+  }, [isTeamTournament, individualRoundResults]);
 
   // Fetch historical player data when selecting a round in individual tournaments
   useEffect(() => {

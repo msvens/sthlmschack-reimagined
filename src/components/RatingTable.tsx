@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Table, TableColumn } from '@/components/Table';
 import type { PlayerInfoDto } from '@/lib/api/types';
@@ -22,7 +22,7 @@ export function RatingTable({ players, ratingType, loading, t }: RatingTableProp
   const router = useRouter();
 
   // Get rating value for a player based on rating type
-  const getRatingValue = (player: PlayerInfoDto): number => {
+  const getRatingValue = useCallback((player: PlayerInfoDto): number => {
     switch (ratingType) {
       case RatingType.STANDARD:
         return player.elo?.rating || 0;
@@ -33,7 +33,7 @@ export function RatingTable({ players, ratingType, loading, t }: RatingTableProp
       default:
         return 0;
     }
-  };
+  }, [ratingType]);
 
   // Sort by rating (descending) and add rank
   const playersWithRank = useMemo<PlayerWithRank[]>(() => {
@@ -42,7 +42,7 @@ export function RatingTable({ players, ratingType, loading, t }: RatingTableProp
       ...player,
       rank: index + 1
     }));
-  }, [players, ratingType]);
+  }, [players, getRatingValue]);
 
   // Handle row click - navigate to player page
   const handleRowClick = (player: PlayerWithRank) => {
