@@ -19,6 +19,36 @@ export const changelog: ChangelogEntry[] = [
     "sections": []
   },
   {
+    "version": "0.6.0",
+    "date": "2026-01-27",
+    "sections": [
+      {
+        "type": "Added",
+        "items": [
+          "Unit test suite for all pure utility functions (140+ new tests)",
+          "Integration tests for searchPlayer, getPlayerEloHistory, getMemberGames, searchComingTournaments, and searchUpdatedTournaments",
+          "Historical ELO support for team tournaments"
+        ]
+      },
+      {
+        "type": "Changed",
+        "items": [
+          "Restructured organizations into districts, clubs, and SSF pages",
+          "Improved calendar and player info display",
+          "Replaced `<img>` with Next.js Image component for player photos",
+          "Cleaned up and consolidated test data"
+        ]
+      },
+      {
+        "type": "Fixed",
+        "items": [
+          "Build warnings (unused variables, React hook dependencies, image optimization)",
+          "Walkover detection in tournament player results"
+        ]
+      }
+    ]
+  },
+  {
     "version": "0.5.0",
     "date": "2025-01-22",
     "sections": [

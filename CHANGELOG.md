@@ -6,6 +6,25 @@ All notable changes to msvens chess will be documented in this file.
 
 ---
 
+## [0.6.0] - 2026-01-27
+
+### Added
+- Unit test suite for all pure utility functions (140+ new tests)
+- Integration tests for searchPlayer, getPlayerEloHistory, getMemberGames, searchComingTournaments, and searchUpdatedTournaments
+- Historical ELO support for team tournaments
+
+### Changed
+- Restructured organizations into districts, clubs, and SSF pages
+- Improved calendar and player info display
+- Replaced `<img>` with Next.js Image component for player photos
+- Cleaned up and consolidated test data
+
+### Fixed
+- Build warnings (unused variables, React hook dependencies, image optimization)
+- Walkover detection in tournament player results
+
+---
+
 ## [0.5.0] - 2025-01-22
 
 ### Added
