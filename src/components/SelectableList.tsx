@@ -120,8 +120,8 @@ export function SelectableList({
     compact: {
       triggerPadding: 'px-3 py-1.5',
       itemPadding: 'px-3 py-1',
-      fontSize: 'text-xs',
-      subtitleSize: 'text-[10px]',
+      fontSize: 'text-sm',
+      subtitleSize: 'text-xs',
       lineHeight: 'leading-tight'
     },
     normal: {

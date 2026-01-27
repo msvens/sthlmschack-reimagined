@@ -5,6 +5,7 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { PageTitle } from "@/components/PageTitle";
 import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
+import { DatePicker } from "@/components/DatePicker";
 import { DistrictFilter } from "@/components/DistrictFilter";
 import { TournamentList } from "@/components/TournamentList";
 import { TournamentCategoryFilter, TournamentTypeFilter, TournamentStateFilter } from "@/components/filters";
@@ -285,21 +286,21 @@ export default function ResultsPage() {
         {/* Line 1: Start date | End date | District | Search button */}
         <div className="flex gap-3 items-end">
           <div className="flex-1 min-w-0">
-            <TextField
-              type="date"
+            <DatePicker
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={setStartDate}
               fullWidth
               compact
+              language={language}
             />
           </div>
           <div className="flex-1 min-w-0">
-            <TextField
-              type="date"
+            <DatePicker
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={setEndDate}
               fullWidth
               compact
+              language={language}
             />
           </div>
           <div className="flex-1 min-w-0">
