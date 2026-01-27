@@ -6,6 +6,7 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { PlayerHistory } from '@/components/player/PlayerHistory';
 import { EloRatingChart, RatingDataPoint } from '@/components/player/EloRatingChart';
+import { DatePicker } from '@/components/DatePicker';
 import { getPlayerRatingHistory } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -31,9 +32,22 @@ export default function PlayerPage() {
   const [ratingHistory, setRatingHistory] = useState<RatingDataPoint[]>([]);
   const [ratingHistoryLoading, setRatingHistoryLoading] = useState(false);
 
+  // Date range for ELO history (YYYY-MM format)
+  const getDefaultDateRange = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+    return {
+      start: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}`,
+      end: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
+    };
+  };
+  const defaultRange = getDefaultDateRange();
+  const [startMonth, setStartMonth] = useState(defaultRange.start);
+  const [endMonth, setEndMonth] = useState(defaultRange.end);
+
   const memberId = params.memberId ? parseInt(params.memberId as string) : null;
 
-  // Fetch rating history after player data is loaded
+  // Fetch rating history after player data is loaded or date range changes
   useEffect(() => {
     if (!player || !memberId) return;
 
@@ -41,7 +55,7 @@ export default function PlayerPage() {
       try {
         setRatingHistoryLoading(true);
 
-        const response = await getPlayerRatingHistory(memberId);
+        const response = await getPlayerRatingHistory(memberId, startMonth, endMonth);
 
         if (response.status === 200 && response.data) {
           setRatingHistory(response.data);
@@ -54,7 +68,7 @@ export default function PlayerPage() {
     };
 
     fetchRatingHistory();
-  }, [player, memberId]);
+  }, [player, memberId, startMonth, endMonth]);
 
   // Save to recent players when player data is loaded
   useEffect(() => {
@@ -130,6 +144,22 @@ export default function PlayerPage() {
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
           {t.common.eloLabels.ratingHistory}
         </h2>
+        <div className="flex gap-3 mb-4">
+          <DatePicker
+            value={startMonth}
+            onChange={setStartMonth}
+            mode="month"
+            compact
+            language={language}
+          />
+          <DatePicker
+            value={endMonth}
+            onChange={setEndMonth}
+            mode="month"
+            compact
+            language={language}
+          />
+        </div>
         {ratingHistoryLoading ? (
           <div className="flex items-center justify-center h-96 text-gray-600 dark:text-gray-400">
             {t.common.eloLabels.loadingHistory}
