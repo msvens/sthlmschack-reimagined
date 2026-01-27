@@ -332,7 +332,7 @@ export default function TournamentPlayerDetailPage() {
       try {
         setRatingHistoryLoading(true);
 
-        const response = await getPlayerRatingHistory(memberId, 12);
+        const response = await getPlayerRatingHistory(memberId);
 
         if (response.status === 200 && response.data) {
           setRatingHistory(response.data);

@@ -135,14 +135,15 @@ export class PlayerService extends BaseApiService {
   }
 
   /**
-   * Fetch player rating history for a specified number of months
+   * Fetch player rating history for a date range
    *
    * @param playerId - The Swedish Chess Federation player ID
-   * @param monthsBack - Number of months to look back (default: 12)
+   * @param startMonth - Start month in YYYY-MM format (default: 12 months ago)
+   * @param endMonth - End month in YYYY-MM format (default: current month)
    * @returns Array of rating history sorted by date (latest first)
    *
    * @remarks
-   * - Fetches player ratings for each month from today backwards
+   * - Fetches player ratings for each month in the range
    * - Processes in batches of 12 months for efficiency
    * - **Smart stopping**: Stops when encountering a month with no ratings (all rating fields are null/0)
    * - Also stops if API call fails (player doesn't exist at that date)
@@ -153,20 +154,31 @@ export class PlayerService extends BaseApiService {
    * // Get last 12 months of rating history
    * const history = await playerService.getPlayerEloHistory(12345);
    *
-   * // Get last 24 months
-   * const history = await playerService.getPlayerEloHistory(12345, 24);
+   * // Get specific range
+   * const history = await playerService.getPlayerEloHistory(12345, '2024-01', '2025-06');
    * ```
    */
   async getPlayerEloHistory(
     playerId: number,
-    monthsBack: number = 12
+    startMonth?: string,
+    endMonth?: string
   ): Promise<ApiResponse<PlayerRatingHistory[]>> {
     try {
-      // Generate dates from today backwards for each month
+      // Parse start/end months or use defaults (12 months back to current month)
       const today = new Date();
+      const end = endMonth
+        ? new Date(parseInt(endMonth.split('-')[0]), parseInt(endMonth.split('-')[1]) - 1, 1)
+        : new Date(today.getFullYear(), today.getMonth(), 1);
+      const start = startMonth
+        ? new Date(parseInt(startMonth.split('-')[0]), parseInt(startMonth.split('-')[1]) - 1, 1)
+        : new Date(today.getFullYear(), today.getMonth() - 11, 1);
+
+      // Generate dates from end backwards to start
       const dates: Date[] = [];
-      for (let i = 0; i < monthsBack; i++) {
-        dates.push(new Date(today.getFullYear(), today.getMonth() - i, 1));
+      const current = new Date(end.getFullYear(), end.getMonth(), 1);
+      while (current >= start) {
+        dates.push(new Date(current.getFullYear(), current.getMonth(), 1));
+        current.setMonth(current.getMonth() - 1);
       }
 
       // Process in batches of 12 months

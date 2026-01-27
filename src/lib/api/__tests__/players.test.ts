@@ -149,12 +149,15 @@ describe('Player Service Integration Tests', () => {
       }
     }, 15000); // Longer timeout as this makes multiple API calls
 
-    test('should fetch player ELO history with custom months back', async () => {
-      const response = await playerService.getPlayerEloHistory(TEST_PLAYER_ID, 6);
+    test('should fetch player ELO history with custom date range', async () => {
+      const response = await playerService.getPlayerEloHistory(TEST_PLAYER_ID, '2025-06', '2025-12');
 
       expect(response.status).toBe(200);
       expect(response.data).toBeDefined();
       expect(Array.isArray(response.data)).toBe(true);
+      if (response.data) {
+        expect(response.data.length).toBeLessThanOrEqual(7); // 7 months inclusive
+      }
     }, 15000);
   });
 

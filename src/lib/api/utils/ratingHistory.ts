@@ -3,20 +3,21 @@ import type { ApiResponse } from '../types';
 import type { RatingDataPoint } from '@/components/player/EloRatingChart';
 
 /**
- * Fetches player rating history for the past N months
+ * Fetches player rating history for a date range
  * @param playerId - The player's SSF ID
- * @param monthsBack - Number of months to look back (default: 12)
+ * @param startMonth - Start month in YYYY-MM format (default: 12 months ago)
+ * @param endMonth - End month in YYYY-MM format (default: current month)
  * @returns Array of rating data points sorted by date (oldest to newest)
  */
 export async function getPlayerRatingHistory(
   playerId: number,
-  monthsBack: number = 12
+  startMonth?: string,
+  endMonth?: string
 ): Promise<ApiResponse<RatingDataPoint[]>> {
   const playerService = new PlayerService();
 
   try {
-    // Use the new batched service method
-    const response = await playerService.getPlayerEloHistory(playerId, monthsBack);
+    const response = await playerService.getPlayerEloHistory(playerId, startMonth, endMonth);
 
     if (response.status !== 200 || !response.data) {
       return {
