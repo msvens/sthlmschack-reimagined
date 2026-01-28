@@ -11,6 +11,7 @@ import {
   gamesToDisplayFormat,
   calculateStatsByColor
 } from '@/lib/api/utils/opponentStats';
+import { formatPlayerName } from '@/lib/api';
 import { Language } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 
@@ -63,12 +64,12 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
     return calculateStatsByColor(filteredGames, memberId);
   }, [filteredGames, memberId]);
 
-  // Get current player name
+  // Get current player name (includes FIDE title if available)
   const currentPlayerName = useMemo(() => {
     if (!memberId) return '';
     const player = playerMap.get(memberId);
     if (player) {
-      return `${player.firstName} ${player.lastName}`;
+      return formatPlayerName(player.firstName, player.lastName, player.elo?.title);
     }
     return `Player ${memberId}`;
   }, [memberId, playerMap]);

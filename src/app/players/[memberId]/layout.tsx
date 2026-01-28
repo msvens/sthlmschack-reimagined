@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, PlayerService, TournamentService, formatPlayerRating } from '@/lib/api';
+import { ResultsService, PlayerService, TournamentService, formatPlayerRating, formatPlayerName } from '@/lib/api';
 import { GameDto, PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { PlayerProvider, PlayerContextValue, TournamentParticipation } from '@/context/PlayerContext';
 import { parseTimeControl } from '@/lib/api/utils/ratingUtils';
@@ -205,11 +205,11 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
     fetchGamesAndMetadata();
   }, [memberId]);
 
-  // Helper functions
+  // Helper functions (includes FIDE title if available)
   const getPlayerName = useMemo(() => (playerId: number): string => {
     const player = playerMap.get(playerId);
     if (player) {
-      return `${player.firstName} ${player.lastName}`;
+      return formatPlayerName(player.firstName, player.lastName, player.elo?.title);
     }
     return `Player ${playerId}`;
   }, [playerMap]);

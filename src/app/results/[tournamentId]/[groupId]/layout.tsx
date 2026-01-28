@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, PlayerService, formatRatingWithType, getPlayerRatingByAlgorithm } from '@/lib/api';
+import { ResultsService, TournamentService, PlayerService, formatRatingWithType, getPlayerRatingByAlgorithm, formatPlayerName } from '@/lib/api';
 import { chunkArray } from '@/lib/api/utils/batchUtils';
 import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, isTeamTournament } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -197,11 +197,11 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     return undefined;
   }, [playerMap, playerDateCache]);
 
-  // Helper to get player name from ID
+  // Helper to get player name from ID (includes FIDE title if available)
   const getPlayerName = useCallback((playerId: number): string => {
     const player = findPlayer(playerId);
     if (!player) return `Player ${playerId}`;
-    return `${player.firstName} ${player.lastName}`;
+    return formatPlayerName(player.firstName, player.lastName, player.elo?.title);
   }, [findPlayer]);
 
   // Helper to get player ELO from ID based on group's ranking algorithm

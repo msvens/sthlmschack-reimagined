@@ -11,7 +11,7 @@ import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { EloRatingChart } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { PlayerService, TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, getResultDisplayString } from '@/lib/api';
+import { PlayerService, TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, getResultDisplayString, formatPlayerName } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -396,11 +396,16 @@ export default function TournamentPlayerDetailPage() {
       accessor: (row) => {
         const isPlayerWhite = row.color === 'white';
         const whitePlayer = isPlayerWhite ? player : row.opponent;
+        // Get historical title for time-sensitive display
+        const whiteTitle = isPlayerWhite
+          ? getPlayerByDate(memberId!, row.roundDate)?.elo?.title
+          : row.opponent.elo?.title;
+        const displayName = formatPlayerName(whitePlayer.firstName, whitePlayer.lastName, whiteTitle);
         return isPlayerWhite ? (
-          `${whitePlayer.firstName} ${whitePlayer.lastName}`
+          displayName
         ) : (
           <Link href={`/results/${tournamentId}/${groupId}/${row.opponent.id}`} color="gray">
-            {whitePlayer.firstName} {whitePlayer.lastName}
+            {displayName}
           </Link>
         );
       },
@@ -426,11 +431,16 @@ export default function TournamentPlayerDetailPage() {
       accessor: (row) => {
         const isPlayerBlack = row.color === 'black';
         const blackPlayer = isPlayerBlack ? player : row.opponent;
+        // Get historical title for time-sensitive display
+        const blackTitle = isPlayerBlack
+          ? getPlayerByDate(memberId!, row.roundDate)?.elo?.title
+          : row.opponent.elo?.title;
+        const displayName = formatPlayerName(blackPlayer.firstName, blackPlayer.lastName, blackTitle);
         return isPlayerBlack ? (
-          `${blackPlayer.firstName} ${blackPlayer.lastName}`
+          displayName
         ) : (
           <Link href={`/results/${tournamentId}/${groupId}/${row.opponent.id}`} color="gray">
-            {blackPlayer.firstName} {blackPlayer.lastName}
+            {displayName}
           </Link>
         );
       },
@@ -526,7 +536,7 @@ export default function TournamentPlayerDetailPage() {
       ) : (
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
-            {player.firstName} {player.lastName} - {t.pages.playerDetail.matches}
+            {formatPlayerName(player.firstName, player.lastName, player.elo?.title)} - {t.pages.playerDetail.matches}
           </h2>
           <Table
             data={matches}

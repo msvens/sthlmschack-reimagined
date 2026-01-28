@@ -3,7 +3,7 @@
 import React from 'react';
 import { Table, TableColumn, TableDensity, DensityThresholds } from '@/components/Table';
 import { TournamentEndResultDto } from '@/lib/api/types';
-import { formatRatingWithType, getPlayerRatingByAlgorithm } from '@/lib/api';
+import { formatRatingWithType, getPlayerRatingByAlgorithm, formatPlayerName } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 
@@ -53,7 +53,7 @@ export function FinalResultsTable({
     {
       id: 'name',
       header: t.pages.tournamentResults.finalResultsTable.name,
-      accessor: (row) => row.playerInfo ? `${row.playerInfo.firstName} ${row.playerInfo.lastName}` : 'Unknown Player',
+      accessor: (row) => row.playerInfo ? formatPlayerName(row.playerInfo.firstName, row.playerInfo.lastName, row.playerInfo.elo?.title) : 'Unknown Player',
       align: 'left'
     },
     {

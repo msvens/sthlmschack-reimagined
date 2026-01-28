@@ -1,5 +1,5 @@
 import { GameDto, PlayerInfoDto, TournamentDto } from '../types';
-import { parseTimeControl, formatPlayerRating } from './ratingUtils';
+import { parseTimeControl, formatPlayerRating, formatPlayerName } from './ratingUtils';
 import {
   getPlayerOutcome,
   getPlayerPoints,
@@ -209,7 +209,7 @@ export function aggregateOpponentStats(
   opponentRecords.forEach((record, opponentId) => {
     const opponent = playerMap.get(opponentId);
     const opponentName = opponent
-      ? `${opponent.firstName} ${opponent.lastName}`
+      ? formatPlayerName(opponent.firstName, opponent.lastName, opponent.elo?.title)
       : `Unknown Player (${opponentId})`;
 
     const opponentRating = opponent && opponent.elo
@@ -331,7 +331,7 @@ export function gamesToDisplayFormat(
     const whiteName = game.whiteId === playerId
       ? currentPlayerName
       : whitePlayer
-        ? `${whitePlayer.firstName} ${whitePlayer.lastName}`
+        ? formatPlayerName(whitePlayer.firstName, whitePlayer.lastName, whitePlayer.elo?.title)
         : playersLoading
           ? `${retrievingText} (${game.whiteId})`
           : `${unknownText} (${game.whiteId})`;
@@ -339,7 +339,7 @@ export function gamesToDisplayFormat(
     const blackName = game.blackId === playerId
       ? currentPlayerName
       : blackPlayer
-        ? `${blackPlayer.firstName} ${blackPlayer.lastName}`
+        ? formatPlayerName(blackPlayer.firstName, blackPlayer.lastName, blackPlayer.elo?.title)
         : playersLoading
           ? `${retrievingText} (${game.blackId})`
           : `${unknownText} (${game.blackId})`;

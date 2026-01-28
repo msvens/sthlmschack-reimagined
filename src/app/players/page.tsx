@@ -9,7 +9,7 @@ import { PageTitle } from '@/components/PageTitle';
 import { DropdownMenu, DropdownMenuItem } from '@/components/DropdownMenu';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
-import { PlayerService } from '@/lib/api';
+import { PlayerService, formatPlayerName } from '@/lib/api';
 import { PlayerInfoDto } from '@/lib/api/types';
 import { getRecentPlayers, RecentPlayer } from '@/lib/recentPlayers';
 
@@ -114,7 +114,7 @@ export default function PlayersPage() {
 
   const dropdownItems: DropdownMenuItem[] = searchResults.map(player => ({
     id: player.id,
-    primary: `${player.firstName} ${player.lastName}`,
+    primary: formatPlayerName(player.firstName, player.lastName, player.elo?.title),
     secondary: player.club || undefined
   }));
 

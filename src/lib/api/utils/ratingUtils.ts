@@ -347,3 +347,30 @@ export function getPlayerRatingByAlgorithm(
       return { rating: elo.rating || null, isFallback: false, ratingType: elo.rating ? 'standard' : null };
   }
 }
+
+/**
+ * Format a player's name with their FIDE title if they have one
+ *
+ * @param firstName - Player's first name
+ * @param lastName - Player's last name
+ * @param title - Player's FIDE title (e.g., "GM", "IM", "FM", "WGM", "WIM", "WFM", "CM", "WCM")
+ * @returns Formatted name string (e.g., "GM Magnus Carlsen" or "Magnus Carlsen")
+ *
+ * @example
+ * ```ts
+ * formatPlayerName("Magnus", "Carlsen", "GM")  // "GM Magnus Carlsen"
+ * formatPlayerName("Anna", "Svensson", "")     // "Anna Svensson"
+ * formatPlayerName("Erik", "Lindberg")         // "Erik Lindberg"
+ * ```
+ */
+export function formatPlayerName(
+  firstName: string,
+  lastName: string,
+  title?: string | null
+): string {
+  const fullName = `${firstName} ${lastName}`;
+  if (title && title.trim()) {
+    return `${title} ${fullName}`;
+  }
+  return fullName;
+}

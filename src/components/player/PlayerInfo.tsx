@@ -121,6 +121,14 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
             </span>
           </div>
 
+          {/* FIDE Title */}
+          {player.elo?.title && (
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-gray-400">{t.eloRating.fideTitle}:</span>
+              <span className="text-gray-900 dark:text-gray-200 font-medium">{player.elo.title}</span>
+            </div>
+          )}
+
           {/* ELO Rating */}
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">{t.eloRating.title}:</span>
