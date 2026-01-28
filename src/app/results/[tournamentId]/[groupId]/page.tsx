@@ -4,12 +4,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { TournamentService, formatMatchResult } from '@/lib/api';
-import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto } from '@/lib/api/types';
+import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { FinalResultsTable } from '@/components/results/FinalResultsTable';
 import { TeamFinalResultsTable } from '@/components/results/TeamFinalResultsTable';
+import { RegistrationTable } from '@/components/results/RegistrationTable';
 import { TeamRoundResults } from '@/components/results/TeamRoundResults';
 import { SelectableList, SelectableListItem } from '@/components/SelectableList';
 import { Link } from '@/components/Link';
@@ -41,6 +42,7 @@ export default function GroupResultsPage() {
     rankingAlgorithm,
     groupStartDate,
     groupEndDate,
+    tournamentState,
     loading: resultsLoading,
     error: resultsError,
     getPlayerName,
@@ -245,6 +247,11 @@ export default function GroupResultsPage() {
   const hasMultipleClasses = allClasses.length > 1;
   const hasMultipleGroups = selectedClass?.groups ? selectedClass.groups.length > 1 : false;
 
+  // Determine if tournament is in registration phase (not started)
+  // Use tournament state as primary indicator, with group dates as fallback
+  const isNotStarted = tournamentState === TournamentState.REGISTRATION
+    || (groupStartDate && tournamentState === null && new Date() < new Date(groupStartDate));
+
   // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
     if (result.playerInfo?.id && tournamentId && groupId) {
@@ -346,16 +353,24 @@ export default function GroupResultsPage() {
                   <div className="mb-6">
                     <div className="mb-4">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
-                        {t.pages.tournamentResults.finalResults} - {selectedGroup.name}
+                        {isNotStarted
+                          ? t.pages.tournamentResults.registrationTable.title
+                          : t.pages.tournamentResults.finalResults} - {selectedGroup.name}
                         {thinkingTime && (
                           <span className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-400">
                             ({thinkingTime})
                           </span>
                         )}
                       </h3>
+                      {isNotStarted && groupStartDate && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {t.pages.tournamentResults.tournamentStatus.groupStarts} {groupStartDate}
+                        </p>
+                      )}
                     </div>
 
-                    {!resultsLoading && !resultsError && groupStartDate && (
+                    {/* Show status messages only for started tournaments with no results */}
+                    {!isNotStarted && !resultsLoading && !resultsError && groupStartDate && (
                       (() => {
                         // Check if we have results based on tournament type
                         const hasResults = isTeamTournament ? teamResults.length > 0 : groupResults.length > 0;
@@ -363,23 +378,10 @@ export default function GroupResultsPage() {
                         if (hasResults) return null; // Don't show status message if we have results
 
                         const now = new Date();
-                        const startDate = new Date(groupStartDate);
                         const endDate = groupEndDate ? new Date(groupEndDate) : null;
-                        const hasntStarted = now < startDate;
                         const hasEnded = endDate && now > endDate;
 
-                        if (hasntStarted) {
-                          return (
-                            <div className="p-8 text-center">
-                              <div className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
-                                {t.pages.tournamentResults.tournamentStatus.hasNotStarted}
-                              </div>
-                              <div className="text-gray-600 dark:text-gray-400">
-                                {t.pages.tournamentResults.tournamentStatus.groupStarts} {groupStartDate}
-                              </div>
-                            </div>
-                          );
-                        } else if (hasEnded) {
+                        if (hasEnded) {
                           return (
                             <div className="p-8 text-center">
                               <div className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
@@ -411,6 +413,16 @@ export default function GroupResultsPage() {
                           error={resultsError || undefined}
                         />
                       )
+                    ) : isNotStarted ? (
+                      (groupResults.length > 0 || resultsLoading || resultsError) && (
+                        <RegistrationTable
+                          results={groupResults}
+                          rankingAlgorithm={rankingAlgorithm}
+                          loading={resultsLoading}
+                          error={resultsError || undefined}
+                          onRowClick={handlePlayerClick}
+                        />
+                      )
                     ) : (
                       (groupResults.length > 0 || resultsLoading || resultsError) && (
                         <FinalResultsTable
@@ -424,8 +436,8 @@ export default function GroupResultsPage() {
                     )}
                   </div>
 
-                  {/* Round-by-Round Results */}
-                  {isTeamTournament ? (
+                  {/* Round-by-Round Results - only shown for started tournaments */}
+                  {!isNotStarted && (isTeamTournament ? (
                     /* Team Tournament Round Results */
                     tournamentId && groupId && teamRoundResults.length > 0 && (
                       <TeamRoundResults
@@ -572,7 +584,7 @@ export default function GroupResultsPage() {
                         </>
                       )}
                     </div>
-                  )}
+                  ))}
                 </>
               ) : (
                 <div className="p-6 rounded-lg border text-center bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
