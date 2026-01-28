@@ -347,6 +347,15 @@ export interface Translations {
         groupCancelled: string;
         resultsComing: string;
       };
+      registrationTable: {
+        title: string;
+        pos: string;
+        name: string;
+        club: string;
+        rating: string;
+        noRegistrations: string;
+        loadingRegistrations: string;
+      };
     };
     organizations: {
       title: string;
@@ -779,6 +788,15 @@ const translations: Record<Language, Translations> = {
           groupCancelled: 'This group may have been cancelled',
           resultsComing: 'Results coming soon...',
         },
+        registrationTable: {
+          title: 'Registered Players',
+          pos: '#',
+          name: 'Name',
+          club: 'Club',
+          rating: 'Rating',
+          noRegistrations: 'No registered players',
+          loadingRegistrations: 'Loading registrations...',
+        },
       },
       organizations: {
         title: 'Clubs & Districts',
@@ -1208,6 +1226,15 @@ const translations: Record<Language, Translations> = {
           noResultsAvailable: 'Inga resultat tillgängliga',
           groupCancelled: 'Denna grupp kan ha ställts in',
           resultsComing: 'Resultat kommer snart...',
+        },
+        registrationTable: {
+          title: 'Anmälda spelare',
+          pos: '#',
+          name: 'Namn',
+          club: 'Klubb',
+          rating: 'Rating',
+          noRegistrations: 'Inga anmälda spelare',
+          loadingRegistrations: 'Laddar anmälningar...',
         },
       },
       organizations: {

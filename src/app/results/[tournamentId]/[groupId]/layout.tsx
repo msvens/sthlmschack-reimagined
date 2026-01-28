@@ -336,6 +336,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     groupStartDate,
     groupEndDate,
     rankingAlgorithm,
+    tournamentState: tournament?.state ?? null,
     loading,
     error,
     getPlayerName,

@@ -30,6 +30,7 @@ export interface GroupResultsContextValue {
   groupStartDate: string | null;
   groupEndDate: string | null;
   rankingAlgorithm: number | null;
+  tournamentState: number | null;
   loading: boolean;
   error: string | null;
 
