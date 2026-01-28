@@ -27,7 +27,8 @@ Create a new release with version: $ARGUMENTS
 
 4. **Validate**
    - Run `yarn tsc --noEmit`
-   - If fails: Stop and report errors
+   - Run `yarn test`
+   - If either fails: Stop and report errors
 
 5. **Build**
    - Run `yarn build` (includes `yarn generate:changelog` via prebuild hook)
