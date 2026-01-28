@@ -200,16 +200,10 @@ export default function GroupResultsPage() {
     }));
   };
 
+  // Don't show loading message - it causes a brief flash on navigation
+  // The content will appear once tournament data is loaded
   if (loading) {
-    return (
-      <PageLayout fullScreen>
-        <div className="text-center">
-          <div className="text-lg text-gray-600 dark:text-gray-400">
-            Loading tournament results...
-          </div>
-        </div>
-      </PageLayout>
-    );
+    return <PageLayout fullScreen>{null}</PageLayout>;
   }
 
   if (error) {
@@ -248,9 +242,12 @@ export default function GroupResultsPage() {
   const hasMultipleGroups = selectedClass?.groups ? selectedClass.groups.length > 1 : false;
 
   // Determine if tournament is in registration phase (not started)
-  // Use tournament state as primary indicator, with group dates as fallback
-  const isNotStarted = tournamentState === TournamentState.REGISTRATION
-    || (groupStartDate && tournamentState === null && new Date() < new Date(groupStartDate));
+  // Only compute this when we actually know the tournament state (not loading)
+  // This prevents flashing wrong content during load
+  const isNotStarted = !resultsLoading && (
+    tournamentState === TournamentState.REGISTRATION
+    || (groupStartDate && tournamentState === null && new Date() < new Date(groupStartDate))
+  );
 
   // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
@@ -404,31 +401,34 @@ export default function GroupResultsPage() {
                       })()
                     )}
 
-                    {isTeamTournament ? (
-                      (teamResults.length > 0 || resultsLoading || resultsError) && (
+                    {resultsLoading ? (
+                      // While loading, don't show any table - just wait
+                      // This prevents flashing wrong content before we know the tournament state
+                      null
+                    ) : isTeamTournament ? (
+                      (teamResults.length > 0 || resultsError) && (
                         <TeamFinalResultsTable
                           results={teamResults}
                           getClubName={getClubName}
-                          loading={resultsLoading}
+                          loading={false}
                           error={resultsError || undefined}
                         />
                       )
                     ) : isNotStarted ? (
-                      (groupResults.length > 0 || resultsLoading || resultsError) && (
-                        <RegistrationTable
-                          results={groupResults}
-                          rankingAlgorithm={rankingAlgorithm}
-                          loading={resultsLoading}
-                          error={resultsError || undefined}
-                          onRowClick={handlePlayerClick}
-                        />
-                      )
+                      // Always show RegistrationTable for non-started tournaments
+                      <RegistrationTable
+                        results={groupResults}
+                        rankingAlgorithm={rankingAlgorithm}
+                        loading={false}
+                        error={resultsError || undefined}
+                        onRowClick={handlePlayerClick}
+                      />
                     ) : (
-                      (groupResults.length > 0 || resultsLoading || resultsError) && (
+                      (groupResults.length > 0 || resultsError) && (
                         <FinalResultsTable
                           results={groupResults}
                           rankingAlgorithm={rankingAlgorithm}
-                          loading={resultsLoading}
+                          loading={false}
                           error={resultsError || undefined}
                           onRowClick={handlePlayerClick}
                         />
@@ -436,8 +436,8 @@ export default function GroupResultsPage() {
                     )}
                   </div>
 
-                  {/* Round-by-Round Results - only shown for started tournaments */}
-                  {!isNotStarted && (isTeamTournament ? (
+                  {/* Round-by-Round Results - only shown for started tournaments, hidden during loading */}
+                  {!resultsLoading && !isNotStarted && (isTeamTournament ? (
                     /* Team Tournament Round Results */
                     tournamentId && groupId && teamRoundResults.length > 0 && (
                       <TeamRoundResults

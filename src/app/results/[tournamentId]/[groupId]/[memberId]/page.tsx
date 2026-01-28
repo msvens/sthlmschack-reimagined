@@ -11,7 +11,7 @@ import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { EloRatingChart } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { PlayerService, TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, getResultDisplayString, formatPlayerName } from '@/lib/api';
+import { PlayerService, TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, getResultDisplayString, formatPlayerName } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -26,6 +26,7 @@ interface PlayerMatch {
   homeResult: number;
   awayResult: number;
   isWalkover: boolean;
+  isCountable: boolean; // Whether result should be counted in statistics (false for NOT_SET, POSTPONED, etc.)
   gameResultCode?: number; // Original result code from games array
 }
 
@@ -254,8 +255,9 @@ export default function TournamentPlayerDetailPage() {
                 awayResult = 1;
               }
 
-              // Check for walkover in team games
+              // Check for walkover and countability in team games
               const isWalkover = isWalkoverResultCode(game.result);
+              const isCountable = isCountableResult(game.result);
 
               playerMatches.push({
                 round: roundResult.roundNr,
@@ -266,6 +268,7 @@ export default function TournamentPlayerDetailPage() {
                 homeResult,
                 awayResult,
                 isWalkover,
+                isCountable,
                 gameResultCode: game.result
               });
             }
@@ -296,9 +299,11 @@ export default function TournamentPlayerDetailPage() {
               result = 'loss';
             }
 
-            // Check games array for walkover - the result code is in games[0].result
+            // Check games array for walkover and countability - the result code is in games[0].result
             const gameResultCode = roundResult.games?.[0]?.result;
             const isWalkover = gameResultCode !== undefined && isWalkoverResultCode(gameResultCode);
+            // Result is countable only if we have a valid result code that's not NOT_SET, POSTPONED, etc.
+            const isCountable = gameResultCode !== undefined && isCountableResult(gameResultCode);
 
             playerMatches.push({
               round: roundResult.roundNr,
@@ -309,6 +314,7 @@ export default function TournamentPlayerDetailPage() {
               homeResult: roundResult.homeResult,
               awayResult: roundResult.awayResult,
               isWalkover,
+              isCountable,
               gameResultCode
             });
           }
@@ -478,8 +484,8 @@ export default function TournamentPlayerDetailPage() {
       id: 'eloChange',
       header: t.common.eloLabels.eloChange,
       accessor: (row) => {
-        // Walkovers don't count for ELO
-        if (row.isWalkover) return '-';
+        // Non-countable results (walkovers, not set, postponed, etc.) don't count for ELO
+        if (row.isWalkover || !row.isCountable) return '-';
 
         // Use historical player data at round date for both tournament types
         const playerData = getPlayerByDate(memberId!, row.roundDate);
@@ -547,8 +553,8 @@ export default function TournamentPlayerDetailPage() {
 
           {/* Tournament Summary */}
           {matches.length > 0 && (() => {
-            // Filter out walkovers for calculations
-            const playedMatches = matches.filter(m => !m.isWalkover);
+            // Filter out walkovers and non-countable results (NOT_SET, POSTPONED, etc.) for calculations
+            const playedMatches = matches.filter(m => !m.isWalkover && m.isCountable);
 
             // Calculate actual score (sum of points) - only from played games
             const totalScore = playedMatches.reduce((sum, match) => {
