@@ -8,10 +8,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { PlayerInfo } from '@/components/player/PlayerInfo';
-import { EloRatingChart, RatingDataPoint } from '@/components/player/EloRatingChart';
+import { EloRatingChart } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { PlayerService, TournamentService, getPlayerRatingHistory, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, getResultDisplayString } from '@/lib/api';
+import { PlayerService, TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, getResultDisplayString } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -57,9 +57,7 @@ export default function TournamentPlayerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Rating history state
-  const [ratingHistory, setRatingHistory] = useState<RatingDataPoint[]>([]);
-  const [ratingHistoryLoading, setRatingHistoryLoading] = useState(false);
+  // Rating history loading tracked by EloRatingChart internally
 
   // Track when historical player data has been fetched (for team tournaments)
   const [historicalDataFetched, setHistoricalDataFetched] = useState(false);
@@ -324,29 +322,6 @@ export default function TournamentPlayerDetailPage() {
     setMatches(playerMatches);
   }, [memberId, tournamentPlayer, isTeamTournament, individualRoundResults, teamRoundResults, playerMap, resultsLoading, historicalDataFetched, getPlayerByDate]);
 
-  // Fetch tournament history and rating history after player data is loaded
-  useEffect(() => {
-    if (!player || !memberId) return;
-
-    const fetchRatingHistory = async () => {
-      try {
-        setRatingHistoryLoading(true);
-
-        const response = await getPlayerRatingHistory(memberId);
-
-        if (response.status === 200 && response.data) {
-          setRatingHistory(response.data);
-        }
-      } catch (err) {
-        console.error('Error fetching rating history:', err);
-      } finally {
-        setRatingHistoryLoading(false);
-      }
-    };
-
-    // Fetch rating history
-    fetchRatingHistory();
-  }, [player, memberId]);
 
   if (loading) {
     return (
@@ -677,21 +652,16 @@ export default function TournamentPlayerDetailPage() {
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
           {t.common.eloLabels.ratingHistory}
         </h2>
-        {ratingHistoryLoading ? (
-          <div className="flex items-center justify-center h-96 text-gray-600 dark:text-gray-400">
-            {t.common.eloLabels.loadingHistory}
-          </div>
-        ) : (
-          <EloRatingChart
-            data={ratingHistory}
-            labels={{
-              standard: t.common.eloLabels.standard,
-              rapid: t.common.eloLabels.rapid,
-              blitz: t.common.eloLabels.blitz,
-              lask: t.common.eloLabels.lask
-            }}
-          />
-        )}
+        <EloRatingChart
+          memberId={memberId!}
+          language={language}
+          labels={{
+            standard: t.common.eloLabels.standard,
+            rapid: t.common.eloLabels.rapid,
+            blitz: t.common.eloLabels.blitz,
+            lask: t.common.eloLabels.lask
+          }}
+        />
       </div>
       <div className="mt-4 text-center">
         <Link

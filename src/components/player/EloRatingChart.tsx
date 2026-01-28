@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -11,6 +11,8 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { DatePicker } from '@/components/DatePicker';
+import { getPlayerRatingHistory } from '@/lib/api';
 
 export interface RatingDataPoint {
   /** Date string (e.g., "2024-01" or "2024-01-15") */
@@ -26,8 +28,8 @@ export interface RatingDataPoint {
 }
 
 export interface EloRatingChartProps {
-  /** Array of rating data points */
-  data: RatingDataPoint[];
+  /** Player ID to fetch rating history for */
+  memberId: number;
   /** Height of the chart in pixels (default: 400) */
   height?: number;
   /** Labels for the legend */
@@ -37,18 +39,63 @@ export interface EloRatingChartProps {
     blitz: string;
     lask: string;
   };
+  /** Show date range pickers (default: true) */
+  showDatePickers?: boolean;
+  /** Locale code for date picker formatting (e.g. 'sv', 'en') */
+  language?: string;
+  /** Initial date range in YYYY-MM format. Defaults to last 12 months. */
+  initialPeriod?: {
+    start: string;
+    end: string;
+  };
+}
+
+function getDefaultPeriod(): { start: string; end: string } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  return {
+    start: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}`,
+    end: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
+  };
 }
 
 export function EloRatingChart({
-  data,
+  memberId,
   height = 400,
   labels = {
     standard: 'ELO',
     rapid: 'Snabb-ELO',
     blitz: 'Blixt-ELO',
     lask: 'LASK'
-  }
+  },
+  showDatePickers = true,
+  language,
+  initialPeriod,
 }: EloRatingChartProps) {
+  const defaultPeriod = initialPeriod ?? getDefaultPeriod();
+  const [startMonth, setStartMonth] = useState(defaultPeriod.start);
+  const [endMonth, setEndMonth] = useState(defaultPeriod.end);
+  const [data, setData] = useState<RatingDataPoint[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await getPlayerRatingHistory(memberId, startMonth, endMonth);
+        if (response.status === 200 && response.data) {
+          setData(response.data);
+        }
+      } catch (err) {
+        console.error('Error fetching rating history:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [memberId, startMonth, endMonth]);
+
   // Format date for display (numeric YYYY-MM format, language-agnostic)
   const formatDate = (dateString: string) => {
     try {
@@ -86,93 +133,115 @@ export function EloRatingChart({
     return null;
   };
 
-  // If no data, show empty state
-  if (!data || data.length === 0) {
-    return (
-      <div className="flex items-center justify-center text-gray-600 dark:text-gray-400" style={{ height }}>
-        No rating history available
-      </div>
-    );
-  }
-
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <LineChart
-        data={data}
-        margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" opacity={0.5} />
-        <XAxis
-          dataKey="date"
-          tickFormatter={formatDate}
-          className="text-gray-600 dark:text-gray-400"
-          tick={{ fill: 'currentColor', fontSize: 11 }}
-          stroke="currentColor"
-          strokeWidth={0.5}
-        />
-        <YAxis
-          domain={[1200, 'auto']}
-          width={40}
-          className="text-gray-600 dark:text-gray-400"
-          tick={{ fill: 'currentColor', fontSize: 11 }}
-          stroke="currentColor"
-          strokeWidth={0.5}
-        />
-        <Tooltip content={<CustomTooltip />} cursor={false} />
-        <Legend
-          wrapperStyle={{ paddingTop: '15px', fontSize: '12px' }}
-          iconType="circle"
-          iconSize={8}
-        />
+    <>
+      {showDatePickers && (
+        <div className="flex gap-3 mb-4">
+          <DatePicker
+            value={startMonth}
+            onChange={setStartMonth}
+            mode="month"
+            compact
+            language={language}
+          />
+          <DatePicker
+            value={endMonth}
+            onChange={setEndMonth}
+            mode="month"
+            compact
+            language={language}
+          />
+        </div>
+      )}
 
-        {/* LASK - Muted Amber */}
-        <Line
-          type="monotone"
-          dataKey="lask"
-          name={labels.lask}
-          stroke="#d97706"
-          strokeWidth={1}
-          dot={{ fill: '#d97706', r: 2.5 }}
-          activeDot={{ r: 4 }}
-          connectNulls
-        />
+      {loading ? (
+        <div className="flex items-center justify-center text-gray-600 dark:text-gray-400" style={{ height }}>
+          Loading...
+        </div>
+      ) : !data || data.length === 0 ? (
+        <div className="flex items-center justify-center text-gray-600 dark:text-gray-400" style={{ height }}>
+          No rating history available
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={height}>
+          <LineChart
+            data={data}
+            margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" opacity={0.5} />
+            <XAxis
+              dataKey="date"
+              tickFormatter={formatDate}
+              className="text-gray-600 dark:text-gray-400"
+              tick={{ fill: 'currentColor', fontSize: 11 }}
+              stroke="currentColor"
+              strokeWidth={0.5}
+            />
+            <YAxis
+              domain={[1200, 'auto']}
+              width={40}
+              className="text-gray-600 dark:text-gray-400"
+              tick={{ fill: 'currentColor', fontSize: 11 }}
+              stroke="currentColor"
+              strokeWidth={0.5}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={false} />
+            <Legend
+              wrapperStyle={{ paddingTop: '15px', fontSize: '12px' }}
+              iconType="circle"
+              iconSize={8}
+            />
 
-        {/* Standard ELO - Muted Blue */}
-        <Line
-          type="monotone"
-          dataKey="standard"
-          name={labels.standard}
-          stroke="#0284c7"
-          strokeWidth={1}
-          dot={{ fill: '#0284c7', r: 2.5 }}
-          activeDot={{ r: 4 }}
-          connectNulls
-        />
+            {/* LASK - Muted Amber */}
+            <Line
+              type="monotone"
+              dataKey="lask"
+              name={labels.lask}
+              stroke="#d97706"
+              strokeWidth={1}
+              dot={{ fill: '#d97706', r: 2.5 }}
+              activeDot={{ r: 4 }}
+              connectNulls
+            />
 
-        {/* Rapid ELO - Muted Rose */}
-        <Line
-          type="monotone"
-          dataKey="rapid"
-          name={labels.rapid}
-          stroke="#be123c"
-          strokeWidth={1}
-          dot={{ fill: '#be123c', r: 2.5 }}
-          activeDot={{ r: 4 }}
-          connectNulls
-        />
+            {/* Standard ELO - Muted Blue */}
+            <Line
+              type="monotone"
+              dataKey="standard"
+              name={labels.standard}
+              stroke="#0284c7"
+              strokeWidth={1}
+              dot={{ fill: '#0284c7', r: 2.5 }}
+              activeDot={{ r: 4 }}
+              connectNulls
+            />
 
-        {/* Blitz ELO - Muted Emerald */}
-        <Line
-          type="monotone"
-          dataKey="blitz"
-          name={labels.blitz}
-          stroke="#059669"
-          strokeWidth={1}
-          dot={{ fill: '#059669', r: 2.5 }}
-          activeDot={{ r: 4 }}
-          connectNulls
-        />
-      </LineChart>
-    </ResponsiveContainer>
+            {/* Rapid ELO - Muted Rose */}
+            <Line
+              type="monotone"
+              dataKey="rapid"
+              name={labels.rapid}
+              stroke="#be123c"
+              strokeWidth={1}
+              dot={{ fill: '#be123c', r: 2.5 }}
+              activeDot={{ r: 4 }}
+              connectNulls
+            />
+
+            {/* Blitz ELO - Muted Emerald */}
+            <Line
+              type="monotone"
+              dataKey="blitz"
+              name={labels.blitz}
+              stroke="#059669"
+              strokeWidth={1}
+              dot={{ fill: '#059669', r: 2.5 }}
+              activeDot={{ r: 4 }}
+              connectNulls
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
+    </>
   );
 }
