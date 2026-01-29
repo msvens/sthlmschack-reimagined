@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto } from '@/lib/api/types';
+import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, RoundDto } from '@/lib/api/types';
 
 /**
  * Request for fetching a player's info at a specific historical date
@@ -44,6 +44,14 @@ export interface GroupResultsContextValue {
   fetchPlayersByDate: (requests: PlayerDateRequest[]) => Promise<void>;
   getPlayerByDate: (playerId: number, date: number) => PlayerInfoDto | undefined;
   getPlayerEloByDate: (playerId: number, date: number) => string;
+
+  // Round metadata for per-round rating types
+  /** Round metadata map: roundNumber -> RoundDto */
+  roundsMap: Map<number, RoundDto>;
+  /** Get the rated type for a specific round */
+  getRoundRatedType: (roundNumber: number) => number | undefined;
+  /** Get formatted ELO for a player at a specific date and round (uses round-specific rating type) */
+  getPlayerEloByDateAndRound: (playerId: number, date: number, roundNumber?: number) => string;
 }
 
 const GroupResultsContext = createContext<GroupResultsContextValue | null>(null);

@@ -72,6 +72,10 @@ export interface Translations {
       loadingHistory: string;
       eloChange: string;
       performanceRating: string;
+      rapidEloChange: string;
+      blitzEloChange: string;
+      rapidPerformance: string;
+      blitzPerformance: string;
     };
     actions: {
       search: string;
@@ -516,6 +520,10 @@ const translations: Record<Language, Translations> = {
         loadingHistory: 'Loading history...',
         eloChange: 'ELO +/-',
         performanceRating: 'Performance Rating',
+        rapidEloChange: 'Rapid ELO +/-',
+        blitzEloChange: 'Blitz ELO +/-',
+        rapidPerformance: 'Rapid Performance',
+        blitzPerformance: 'Blitz Performance',
       },
       actions: {
         search: 'Search',
@@ -958,6 +966,10 @@ const translations: Record<Language, Translations> = {
         loadingHistory: 'Laddar historik...',
         eloChange: 'ELO +/-',
         performanceRating: 'ELO prestation',
+        rapidEloChange: 'Snabb ELO +/-',
+        blitzEloChange: 'Blixt ELO +/-',
+        rapidPerformance: 'Snabb prestation',
+        blitzPerformance: 'Blixt prestation',
       },
       actions: {
         search: 'Sök',

@@ -75,7 +75,7 @@ export interface PrizeCategoryDto {
 }
 
 /**
- * Tournament round information
+ * Tournament round informationas
  */
 export interface RoundDto {
     /** Round ID */

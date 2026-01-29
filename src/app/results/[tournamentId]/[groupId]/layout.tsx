@@ -2,9 +2,9 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, PlayerService, formatRatingWithType, getPlayerRatingByAlgorithm, formatPlayerName } from '@/lib/api';
+import { ResultsService, TournamentService, PlayerService, formatRatingWithType, getPlayerRatingByAlgorithm, getPlayerRatingByRoundType, formatPlayerName } from '@/lib/api';
 import { chunkArray } from '@/lib/api/utils/batchUtils';
-import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, isTeamTournament } from '@/lib/api/types';
+import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -58,6 +58,9 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   const [teamResults, setTeamResults] = useState<TeamTournamentEndResultDto[]>([]);
   const [teamRoundResults, setTeamRoundResults] = useState<TournamentRoundResultDto[]>([]);
 
+  // Round metadata for per-round rating types
+  const [roundsMap, setRoundsMap] = useState<Map<number, RoundDto>>(new Map());
+
   // Historical player data cache: "playerId-YYYY-MM-DD" -> PlayerInfoDto
   const [playerDateCache, setPlayerDateCache] = useState<Map<string, PlayerInfoDto>>(new Map());
 
@@ -95,6 +98,13 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
           setGroupStartDate(groupResult.group.start);
           setGroupEndDate(groupResult.group.end);
           setRankingAlgorithm(groupResult.group.rankingAlgorithm);
+
+          // Build rounds map from tournamentRounds for per-round rating types
+          const newRoundsMap = new Map<number, RoundDto>();
+          groupResult.group.tournamentRounds?.forEach(round => {
+            newRoundsMap.set(round.roundNumber, round);
+          });
+          setRoundsMap(newRoundsMap);
         }
 
         // Detect tournament type and fetch appropriate results
@@ -321,6 +331,40 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     return formatRatingWithType(rating, ratingType, language);
   }, [playerDateCache, playerMap, rankingAlgorithm, language]);
 
+  /**
+   * Get the rated type for a specific round
+   * Returns the RoundDto.rated value (0=unrated, 1=standard, 2=rapid, 3=blitz)
+   */
+  const getRoundRatedType = useCallback((roundNumber: number): number | undefined => {
+    return roundsMap.get(roundNumber)?.rated;
+  }, [roundsMap]);
+
+  /**
+   * Get formatted ELO for a player at a specific historical date and round
+   * Uses round's rated type if available, falls back to group rankingAlgorithm
+   */
+  const getPlayerEloByDateAndRound = useCallback((
+    playerId: number,
+    date: number,
+    roundNumber?: number
+  ): string => {
+    const historicalPlayer = playerDateCache.get(getPlayerDateKey(playerId, date));
+    const player = historicalPlayer || playerMap.get(playerId);
+
+    // If round number provided, try to use round-specific rating type
+    if (roundNumber !== undefined) {
+      const roundRatedType = roundsMap.get(roundNumber)?.rated;
+      if (roundRatedType !== undefined && roundRatedType !== 0) {
+        const { rating, ratingType } = getPlayerRatingByRoundType(player?.elo, roundRatedType);
+        return formatRatingWithType(rating, ratingType, language);
+      }
+    }
+
+    // Fallback to group-level ranking algorithm
+    const { rating, ratingType } = getPlayerRatingByAlgorithm(player?.elo, rankingAlgorithm);
+    return formatRatingWithType(rating, ratingType, language);
+  }, [playerDateCache, playerMap, roundsMap, rankingAlgorithm, language]);
+
   // Determine if this is a team tournament
   const isTeam = tournament ? isTeamTournament(tournament.type) : false;
 
@@ -345,7 +389,10 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     getClubName,
     fetchPlayersByDate,
     getPlayerByDate,
-    getPlayerEloByDate
+    getPlayerEloByDate,
+    roundsMap,
+    getRoundRatedType,
+    getPlayerEloByDateAndRound
   };
 
   return (

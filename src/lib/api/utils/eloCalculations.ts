@@ -6,16 +6,39 @@
  */
 
 /**
+ * Maximum rating difference used in expected score calculation.
+ * FIDE's "400-point rule": rating differences greater than 400 are treated as exactly 400.
+ * This caps expected scores between 8% and 92%.
+ *
+ * Note: FIDE dropped this rule for players 2650+ in October 2025, but it still applies
+ * to most players and is used by SSF.
+ */
+export const RATING_DIFFERENCE_CAP = 400;
+
+/**
  * Calculate expected score for a player against an opponent
+ *
+ * Implements FIDE's 400-point rule: rating differences greater than 400
+ * are treated as exactly 400 for calculation purposes. This ensures
+ * expected scores are capped between 8% and 92%.
  *
  * @param playerRating - Player's current rating
  * @param opponentRating - Opponent's current rating
- * @returns Expected score (0.0 to 1.0)
+ * @returns Expected score (0.0 to 1.0, capped at 0.08-0.92 due to 400-point rule)
  *
  * Formula: E = 1 / (1 + 10^((OpponentRating - PlayerRating) / 400))
+ * With rating difference capped at ±400
  */
 export function calculateExpectedScore(playerRating: number, opponentRating: number): number {
-  return 1 / (1 + Math.pow(10, (opponentRating - playerRating) / 400));
+  // Apply FIDE's 400-point rule: cap rating difference at ±400
+  let ratingDiff = opponentRating - playerRating;
+  if (ratingDiff > RATING_DIFFERENCE_CAP) {
+    ratingDiff = RATING_DIFFERENCE_CAP;
+  } else if (ratingDiff < -RATING_DIFFERENCE_CAP) {
+    ratingDiff = -RATING_DIFFERENCE_CAP;
+  }
+
+  return 1 / (1 + Math.pow(10, ratingDiff / 400));
 }
 
 /**

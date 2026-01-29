@@ -89,9 +89,17 @@ describe('ratingUtils', () => {
   });
 
   describe('getKFactorForRating', () => {
-    it('should use K from playerElo if available', () => {
+    it('should use K from playerElo for standard games if available', () => {
       expect(getKFactorForRating('standard', 1500, { k: 40 } as MemberFIDERatingDTO)).toBe(40);
-      expect(getKFactorForRating('rapid', 2500, { k: 10 } as MemberFIDERatingDTO)).toBe(10);
+      // For standard, stored K is used
+      expect(getKFactorForRating('standard', 2500, { k: 10 } as MemberFIDERatingDTO)).toBe(10);
+    });
+
+    it('should NOT use stored K for rapid/blitz games', () => {
+      // Rapid/blitz should calculate K from rating, not use stored K
+      expect(getKFactorForRating('rapid', 1500, { k: 10 } as MemberFIDERatingDTO)).toBe(20);
+      expect(getKFactorForRating('blitz', 1500, { k: 10 } as MemberFIDERatingDTO)).toBe(20);
+      expect(getKFactorForRating('rapid', 2500, { k: 20 } as MemberFIDERatingDTO)).toBe(10);
     });
 
     it('should return 20 for null rating or rating type', () => {
@@ -100,11 +108,18 @@ describe('ratingUtils', () => {
       expect(getKFactorForRating(null, 1500)).toBe(20);
     });
 
-    it('should return 40 for rapid and blitz', () => {
-      expect(getKFactorForRating('rapid', 1500)).toBe(40);
-      expect(getKFactorForRating('blitz', 1500)).toBe(40);
-      expect(getKFactorForRating('rapid', 2500)).toBe(40);
-      expect(getKFactorForRating('blitz', 2500)).toBe(40);
+    it('should return 20 for rapid/blitz under 2400 (adult)', () => {
+      expect(getKFactorForRating('rapid', 1500)).toBe(20);
+      expect(getKFactorForRating('blitz', 1500)).toBe(20);
+      expect(getKFactorForRating('rapid', 2399)).toBe(20);
+      expect(getKFactorForRating('blitz', 2399)).toBe(20);
+    });
+
+    it('should return 10 for rapid/blitz 2400 and above', () => {
+      expect(getKFactorForRating('rapid', 2400)).toBe(10);
+      expect(getKFactorForRating('blitz', 2400)).toBe(10);
+      expect(getKFactorForRating('rapid', 2700)).toBe(10);
+      expect(getKFactorForRating('blitz', 2700)).toBe(10);
     });
 
     it('should return 20 for standard under 2400', () => {
@@ -120,6 +135,47 @@ describe('ratingUtils', () => {
     it('should treat LASK like standard for K-factor', () => {
       expect(getKFactorForRating('lask', 1500)).toBe(20);
       expect(getKFactorForRating('lask', 2400)).toBe(10);
+    });
+
+    it('should return 40 for juniors (under 18) with rating under 2300', () => {
+      // Junior born in 2010, game in 2025 (age 15 at end of year)
+      const juniorBirthdate = '2010-06-15';
+      const gameDate = new Date('2025-09-13');
+
+      expect(getKFactorForRating('rapid', 1500, null, juniorBirthdate, gameDate)).toBe(40);
+      expect(getKFactorForRating('blitz', 1500, null, juniorBirthdate, gameDate)).toBe(40);
+      expect(getKFactorForRating('standard', 1500, null, juniorBirthdate, gameDate)).toBe(40);
+      expect(getKFactorForRating('rapid', 2200, null, juniorBirthdate, gameDate)).toBe(40);
+    });
+
+    it('should return 20 for juniors with rating 2300 or above', () => {
+      const juniorBirthdate = '2010-06-15';
+      const gameDate = new Date('2025-09-13');
+
+      // Rating >= 2300 means no junior K-factor bonus
+      expect(getKFactorForRating('rapid', 2300, null, juniorBirthdate, gameDate)).toBe(20);
+      expect(getKFactorForRating('rapid', 2350, null, juniorBirthdate, gameDate)).toBe(20);
+    });
+
+    it('should return 20 for adults even with rating under 2300', () => {
+      // Adult born in 1990, game in 2025 (age 35)
+      const adultBirthdate = '1990-06-15';
+      const gameDate = new Date('2025-09-13');
+
+      expect(getKFactorForRating('rapid', 1500, null, adultBirthdate, gameDate)).toBe(20);
+      expect(getKFactorForRating('blitz', 1500, null, adultBirthdate, gameDate)).toBe(20);
+    });
+
+    it('should handle 18-year-old boundary correctly', () => {
+      // Player turns 18 in 2025, so K=40 applies until end of 2025
+      const birthdate = '2007-06-15';
+      const gameDate = new Date('2025-03-01'); // Game before 18th birthday
+
+      expect(getKFactorForRating('rapid', 1500, null, birthdate, gameDate)).toBe(40);
+
+      // But in 2026, they're no longer a junior
+      const gameDate2026 = new Date('2026-03-01');
+      expect(getKFactorForRating('rapid', 1500, null, birthdate, gameDate2026)).toBe(20);
     });
   });
 

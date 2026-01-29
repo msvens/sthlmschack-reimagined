@@ -48,6 +48,29 @@ describe('eloCalculations', () => {
       const expectedB = calculateExpectedScore(playerB, playerA);
       expect(expectedA + expectedB).toBeCloseTo(1, 10);
     });
+
+    it('should cap rating difference at 400 points (FIDE 400-point rule)', () => {
+      // 500 points difference should be treated as 400
+      const expected500 = calculateExpectedScore(2000, 1500);
+      const expected400 = calculateExpectedScore(1900, 1500);
+      expect(expected500).toBe(expected400);
+
+      // 600 points should also be capped to 400
+      const expected600 = calculateExpectedScore(2100, 1500);
+      expect(expected600).toBe(expected400);
+    });
+
+    it('should cap expected score at ~92% for large positive difference', () => {
+      // Any difference >= 400 should give ~0.909 (capped)
+      const expected = calculateExpectedScore(2500, 1500); // 1000 point diff
+      expect(expected).toBeCloseTo(0.909, 2);
+    });
+
+    it('should cap expected score at ~8% for large negative difference', () => {
+      // Any difference >= 400 against you should give ~0.091 (capped)
+      const expected = calculateExpectedScore(1500, 2500); // -1000 point diff
+      expect(expected).toBeCloseTo(0.091, 2);
+    });
   });
 
   describe('calculateRatingChange', () => {

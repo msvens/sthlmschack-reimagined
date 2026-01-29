@@ -6,6 +6,19 @@ import { MemberFIDERatingDTO } from '@/lib/api';
 import { RatingAlgorithm } from '@/lib/api/types/ratingAlgorithm';
 
 /**
+ * Round rating type constants (from RoundDto.rated field)
+ * These map to the API values for per-round rating types
+ */
+export const RoundRatedType = {
+  UNRATED: 0,
+  STANDARD: 1,
+  RAPID: 2,
+  BLITZ: 3,
+} as const;
+
+export type RoundRatedTypeValue = typeof RoundRatedType[keyof typeof RoundRatedType];
+
+/**
  * Parse thinkingTime string to determine tournament time control type
  *
  * Examples:
@@ -217,43 +230,94 @@ export function formatRatingWithType(
  * @returns Object with rating value and fallback flag
  */
 /**
+ * Check if a player qualifies as a junior for K-factor purposes
+ * FIDE rule: K=40 until the end of the year of their 18th birthday
+ *
+ * This means if you turn 18 in 2025, K=40 applies through all of 2025.
+ * Only in 2026 would you lose the junior K-factor bonus.
+ *
+ * @param birthdate - Player's birth date string
+ * @param gameDate - Date of the game (used to determine the year)
+ * @returns true if the player is a junior (turning 18 or younger in the game year)
+ */
+export function isJuniorPlayer(birthdate: string | null | undefined, gameDate?: Date | number): boolean {
+  if (!birthdate) return false;
+
+  try {
+    const birth = new Date(birthdate);
+    if (isNaN(birth.getTime())) return false;
+
+    // Determine the year of the game (or current year if not provided)
+    const gameYear = gameDate
+      ? (typeof gameDate === 'number' ? new Date(gameDate).getFullYear() : gameDate.getFullYear())
+      : new Date().getFullYear();
+
+    // Player's age at the END of the game year (Dec 31)
+    const ageAtEndOfYear = gameYear - birth.getFullYear();
+
+    // Junior = turning 18 or younger in the game year
+    // FIDE: "until the end of the year of their 18th birthday"
+    // So if you turn 18 in 2025, K=40 applies through all of 2025
+    return ageAtEndOfYear <= 18;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Get the appropriate K-factor for ELO calculations based on rating type
  *
- * FIDE K-factor rules:
- * - Rapid/Blitz: K=40 (always, regardless of rating level)
- * - Standard: K=20 for <2400, K=10 for 2400+
- * - LASK: K=20 (treating it like standard)
+ * FIDE K-factor rules (same for standard, rapid, and blitz):
+ * - K=40 for new players (<30 games) - we can't detect this without game count
+ * - K=40 for juniors (under 18 by end of year) with rating <2300
+ * - K=20 as long as rating remains under 2400
+ * - K=10 once published rating has reached 2400
+ *
+ * IMPORTANT: The stored K-factor (playerElo.k) is for STANDARD games only.
+ * For rapid/blitz, we must calculate K based on the rapid/blitz rating being used,
+ * not the stored standard K-factor.
  *
  * @param ratingType - The type of rating being used
- * @param playerRating - The player's rating value
- * @param playerElo - Optional player ELO data (contains k-factor if available)
+ * @param playerRating - The player's rating value (should be the rating for this game type)
+ * @param playerElo - Optional player ELO data (contains k-factor for standard games)
+ * @param birthdate - Optional player birth date for junior K-factor calculation
+ * @param gameDate - Optional game date for junior calculation (defaults to current date)
  * @returns K-factor to use for calculations
  */
 export function getKFactorForRating(
   ratingType: RatingType | null,
   playerRating: number | null,
-  playerElo?: MemberFIDERatingDTO | null
+  playerElo?: MemberFIDERatingDTO | null,
+  birthdate?: string | null,
+  gameDate?: Date | number
 ): number {
-  // First check if player has a specific K-factor in their data
-  if (playerElo?.k) {
-    return playerElo.k;
-  }
-
   // If no rating or rating type, default to standard K=20
   if (!ratingType || !playerRating) {
     return 20;
+  }
+
+  // Check for junior K-factor: K=40 for under-18 players with rating <2300
+  if (birthdate && playerRating < 2300 && isJuniorPlayer(birthdate, gameDate)) {
+    return 40;
   }
 
   // Apply FIDE K-factor rules based on rating type
   switch (ratingType) {
     case 'rapid':
     case 'blitz':
-      // Rapid and Blitz always use K=40
-      return 40;
+      // For rapid/blitz, calculate K based on the rapid/blitz rating
+      // DO NOT use stored K-factor (that's for standard games)
+      // K=20 for <2400, K=10 for 2400+
+      return playerRating >= 2400 ? 10 : 20;
 
     case 'standard':
     case 'lask':
-      // Standard and LASK use K=20 for <2400, K=10 for 2400+
+      // For standard games, use stored K-factor if available
+      // (This already accounts for junior status from SSF data)
+      if (playerElo?.k) {
+        return playerElo.k;
+      }
+      // Otherwise use K=20 for <2400, K=10 for 2400+
       return playerRating >= 2400 ? 10 : 20;
 
     default:
@@ -345,6 +409,58 @@ export function getPlayerRatingByAlgorithm(
     default:
       // Unknown algorithm, fall back to standard
       return { rating: elo.rating || null, isFallback: false, ratingType: elo.rating ? 'standard' : null };
+  }
+}
+
+/**
+ * Convert round.rated value to RatingType
+ * Returns null for unrated rounds (no ELO calculation should happen)
+ *
+ * @param rated - The RoundDto.rated field value (0/1/2/3)
+ * @returns The corresponding RatingType, or null for unrated rounds
+ */
+export function getRatingTypeFromRoundRated(rated: number | undefined): RatingType | null {
+  switch (rated) {
+    case RoundRatedType.STANDARD: return 'standard';
+    case RoundRatedType.RAPID: return 'rapid';
+    case RoundRatedType.BLITZ: return 'blitz';
+    case RoundRatedType.UNRATED:
+    default:
+      return null; // Unrated or unknown
+  }
+}
+
+/**
+ * Get player rating for a specific round's rating type
+ * Uses round.rated to determine which rating to use
+ *
+ * Unlike getPlayerRatingByAlgorithm, this function uses strict rating matching:
+ * - If a round is Rapid but player has no Rapid rating, returns null (no fallback)
+ * - This ensures accurate ELO calculations for tournaments with mixed round types
+ *
+ * @param elo - Player's FIDE rating information
+ * @param roundRatedType - The RoundDto.rated field value (0/1/2/3)
+ * @returns Object with rating value and rating type
+ */
+export function getPlayerRatingByRoundType(
+  elo: MemberFIDERatingDTO | null | undefined,
+  roundRatedType: number | undefined
+): PlayerRating {
+  const ratingType = getRatingTypeFromRoundRated(roundRatedType);
+
+  if (!elo || !ratingType) {
+    return { rating: null, isFallback: false, ratingType: null };
+  }
+
+  switch (ratingType) {
+    case 'standard':
+      return { rating: elo.rating || null, isFallback: false, ratingType: elo.rating ? 'standard' : null };
+    case 'rapid':
+      return { rating: elo.rapidRating || null, isFallback: false, ratingType: elo.rapidRating ? 'rapid' : null };
+    case 'blitz':
+      return { rating: elo.blitzRating || null, isFallback: false, ratingType: elo.blitzRating ? 'blitz' : null };
+    default:
+      return { rating: null, isFallback: false, ratingType: null };
   }
 }
 

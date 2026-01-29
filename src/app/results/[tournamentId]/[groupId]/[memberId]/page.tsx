@@ -11,7 +11,7 @@ import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { EloRatingChart } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { PlayerService, TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, getResultDisplayString, formatPlayerName } from '@/lib/api';
+import { PlayerService, TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getPlayerRatingByRoundType, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, getResultDisplayString, formatPlayerName, RoundRatedType } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -28,6 +28,7 @@ interface PlayerMatch {
   isWalkover: boolean;
   isCountable: boolean; // Whether result should be counted in statistics (false for NOT_SET, POSTPONED, etc.)
   gameResultCode?: number; // Original result code from games array
+  roundRatedType?: number; // The rated type for this round (0=unrated, 1=standard, 2=rapid, 3=blitz)
 }
 
 export default function TournamentPlayerDetailPage() {
@@ -48,7 +49,8 @@ export default function TournamentPlayerDetailPage() {
     rankingAlgorithm,
     loading: resultsLoading,
     fetchPlayersByDate,
-    getPlayerByDate
+    getPlayerByDate,
+    getRoundRatedType
   } = useGroupResults();
 
   const [player, setPlayer] = useState<PlayerInfoDto | null>(null); // Current player info for display
@@ -223,6 +225,8 @@ export default function TournamentPlayerDetailPage() {
 
       for (const roundResult of teamRoundResults) {
         const roundDate = parseDateToTimestamp(roundResult.date);
+        // Get the rated type for this round
+        const roundRatedType = getRoundRatedType(roundResult.roundNr);
 
         // Look through all games in this round result
         roundResult.games?.forEach(game => {
@@ -269,7 +273,8 @@ export default function TournamentPlayerDetailPage() {
                 awayResult,
                 isWalkover,
                 isCountable,
-                gameResultCode: game.result
+                gameResultCode: game.result,
+                roundRatedType
               });
             }
           }
@@ -285,6 +290,8 @@ export default function TournamentPlayerDetailPage() {
           const opponentId = isHome ? roundResult.awayId : roundResult.homeId;
           const playerResult = isHome ? roundResult.homeResult : roundResult.awayResult;
           const roundDate = parseDateToTimestamp(roundResult.date);
+          // Get the rated type for this round
+          const roundRatedType = getRoundRatedType(roundResult.roundNr);
 
           // Get opponent info using historical date lookup
           const opponent = getPlayerByDate(opponentId, roundDate);
@@ -315,7 +322,8 @@ export default function TournamentPlayerDetailPage() {
               awayResult: roundResult.awayResult,
               isWalkover,
               isCountable,
-              gameResultCode
+              gameResultCode,
+              roundRatedType
             });
           }
         }
@@ -326,7 +334,7 @@ export default function TournamentPlayerDetailPage() {
     playerMatches.sort((a, b) => a.round - b.round);
 
     setMatches(playerMatches);
-  }, [memberId, tournamentPlayer, isTeamTournament, individualRoundResults, teamRoundResults, playerMap, resultsLoading, historicalDataFetched, getPlayerByDate]);
+  }, [memberId, tournamentPlayer, isTeamTournament, individualRoundResults, teamRoundResults, playerMap, resultsLoading, historicalDataFetched, getPlayerByDate, getRoundRatedType]);
 
 
   if (loading) {
@@ -425,6 +433,14 @@ export default function TournamentPlayerDetailPage() {
         const whitePlayerElo = row.color === 'white'
           ? getPlayerByDate(memberId!, row.roundDate)?.elo
           : row.opponent.elo;
+
+        // Use round-specific rating type if available
+        if (row.roundRatedType !== undefined && row.roundRatedType !== RoundRatedType.UNRATED) {
+          const { rating, ratingType } = getPlayerRatingByRoundType(whitePlayerElo, row.roundRatedType);
+          return formatRatingWithType(rating, ratingType, language);
+        }
+
+        // Fallback to group-level ranking algorithm
         const { rating, ratingType } = getPlayerRatingByAlgorithm(whitePlayerElo, rankingAlgorithm);
         return formatRatingWithType(rating, ratingType, language);
       },
@@ -460,6 +476,14 @@ export default function TournamentPlayerDetailPage() {
         const blackPlayerElo = row.color === 'black'
           ? getPlayerByDate(memberId!, row.roundDate)?.elo
           : row.opponent.elo;
+
+        // Use round-specific rating type if available
+        if (row.roundRatedType !== undefined && row.roundRatedType !== RoundRatedType.UNRATED) {
+          const { rating, ratingType } = getPlayerRatingByRoundType(blackPlayerElo, row.roundRatedType);
+          return formatRatingWithType(rating, ratingType, language);
+        }
+
+        // Fallback to group-level ranking algorithm
         const { rating, ratingType } = getPlayerRatingByAlgorithm(blackPlayerElo, rankingAlgorithm);
         return formatRatingWithType(rating, ratingType, language);
       },
@@ -487,22 +511,42 @@ export default function TournamentPlayerDetailPage() {
         // Non-countable results (walkovers, not set, postponed, etc.) don't count for ELO
         if (row.isWalkover || !row.isCountable) return '-';
 
+        // Skip ELO calculation for unrated rounds
+        if (row.roundRatedType === RoundRatedType.UNRATED) return '-';
+
         // Use historical player data at round date for both tournament types
         const playerData = getPlayerByDate(memberId!, row.roundDate);
 
         if (!playerData) return '-';
 
-        // Get appropriate ratings based on group's ranking algorithm
-        const { rating: playerRating, ratingType } = getPlayerRatingByAlgorithm(playerData.elo, rankingAlgorithm);
-        const { rating: opponentRating } = getPlayerRatingByAlgorithm(row.opponent.elo, rankingAlgorithm);
+        // Get appropriate ratings - use round-specific type if available
+        let playerRating: number | null;
+        let ratingType: ReturnType<typeof getPlayerRatingByRoundType>['ratingType'];
+        let opponentRating: number | null;
+
+        if (row.roundRatedType !== undefined && row.roundRatedType !== RoundRatedType.UNRATED) {
+          // Use round-specific rating type
+          const playerResult = getPlayerRatingByRoundType(playerData.elo, row.roundRatedType);
+          const opponentResult = getPlayerRatingByRoundType(row.opponent.elo, row.roundRatedType);
+          playerRating = playerResult.rating;
+          ratingType = playerResult.ratingType;
+          opponentRating = opponentResult.rating;
+        } else {
+          // Fallback to group-level ranking algorithm
+          const playerResult = getPlayerRatingByAlgorithm(playerData.elo, rankingAlgorithm);
+          const opponentResult = getPlayerRatingByAlgorithm(row.opponent.elo, rankingAlgorithm);
+          playerRating = playerResult.rating;
+          ratingType = playerResult.ratingType;
+          opponentRating = opponentResult.rating;
+        }
 
         // Can't calculate if either player has no rating
         if (!playerRating || !opponentRating) {
           return '-';
         }
 
-        // Get K-factor based on rating type (rapid/blitz use K=40, standard uses K=20)
-        const kFactor = getKFactorForRating(ratingType, playerRating, playerData.elo);
+        // Get K-factor based on rating type and player age (juniors under 18 with rating <2300 get K=40)
+        const kFactor = getKFactorForRating(ratingType, playerRating, playerData.elo, playerData.birthdate, row.roundDate);
 
         // Calculate rating change
         const actualScore = row.result === 'win' ? 1.0 : row.result === 'draw' ? 0.5 : 0.0;
@@ -562,93 +606,206 @@ export default function TournamentPlayerDetailPage() {
               return sum + score;
             }, 0);
 
-            // Try to calculate ELO statistics if player has rating
-            let eloChange: string = '-';
-            let performanceRating: string = '-';
+            // Group matches by rating type for separate ELO calculations
+            type RatingStats = {
+              totalChange: number;
+              opponentRatings: number[];
+              score: number;
+              gameCount: number;
+            };
+
+            const statsByType: Record<string, RatingStats> = {
+              standard: { totalChange: 0, opponentRatings: [], score: 0, gameCount: 0 },
+              rapid: { totalChange: 0, opponentRatings: [], score: 0, gameCount: 0 },
+              blitz: { totalChange: 0, opponentRatings: [], score: 0, gameCount: 0 },
+            };
 
             if (playedMatches.length > 0) {
-              // Use historical per-round data for consistency with per-row display
-              // This applies to both team and individual tournaments
-              const matchResults = playedMatches.map(match => {
+              for (const match of playedMatches) {
+                // Skip unrated rounds
+                if (match.roundRatedType === RoundRatedType.UNRATED) continue;
+
                 // Get player rating at this round's date
                 const playerData = getPlayerByDate(memberId!, match.roundDate);
 
-                const { rating: playerRating, ratingType } = getPlayerRatingByAlgorithm(playerData?.elo, rankingAlgorithm);
-                const { rating: opponentRating } = getPlayerRatingByAlgorithm(match.opponent.elo, rankingAlgorithm);
+                // Use round-specific rating type if available
+                let playerRating: number | null;
+                let ratingType: ReturnType<typeof getPlayerRatingByRoundType>['ratingType'];
+                let opponentRating: number | null;
 
-                return {
-                  playerRating,
-                  ratingType,
-                  playerElo: playerData?.elo,
-                  opponentRating,
-                  actualScore: match.result === 'win' ? 1.0 : match.result === 'draw' ? 0.5 : 0.0
-                };
-              });
-
-              // Calculate total ELO change by summing per-match changes
-              let totalChange = 0;
-              const ratedOpponentRatings: number[] = [];
-              let ratedScore = 0;
-
-              for (const result of matchResults) {
-                // Only include matches where both players have valid ratings
-                if (result.playerRating && result.playerRating > 0 &&
-                    result.opponentRating && result.opponentRating > 0) {
-                  const kFactor = getKFactorForRating(result.ratingType, result.playerRating, result.playerElo);
-                  const change = calculateRatingChange(result.playerRating, result.opponentRating, result.actualScore, kFactor);
-                  totalChange += change;
-                  ratedOpponentRatings.push(result.opponentRating);
-                  ratedScore += result.actualScore;
-                }
-              }
-
-              if (ratedOpponentRatings.length > 0) {
-                totalChange = Math.round(totalChange * 10) / 10;
-                eloChange = totalChange > 0 ? `+${totalChange}` : String(totalChange);
-
-                // Calculate performance rating
-                const avgOpponentRating = ratedOpponentRatings.reduce((sum, r) => sum + r, 0) / ratedOpponentRatings.length;
-                const scorePercentage = ratedScore / ratedOpponentRatings.length;
-
-                if (scorePercentage === 1.0) {
-                  performanceRating = String(Math.round(avgOpponentRating + 800));
-                } else if (scorePercentage === 0.0) {
-                  performanceRating = String(Math.round(avgOpponentRating - 800));
+                if (match.roundRatedType !== undefined && match.roundRatedType !== RoundRatedType.UNRATED) {
+                  const playerResult = getPlayerRatingByRoundType(playerData?.elo, match.roundRatedType);
+                  const opponentResult = getPlayerRatingByRoundType(match.opponent.elo, match.roundRatedType);
+                  playerRating = playerResult.rating;
+                  ratingType = playerResult.ratingType;
+                  opponentRating = opponentResult.rating;
                 } else {
-                  const ratingDiff = -400 * Math.log10((1 / scorePercentage) - 1);
-                  performanceRating = String(Math.round(avgOpponentRating + ratingDiff));
+                  const playerResult = getPlayerRatingByAlgorithm(playerData?.elo, rankingAlgorithm);
+                  const opponentResult = getPlayerRatingByAlgorithm(match.opponent.elo, rankingAlgorithm);
+                  playerRating = playerResult.rating;
+                  ratingType = playerResult.ratingType;
+                  opponentRating = opponentResult.rating;
+                }
+
+                // Only include matches where both players have valid ratings
+                if (playerRating && playerRating > 0 && opponentRating && opponentRating > 0 && ratingType) {
+                  const kFactor = getKFactorForRating(ratingType, playerRating, playerData?.elo, playerData?.birthdate, match.roundDate);
+                  const actualScore = match.result === 'win' ? 1.0 : match.result === 'draw' ? 0.5 : 0.0;
+                  const change = calculateRatingChange(playerRating, opponentRating, actualScore, kFactor);
+
+                  const stats = statsByType[ratingType];
+                  if (stats) {
+                    stats.totalChange += change;
+                    stats.opponentRatings.push(opponentRating);
+                    stats.score += actualScore;
+                    stats.gameCount++;
+                  }
                 }
               }
             }
 
+            // Calculate performance rating for a given stats object
+            const calcPerformance = (stats: RatingStats): string => {
+              if (stats.opponentRatings.length === 0) return '-';
+              const avgOpponent = stats.opponentRatings.reduce((a, b) => a + b, 0) / stats.opponentRatings.length;
+              const scorePct = stats.score / stats.opponentRatings.length;
+              if (scorePct === 1.0) return String(Math.round(avgOpponent + 800));
+              if (scorePct === 0.0) return String(Math.round(avgOpponent - 800));
+              const ratingDiff = -400 * Math.log10((1 / scorePct) - 1);
+              return String(Math.round(avgOpponent + ratingDiff));
+            };
+
+            // Format ELO change
+            const formatChange = (stats: RatingStats): string => {
+              if (stats.gameCount === 0) return '-';
+              const rounded = Math.round(stats.totalChange * 10) / 10;
+              return rounded > 0 ? `+${rounded}` : String(rounded);
+            };
+
+            // Determine which rating types have games
+            const hasStandard = statsByType.standard.gameCount > 0;
+            const hasRapid = statsByType.rapid.gameCount > 0;
+            const hasBlitz = statsByType.blitz.gameCount > 0;
+            const ratingTypeCount = [hasStandard, hasRapid, hasBlitz].filter(Boolean).length;
+
             return (
               <div className="mt-3 p-3">
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {t.pages.playerDetail.total}
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                      {totalScore} {t.pages.playerDetail.of} {playedMatches.length}
-                    </div>
+                {/* Always show total score */}
+                <div className="mb-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                    {t.pages.playerDetail.total}
                   </div>
-                  <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {t.common.eloLabels.eloChange}
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                      {eloChange}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {t.common.eloLabels.performanceRating}
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                      {performanceRating}
-                    </div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                    {totalScore} {t.pages.playerDetail.of} {playedMatches.length}
                   </div>
                 </div>
+
+                {/* Show stats per rating type when there are multiple types, or combined if single type */}
+                {ratingTypeCount === 0 ? (
+                  // No rated games
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        {t.common.eloLabels.eloChange}
+                      </div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-200">-</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        {t.common.eloLabels.performanceRating}
+                      </div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-200">-</div>
+                    </div>
+                  </div>
+                ) : ratingTypeCount === 1 ? (
+                  // Single rating type - show simple view
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        {hasRapid ? t.common.eloLabels.rapidEloChange :
+                         hasBlitz ? t.common.eloLabels.blitzEloChange :
+                         t.common.eloLabels.eloChange}
+                      </div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                        {formatChange(hasStandard ? statsByType.standard : hasRapid ? statsByType.rapid : statsByType.blitz)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        {hasRapid ? t.common.eloLabels.rapidPerformance :
+                         hasBlitz ? t.common.eloLabels.blitzPerformance :
+                         t.common.eloLabels.performanceRating}
+                      </div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                        {calcPerformance(hasStandard ? statsByType.standard : hasRapid ? statsByType.rapid : statsByType.blitz)}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // Multiple rating types - show separate stats for each
+                  <div className="space-y-2">
+                    {hasStandard && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            {t.common.eloLabels.eloChange}
+                          </div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                            {formatChange(statsByType.standard)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            {t.common.eloLabels.performanceRating}
+                          </div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                            {calcPerformance(statsByType.standard)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {hasRapid && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            {t.common.eloLabels.rapidEloChange}
+                          </div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                            {formatChange(statsByType.rapid)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            {t.common.eloLabels.rapidPerformance}
+                          </div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                            {calcPerformance(statsByType.rapid)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {hasBlitz && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            {t.common.eloLabels.blitzEloChange}
+                          </div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                            {formatChange(statsByType.blitz)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            {t.common.eloLabels.blitzPerformance}
+                          </div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                            {calcPerformance(statsByType.blitz)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })()}
