@@ -296,6 +296,9 @@ export interface Translations {
       notFound: string;
       groups: string;
       finalResults: string;
+      ongoingResults: string;
+      statusOngoing: string;
+      statusFinished: string;
       finalResultsTable: {
         pos: string;
         name: string;
@@ -737,6 +740,9 @@ const translations: Record<Language, Translations> = {
         notFound: 'Tournament not found',
         groups: 'Groups',
         finalResults: 'Final Results',
+        ongoingResults: 'Results',
+        statusOngoing: 'Ongoing',
+        statusFinished: 'Finished',
         finalResultsTable: {
           pos: 'Pos',
           name: 'Name',
@@ -1176,6 +1182,9 @@ const translations: Record<Language, Translations> = {
         notFound: 'Turnering hittades inte',
         groups: 'Grupper',
         finalResults: 'Slutresultat',
+        ongoingResults: 'Resultat',
+        statusOngoing: 'Pågående',
+        statusFinished: 'Avslutad',
         finalResultsTable: {
           pos: 'Plac',
           name: 'Namn',

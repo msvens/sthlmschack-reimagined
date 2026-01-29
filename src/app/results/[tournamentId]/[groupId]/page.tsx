@@ -240,14 +240,24 @@ export default function GroupResultsPage() {
   const allClasses = getAllClasses();
   const hasMultipleClasses = allClasses.length > 1;
   const hasMultipleGroups = selectedClass?.groups ? selectedClass.groups.length > 1 : false;
+  const isSingleGroup = !hasMultipleClasses && !hasMultipleGroups;
 
-  // Determine if tournament is in registration phase (not started)
-  // Only compute this when we actually know the tournament state (not loading)
-  // This prevents flashing wrong content during load
-  const isNotStarted = !resultsLoading && (
+  // Determine tournament/group state for display
+  // These are only used when resultsLoading is false (guarded in JSX)
+  //
+  // hasRoundResults: If there are round results, games have been played regardless of API state
+  const hasRoundResults = isTeamTournament
+    ? teamRoundResults.length > 0
+    : individualRoundResults.length > 0;
+
+  // isNotStarted: Show registration view only if state is REGISTRATION AND no games played
+  const isNotStarted = !hasRoundResults && (
     tournamentState === TournamentState.REGISTRATION
     || (groupStartDate && tournamentState === null && new Date() < new Date(groupStartDate))
   );
+
+  // isFinished: Group end date has passed
+  const isFinished = groupEndDate && new Date() > new Date(groupEndDate);
 
   // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
@@ -346,22 +356,28 @@ export default function GroupResultsPage() {
 
               {selectedGroup ? (
                 <>
-                  {/* Main Results Table */}
+                  {/* Main Results Table - only render when results are loaded */}
+                  {resultsLoading ? (
+                    // Don't show anything while loading - prevents flashing wrong state
+                    null
+                  ) : (
                   <div className="mb-6">
                     <div className="mb-4">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
                         {isNotStarted
                           ? t.pages.tournamentResults.registrationTable.title
-                          : t.pages.tournamentResults.finalResults} - {selectedGroup.name}
-                        {thinkingTime && (
-                          <span className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-400">
-                            ({thinkingTime})
-                          </span>
-                        )}
+                          : isFinished
+                            ? t.pages.tournamentResults.finalResults
+                            : t.pages.tournamentResults.ongoingResults}{!isSingleGroup && ` - ${selectedGroup.name}`}
                       </h3>
                       {isNotStarted && groupStartDate && (
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           {t.pages.tournamentResults.tournamentStatus.groupStarts} {groupStartDate}
+                        </p>
+                      )}
+                      {thinkingTime && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {thinkingTime}
                         </p>
                       )}
                     </div>
@@ -435,6 +451,7 @@ export default function GroupResultsPage() {
                       )
                     )}
                   </div>
+                  )}
 
                   {/* Round-by-Round Results - only shown for started tournaments, hidden during loading */}
                   {!resultsLoading && !isNotStarted && (isTeamTournament ? (
