@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { DatePicker } from '@/components/DatePicker';
 import { getPlayerRatingHistory } from '@/lib/api';
+import { useResponsiveDataPoints } from '@/hooks';
 
 export interface RatingDataPoint {
   /** Date string (e.g., "2024-01" or "2024-01-15") */
@@ -48,6 +49,8 @@ export interface EloRatingChartProps {
     start: string;
     end: string;
   };
+  /** Max data points (0 = responsive default, -1 = unlimited) */
+  maxDataPoints?: number;
 }
 
 function getDefaultPeriod(): { start: string; end: string } {
@@ -71,6 +74,7 @@ export function EloRatingChart({
   showDatePickers = true,
   language,
   initialPeriod,
+  maxDataPoints = 0,
 }: EloRatingChartProps) {
   const defaultPeriod = initialPeriod ?? getDefaultPeriod();
   const [startMonth, setStartMonth] = useState(defaultPeriod.start);
@@ -78,11 +82,16 @@ export function EloRatingChart({
   const [data, setData] = useState<RatingDataPoint[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Determine effective max data points: 0 = responsive, -1 = unlimited, >0 = fixed
+  const responsiveMax = useResponsiveDataPoints();
+  const effectiveMax = maxDataPoints === 0 ? responsiveMax :
+                       maxDataPoints === -1 ? 0 : maxDataPoints;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await getPlayerRatingHistory(memberId, startMonth, endMonth);
+        const response = await getPlayerRatingHistory(memberId, startMonth, endMonth, effectiveMax);
         if (response.status === 200 && response.data) {
           setData(response.data);
         }
@@ -94,7 +103,7 @@ export function EloRatingChart({
     };
 
     fetchData();
-  }, [memberId, startMonth, endMonth]);
+  }, [memberId, startMonth, endMonth, effectiveMax]);
 
   // Format date for display (numeric YYYY-MM format, language-agnostic)
   const formatDate = (dateString: string) => {
