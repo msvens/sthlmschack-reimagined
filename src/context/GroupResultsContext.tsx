@@ -52,6 +52,12 @@ export interface GroupResultsContextValue {
   getRoundRatedType: (roundNumber: number) => number | undefined;
   /** Get formatted ELO for a player at a specific date and round (uses round-specific rating type) */
   getPlayerEloByDateAndRound: (playerId: number, date: number, roundNumber?: number) => string;
+
+  // Live updates
+  /** Refresh all tournament results data */
+  refreshResults: () => Promise<void>;
+  /** Timestamp of last data refresh */
+  lastUpdated: Date | null;
 }
 
 const GroupResultsContext = createContext<GroupResultsContextValue | null>(null);

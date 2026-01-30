@@ -363,6 +363,11 @@ export interface Translations {
         noRegistrations: string;
         loadingRegistrations: string;
       };
+      liveUpdates: {
+        label: string;
+        lastUpdated: string;
+        refresh: string;
+      };
     };
     organizations: {
       title: string;
@@ -811,6 +816,11 @@ const translations: Record<Language, Translations> = {
           noRegistrations: 'No registered players',
           loadingRegistrations: 'Loading registrations...',
         },
+        liveUpdates: {
+          label: 'Live',
+          lastUpdated: 'Updated',
+          refresh: 'Refresh',
+        },
       },
       organizations: {
         title: 'Clubs & Districts',
@@ -1256,6 +1266,11 @@ const translations: Record<Language, Translations> = {
           rating: 'Rating',
           noRegistrations: 'Inga anmälda spelare',
           loadingRegistrations: 'Laddar anmälningar...',
+        },
+        liveUpdates: {
+          label: 'Live',
+          lastUpdated: 'Uppdaterad',
+          refresh: 'Uppdatera',
         },
       },
       organizations: {
