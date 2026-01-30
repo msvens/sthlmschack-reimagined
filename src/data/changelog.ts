@@ -19,6 +19,40 @@ export const changelog: ChangelogEntry[] = [
     "sections": []
   },
   {
+    "version": "0.7.0",
+    "date": "2026-01-30",
+    "sections": [
+      {
+        "type": "Added",
+        "items": [
+          "Live tournament updates with opt-in auto-refresh (30-second polling)",
+          "Manual refresh button for on-demand data updates",
+          "\"Last updated\" timestamp on tournament results",
+          "Registration list view for tournaments that haven't started yet",
+          "FIDE titles displayed with player names throughout the app",
+          "Date range picker for ELO history chart",
+          "Custom DatePicker component"
+        ]
+      },
+      {
+        "type": "Changed",
+        "items": [
+          "ELO chart now limits data points based on screen size for better performance",
+          "Per-round rating types supported (standard/rapid/blitz per round)",
+          "Improved tournament state detection (registration vs ongoing vs finished)",
+          "Live controls hidden for finished tournaments"
+        ]
+      },
+      {
+        "type": "Fixed",
+        "items": [
+          "ELO display and loading flash issues on tournament pages",
+          "Timezone bug in date formatting"
+        ]
+      }
+    ]
+  },
+  {
     "version": "0.6.0",
     "date": "2026-01-27",
     "sections": [

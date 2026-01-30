@@ -6,6 +6,29 @@ All notable changes to msvens chess will be documented in this file.
 
 ---
 
+## [0.7.0] - 2026-01-30
+
+### Added
+- Live tournament updates with opt-in auto-refresh (30-second polling)
+- Manual refresh button for on-demand data updates
+- "Last updated" timestamp on tournament results
+- Registration list view for tournaments that haven't started yet
+- FIDE titles displayed with player names throughout the app
+- Date range picker for ELO history chart
+- Custom DatePicker component
+
+### Changed
+- ELO chart now limits data points based on screen size for better performance
+- Per-round rating types supported (standard/rapid/blitz per round)
+- Improved tournament state detection (registration vs ongoing vs finished)
+- Live controls hidden for finished tournaments
+
+### Fixed
+- ELO display and loading flash issues on tournament pages
+- Timezone bug in date formatting
+
+---
+
 ## [0.6.0] - 2026-01-27
 
 ### Added
