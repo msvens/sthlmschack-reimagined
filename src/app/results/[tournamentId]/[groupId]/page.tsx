@@ -12,9 +12,11 @@ import { FinalResultsTable } from '@/components/results/FinalResultsTable';
 import { TeamFinalResultsTable } from '@/components/results/TeamFinalResultsTable';
 import { RegistrationTable } from '@/components/results/RegistrationTable';
 import { TeamRoundResults } from '@/components/results/TeamRoundResults';
+import { LiveUpdatesToggle } from '@/components/results/LiveUpdatesToggle';
 import { SelectableList, SelectableListItem } from '@/components/SelectableList';
 import { Link } from '@/components/Link';
 import { Table, TableColumn } from '@/components/Table';
+import { useLiveUpdates } from '@/hooks';
 
 /**
  * Parse a date string to Unix timestamp in milliseconds
@@ -50,8 +52,19 @@ export default function GroupResultsPage() {
     getPlayerClubId,
     getClubName,
     fetchPlayersByDate,
-    getPlayerEloByDate
+    getPlayerEloByDate,
+    refreshResults,
+    lastUpdated
   } = useGroupResults();
+
+  // Live updates hook
+  const {
+    state: liveState,
+    setEnabled: setLiveEnabled,
+    manualRefresh
+  } = useLiveUpdates({
+    onRefresh: refreshResults
+  });
 
   // Use appropriate results based on tournament type
   const groupResults = isTeamTournament ? [] : individualResults;
@@ -363,23 +376,39 @@ export default function GroupResultsPage() {
                   ) : (
                   <div className="mb-6">
                     <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
-                        {isNotStarted
-                          ? t.pages.tournamentResults.registrationTable.title
-                          : isFinished
-                            ? t.pages.tournamentResults.finalResults
-                            : t.pages.tournamentResults.ongoingResults}{!isSingleGroup && ` - ${selectedGroup.name}`}
-                      </h3>
-                      {isNotStarted && groupStartDate && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {t.pages.tournamentResults.tournamentStatus.groupStarts} {groupStartDate}
-                        </p>
-                      )}
-                      {thinkingTime && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {thinkingTime}
-                        </p>
-                      )}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
+                            {isNotStarted
+                              ? t.pages.tournamentResults.registrationTable.title
+                              : isFinished
+                                ? t.pages.tournamentResults.finalResults
+                                : t.pages.tournamentResults.ongoingResults}{!isSingleGroup && ` - ${selectedGroup.name}`}
+                          </h3>
+                          {isNotStarted && groupStartDate && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {t.pages.tournamentResults.tournamentStatus.groupStarts} {groupStartDate}
+                            </p>
+                          )}
+                          {thinkingTime && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {thinkingTime}
+                            </p>
+                          )}
+                        </div>
+                        {/* Live controls: only show for non-finished tournaments */}
+                        {!isFinished && (
+                          <div className="sm:flex-shrink-0">
+                            <LiveUpdatesToggle
+                              enabled={liveState.enabled}
+                              onToggle={setLiveEnabled}
+                              lastUpdated={liveState.lastUpdated || lastUpdated}
+                              isRefreshing={liveState.isRefreshing}
+                              onManualRefresh={manualRefresh}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Show status messages only for started tournaments with no results */}
