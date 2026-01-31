@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, formatMatchResult } from '@/lib/api';
+import { TournamentService, formatMatchResult, normalizeEloLookupDate } from '@/lib/api';
 import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -25,6 +25,17 @@ function parseDateToTimestamp(dateStr: string): number {
   const asNumber = Number(dateStr);
   if (!isNaN(asNumber) && asNumber > 0) return asNumber;
   return new Date(dateStr).getTime();
+}
+
+/**
+ * Format a date string for compact display (e.g., "26-01-15" or "1/15/26" depending on locale)
+ */
+function formatRoundDate(dateStr: string | undefined, locale: string): string {
+  if (!dateStr) return '';
+  const timestamp = parseDateToTimestamp(dateStr);
+  if (isNaN(timestamp) || timestamp <= 0) return '';
+  const d = new Date(timestamp);
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'numeric', year: '2-digit' });
 }
 
 export default function GroupResultsPage() {
@@ -54,7 +65,8 @@ export default function GroupResultsPage() {
     fetchPlayersByDate,
     getPlayerEloByDate,
     refreshResults,
-    lastUpdated
+    lastUpdated,
+    roundsMap
   } = useGroupResults();
 
   // Live updates hook
@@ -97,14 +109,16 @@ export default function GroupResultsPage() {
     const roundGames = resultsByRound[selectedRound];
     if (!roundGames || roundGames.length === 0) return;
 
-    // Collect all (playerId, roundDate) pairs for this round
+    // Collect all (playerId, lookupDate) pairs for this round
+    // Use normalizeEloLookupDate to fall back to current month for future rounds
     const requests: PlayerDateRequest[] = [];
     for (const game of roundGames) {
       const roundDate = parseDateToTimestamp(game.date);
       if (isNaN(roundDate) || roundDate <= 0) continue;
 
-      requests.push({ playerId: game.homeId, date: roundDate });
-      requests.push({ playerId: game.awayId, date: roundDate });
+      const lookupDate = normalizeEloLookupDate(roundDate);
+      requests.push({ playerId: game.homeId, date: lookupDate });
+      requests.push({ playerId: game.awayId, date: lookupDate });
     }
 
     if (requests.length > 0) {
@@ -532,19 +546,31 @@ export default function GroupResultsPage() {
                               <>
                                 {/* Round Tab Navigation */}
                                 <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700">
-                                  {rounds.map(roundNumber => (
-                                    <button
-                                      key={roundNumber}
-                                      onClick={() => setSelectedRound(roundNumber)}
-                                      className={`flex-shrink-0 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-                                        selectedRound === roundNumber
-                                          ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
-                                          : 'text-gray-600 dark:text-gray-400'
-                                      }`}
-                                    >
-                                      {t.pages.tournamentResults.roundByRound.round} {roundNumber}
-                                    </button>
-                                  ))}
+                                  {rounds.map(roundNumber => {
+                                    const roundDate = formatRoundDate(roundsMap.get(roundNumber)?.roundDate, language);
+                                    return (
+                                      <button
+                                        key={roundNumber}
+                                        onClick={() => setSelectedRound(roundNumber)}
+                                        className={`flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+                                          selectedRound === roundNumber
+                                            ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+                                            : 'text-gray-600 dark:text-gray-400'
+                                        }`}
+                                      >
+                                        <div>{t.pages.tournamentResults.roundByRound.round} {roundNumber}</div>
+                                        {roundDate && (
+                                          <div className={`text-xs ${
+                                            selectedRound === roundNumber
+                                              ? 'text-blue-500 dark:text-blue-300'
+                                              : 'text-gray-500 dark:text-gray-500'
+                                          }`}>
+                                            {roundDate}
+                                          </div>
+                                        )}
+                                      </button>
+                                    );
+                                  })}
                                 </div>
 
                                 {/* Selected Round Content */}
@@ -577,7 +603,8 @@ export default function GroupResultsPage() {
                                         header: t.pages.tournamentResults.roundByRound.elo,
                                         accessor: (row) => {
                                           const roundDate = parseDateToTimestamp(row.date);
-                                          return getPlayerEloByDate(row.homeId, roundDate);
+                                          const lookupDate = normalizeEloLookupDate(roundDate);
+                                          return getPlayerEloByDate(row.homeId, lookupDate);
                                         },
                                         align: 'center',
                                         noWrap: true
@@ -600,7 +627,8 @@ export default function GroupResultsPage() {
                                         header: t.pages.tournamentResults.roundByRound.elo,
                                         accessor: (row) => {
                                           const roundDate = parseDateToTimestamp(row.date);
-                                          return getPlayerEloByDate(row.awayId, roundDate);
+                                          const lookupDate = normalizeEloLookupDate(roundDate);
+                                          return getPlayerEloByDate(row.awayId, lookupDate);
                                         },
                                         align: 'center',
                                         noWrap: true
@@ -608,7 +636,13 @@ export default function GroupResultsPage() {
                                       {
                                         id: 'result',
                                         header: t.pages.tournamentResults.roundByRound.result,
-                                        accessor: (row) => formatMatchResult(row.homeResult, row.awayResult, row.homeId, row.awayId),
+                                        accessor: (row) => {
+                                          // Show "-" for unplayed games (both results are 0)
+                                          if (row.homeResult === 0 && row.awayResult === 0) {
+                                            return '-';
+                                          }
+                                          return formatMatchResult(row.homeResult, row.awayResult, row.homeId, row.awayId);
+                                        },
                                         align: 'center',
                                         noWrap: true,
                                         cellStyle: { fontWeight: 'medium' }

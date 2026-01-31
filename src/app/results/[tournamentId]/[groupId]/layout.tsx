@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, PlayerService, formatRatingWithType, getPlayerRatingByAlgorithm, getPlayerRatingByRoundType, formatPlayerName } from '@/lib/api';
+import { ResultsService, TournamentService, PlayerService, formatRatingWithType, getPlayerRatingByAlgorithm, getPlayerRatingByRoundType, formatPlayerName, getMonthStartString, getPlayerDateCacheKey, normalizeEloLookupDate } from '@/lib/api';
 import { chunkArray } from '@/lib/api/utils/batchUtils';
 import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -12,26 +12,6 @@ import { findTournamentGroup } from '@/lib/api/utils/tournamentGroupUtils';
 
 // Concurrency for date-based API calls (each date triggers a separate batch)
 const DATE_CONCURRENCY = 3;
-
-/**
- * Generate cache key for player-date combination
- * Normalizes to month-start (YYYY-MM-01) since SSF ELO updates monthly
- * This ensures all dates within a month share the same cache entry
- */
-function getPlayerDateKey(playerId: number, date: number): string {
-  const d = new Date(date);
-  const monthStart = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-  return `${playerId}-${monthStart}`;
-}
-
-/**
- * Convert a date to month-start string for API calls
- * SSF API returns the same ELO for any date within a month
- */
-function getMonthStartString(date: number): string {
-  const d = new Date(date);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-}
 
 export default function GroupResultsLayout({ children }: { children: ReactNode }) {
   const params = useParams();
@@ -263,7 +243,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
    */
   const fetchPlayersByDate = useCallback(async (requests: PlayerDateRequest[]): Promise<void> => {
     // Filter out already cached (playerId, month) combinations
-    const uncached = requests.filter(r => !playerDateCache.has(getPlayerDateKey(r.playerId, r.date)));
+    const uncached = requests.filter(r => !playerDateCache.has(getPlayerDateCacheKey(r.playerId, r.date)));
     if (uncached.length === 0) return;
 
     // Group by month-start (API returns same ELO for any date within a month)
@@ -340,7 +320,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
    * Returns undefined if not cached (call fetchPlayersByDate first)
    */
   const getPlayerByDate = useCallback((playerId: number, date: number): PlayerInfoDto | undefined => {
-    return playerDateCache.get(getPlayerDateKey(playerId, date));
+    return playerDateCache.get(getPlayerDateCacheKey(playerId, date));
   }, [playerDateCache]);
 
   /**
@@ -348,7 +328,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
    * Falls back to current playerMap if historical data not available
    */
   const getPlayerEloByDate = useCallback((playerId: number, date: number): string => {
-    const historicalPlayer = playerDateCache.get(getPlayerDateKey(playerId, date));
+    const historicalPlayer = playerDateCache.get(getPlayerDateCacheKey(playerId, date));
     const player = historicalPlayer || playerMap.get(playerId);
     const { rating, ratingType } = getPlayerRatingByAlgorithm(player?.elo, rankingAlgorithm);
     return formatRatingWithType(rating, ratingType, language);
@@ -371,7 +351,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     date: number,
     roundNumber?: number
   ): string => {
-    const historicalPlayer = playerDateCache.get(getPlayerDateKey(playerId, date));
+    const historicalPlayer = playerDateCache.get(getPlayerDateCacheKey(playerId, date));
     const player = historicalPlayer || playerMap.get(playerId);
 
     // If round number provided, try to use round-specific rating type

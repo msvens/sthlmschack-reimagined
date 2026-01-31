@@ -73,3 +73,9 @@ export {
   getPlayerPoints,
   getPointSystemName
 } from './utils/gameResults';
+export {
+  getMonthStart,
+  getMonthStartString,
+  normalizeEloLookupDate,
+  getPlayerDateCacheKey
+} from './utils/dateUtils';

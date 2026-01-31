@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { TournamentRoundResultDto, GameDto } from '@/lib/api/types';
-import { isWalkoverPlayer, isWalkoverClub, createRoundResultsTeamNameFormatter } from '@/lib/api';
+import { isWalkoverPlayer, isWalkoverClub, createRoundResultsTeamNameFormatter, normalizeEloLookupDate } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { Link } from '@/components/Link';
@@ -69,6 +69,17 @@ function parseDateToTimestamp(dateStr: string): number {
   }
   // Fall back to Date parsing (ISO string or other formats)
   return new Date(dateStr).getTime();
+}
+
+/**
+ * Format a date string for compact display (e.g., "26-01-15" or "1/15/26" depending on locale)
+ */
+function formatRoundDate(dateStr: string | undefined, locale: string): string {
+  if (!dateStr) return '';
+  const timestamp = parseDateToTimestamp(dateStr);
+  if (isNaN(timestamp) || timestamp <= 0) return '';
+  const d = new Date(timestamp);
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'numeric', year: '2-digit' });
 }
 
 export function TeamRoundResults({
@@ -154,18 +165,20 @@ export function TeamRoundResults({
     const allGames = match.boards[0]?.games || [];
     if (allGames.length === 0) return;
 
-    // Parse match date to timestamp
+    // Parse match date to timestamp and normalize for ELO lookup
+    // (falls back to current month if match date is in the future)
     const matchDate = parseDateToTimestamp(match.date);
     if (isNaN(matchDate) || matchDate <= 0) return;
+    const lookupDate = normalizeEloLookupDate(matchDate);
 
     // Collect all player IDs from the games
     const requests: PlayerDateRequest[] = [];
     allGames.forEach(game => {
       if (!isWalkoverPlayer(game.whiteId)) {
-        requests.push({ playerId: game.whiteId, date: matchDate });
+        requests.push({ playerId: game.whiteId, date: lookupDate });
       }
       if (!isWalkoverPlayer(game.blackId)) {
-        requests.push({ playerId: game.blackId, date: matchDate });
+        requests.push({ playerId: game.blackId, date: lookupDate });
       }
     });
 
@@ -359,22 +372,37 @@ export function TeamRoundResults({
 
       {/* Round Tab Navigation */}
       <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700">
-        {rounds.map(roundNumber => (
-          <button
-            key={roundNumber}
-            onClick={() => {
-              setSelectedRound(roundNumber);
-              setExpandedMatchIndex(null); // Collapse when changing rounds
-            }}
-            className={`flex-shrink-0 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-              selectedRound === roundNumber
-                ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
-                : 'text-gray-600 dark:text-gray-400'
-            }`}
-          >
-            {t.pages.tournamentResults.roundByRound.round} {roundNumber}
-          </button>
-        ))}
+        {rounds.map(roundNumber => {
+          // Get round date from first match in round
+          const firstMatch = matchesByRound[roundNumber]?.[0];
+          const roundDate = firstMatch?.date ? formatRoundDate(firstMatch.date, language) : '';
+
+          return (
+            <button
+              key={roundNumber}
+              onClick={() => {
+                setSelectedRound(roundNumber);
+                setExpandedMatchIndex(null); // Collapse when changing rounds
+              }}
+              className={`flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+                selectedRound === roundNumber
+                  ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              <div>{t.pages.tournamentResults.roundByRound.round} {roundNumber}</div>
+              {roundDate && (
+                <div className={`text-xs ${
+                  selectedRound === roundNumber
+                    ? 'text-blue-500 dark:text-blue-300'
+                    : 'text-gray-500 dark:text-gray-500'
+                }`}>
+                  {roundDate}
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Selected Round Content */}
@@ -424,13 +452,16 @@ export function TeamRoundResults({
                       const allGames = match.boards[0]?.games || [];
 
                       // Parse match date for historical ELO lookup
-                      const matchDate = parseDateToTimestamp(match.date);
-                      const validMatchDate = !isNaN(matchDate) && matchDate > 0 ? matchDate : undefined;
+                      // Normalize to handle future dates (falls back to current month)
+                      const rawMatchDate = parseDateToTimestamp(match.date);
+                      const normalizedDate = !isNaN(rawMatchDate) && rawMatchDate > 0
+                        ? normalizeEloLookupDate(rawMatchDate)
+                        : undefined;
 
                       // Process games to ensure home team is always in left column
-                      // Pass match date to enable historical ELO lookup
+                      // Pass normalized date to enable historical ELO lookup
                       const processedGames = allGames.map(game =>
-                        processGame(game, match.homeId, match.awayId, validMatchDate)
+                        processGame(game, match.homeId, match.awayId, normalizedDate)
                       );
 
                       // Sort by board number
