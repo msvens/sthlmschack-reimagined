@@ -322,10 +322,10 @@ export default function GroupResultsPage() {
           </div>
 
           {/* Responsive Flex Layout */}
-          <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
             {/* Class & Group Selection - Desktop: Left sidebar - only shown if needed */}
             {(hasMultipleClasses || hasMultipleGroups) && (
-              <div className="hidden md:block w-56 flex-shrink-0 space-y-4">
+              <div className="hidden lg:block w-56 flex-shrink-0 space-y-4">
                 {/* Class Selector - only shown if multiple classes - always dropdown */}
                 {hasMultipleClasses && (
                   <SelectableList
@@ -351,9 +351,9 @@ export default function GroupResultsPage() {
             )}
 
             {/* Main Content Area */}
-            <div className="flex-1 min-w-0 md:pr-2">
-              {/* Class & Group Selection - Mobile: Dropdowns at top */}
-              <div className="md:hidden mb-4 space-y-2">
+            <div className="flex-1 min-w-0 lg:pr-2">
+              {/* Class & Group Selection - Mobile/Tablet: Dropdowns at top */}
+              <div className="lg:hidden mb-4 space-y-2">
                 {/* Class Selector - only shown if multiple classes */}
                 {hasMultipleClasses && (
                   <SelectableList
