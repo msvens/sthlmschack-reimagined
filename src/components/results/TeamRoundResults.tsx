@@ -269,8 +269,8 @@ export function TeamRoundResults({
 
     let homePlayerId: number;
     let awayPlayerId: number;
-    let homeScore: number;
-    let awayScore: number;
+    let homeScore: number = 0;
+    let awayScore: number = 0;
 
     if (whiteIsHome) {
       // White is home team
@@ -278,7 +278,11 @@ export function TeamRoundResults({
       awayPlayerId = game.blackId;
 
       // Calculate scores based on result
-      if (game.result === 2) {
+      // Check for null/undefined first (unplayed games)
+      // Also check for double walkover (both players missing)
+      if (game.result == null || (isWalkoverPlayer(game.whiteId) && isWalkoverPlayer(game.blackId))) {
+        // Unplayed or double walkover - scores stay at 0
+      } else if (game.result === 2) {
         // White wins on W.O
         homeScore = 1;
         awayScore = 0;
@@ -295,7 +299,7 @@ export function TeamRoundResults({
         homeScore = 0;
         awayScore = 1;
       } else {
-        // Draw
+        // Draw (result === 0)
         homeScore = 0.5;
         awayScore = 0.5;
       }
@@ -305,7 +309,11 @@ export function TeamRoundResults({
       awayPlayerId = game.whiteId;
 
       // Calculate scores based on result (flipped perspective)
-      if (game.result === 2) {
+      // Check for null/undefined first (unplayed games)
+      // Also check for double walkover (both players missing)
+      if (game.result == null || (isWalkoverPlayer(game.whiteId) && isWalkoverPlayer(game.blackId))) {
+        // Unplayed or double walkover - scores stay at 0
+      } else if (game.result === 2) {
         // White wins on W.O (away team wins)
         homeScore = 0;
         awayScore = 1;
@@ -322,7 +330,7 @@ export function TeamRoundResults({
         homeScore = 1;
         awayScore = 0;
       } else {
-        // Draw
+        // Draw (result === 0)
         homeScore = 0.5;
         awayScore = 0.5;
       }
@@ -427,7 +435,7 @@ export function TeamRoundResults({
                   </div>
                   <div className="ml-4 flex items-center gap-3">
                     <span className="font-semibold text-gray-900 dark:text-gray-200">
-                      {match.homeScore} - {match.awayScore}
+                      {match.homeScore === 0 && match.awayScore === 0 ? '-' : `${match.homeScore} - ${match.awayScore}`}
                     </span>
                     <svg
                       className={`w-5 h-5 text-gray-400 transition-transform ${
