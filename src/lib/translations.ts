@@ -817,7 +817,7 @@ const translations: Record<Language, Translations> = {
           loadingRegistrations: 'Loading registrations...',
         },
         liveUpdates: {
-          label: 'Live',
+          label: 'Auto',
           lastUpdated: 'Updated',
           refresh: 'Refresh',
         },
@@ -1268,7 +1268,7 @@ const translations: Record<Language, Translations> = {
           loadingRegistrations: 'Laddar anmälningar...',
         },
         liveUpdates: {
-          label: 'Live',
+          label: 'Auto',
           lastUpdated: 'Uppdaterad',
           refresh: 'Uppdatera',
         },
