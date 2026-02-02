@@ -70,11 +70,8 @@ export default function PlayersPage() {
         if (response.status === 200 && response.data) {
           const results = response.data;
 
-          if (results.length === 1) {
-            // Single result - navigate directly
-            router.push(`/players/${results[0].id}`);
-          } else if (results.length > 1) {
-            // Multiple results - show dropdown
+          if (results.length > 0) {
+            // Show results in dropdown (even for single match)
             setSearchResults(results);
             setShowDropdown(true);
           } else {
