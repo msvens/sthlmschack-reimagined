@@ -6,6 +6,24 @@ All notable changes to msvens chess will be documented in this file.
 
 ---
 
+## [0.8.0] - 2026-02-02
+
+### Added
+- Player search now shows dropdown for single match to confirm selection
+
+### Changed
+- Tournament results default to the last played round instead of Round 1
+- Round dates now use actual game dates with fallback to scheduled dates
+- Renamed "Live" toggle to "Auto" for live updates
+- Results sidebar now switches to dropdown at large breakpoint (was medium)
+
+### Fixed
+- Round 1 date not showing when missing from tournament metadata
+- ELO display for upcoming rounds
+- Result display for team match boards
+
+---
+
 ## [0.7.0] - 2026-01-30
 
 ### Added

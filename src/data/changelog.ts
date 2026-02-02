@@ -19,6 +19,35 @@ export const changelog: ChangelogEntry[] = [
     "sections": []
   },
   {
+    "version": "0.8.0",
+    "date": "2026-02-02",
+    "sections": [
+      {
+        "type": "Added",
+        "items": [
+          "Player search now shows dropdown for single match to confirm selection"
+        ]
+      },
+      {
+        "type": "Changed",
+        "items": [
+          "Tournament results default to the last played round instead of Round 1",
+          "Round dates now use actual game dates with fallback to scheduled dates",
+          "Renamed \"Live\" toggle to \"Auto\" for live updates",
+          "Results sidebar now switches to dropdown at large breakpoint (was medium)"
+        ]
+      },
+      {
+        "type": "Fixed",
+        "items": [
+          "Round 1 date not showing when missing from tournament metadata",
+          "ELO display for upcoming rounds",
+          "Result display for team match boards"
+        ]
+      }
+    ]
+  },
+  {
     "version": "0.7.0",
     "date": "2026-01-30",
     "sections": [
