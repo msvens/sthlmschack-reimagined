@@ -148,9 +148,24 @@ export function TeamRoundResults({
     .map(Number)
     .sort((a, b) => a - b);
 
-  // Set default selected round if not set
+  // Set default selected round to the last round with any results
   if (selectedRound === null && rounds.length > 0) {
-    setSelectedRound(rounds[0]);
+    // A round is "played" if at least one match has a non-zero score
+    const isRoundPlayed = (roundNumber: number): boolean => {
+      const matches = matchesByRound[roundNumber] || [];
+      return matches.some(m => m.homeScore !== 0 || m.awayScore !== 0);
+    };
+
+    // Find last round with any results (scan backwards)
+    const lastPlayedRound = [...rounds].reverse().find(r => isRoundPlayed(r));
+
+    if (lastPlayedRound !== undefined) {
+      // Show the last round with results
+      setSelectedRound(lastPlayedRound);
+    } else {
+      // No rounds have been played yet - show Round 1
+      setSelectedRound(rounds[0]);
+    }
   }
 
   // Fetch historical ELO data when a match is expanded
@@ -382,6 +397,7 @@ export function TeamRoundResults({
       <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700">
         {rounds.map(roundNumber => {
           // Get round date from first match in round
+          // TODO: Add roundsMap fallback for unplayed rounds (like individual tournaments in page.tsx)
           const firstMatch = matchesByRound[roundNumber]?.[0];
           const roundDate = firstMatch?.date ? formatRoundDate(firstMatch.date, language) : '';
 

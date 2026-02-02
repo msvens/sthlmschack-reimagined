@@ -537,9 +537,24 @@ export default function GroupResultsPage() {
                               .map(Number)
                               .sort((a, b) => a - b);
 
-                            // Set default selected round if not set
+                            // Set default selected round to the last round with any results
                             if (selectedRound === null && rounds.length > 0) {
-                              setSelectedRound(rounds[0]);
+                              // A round is "played" if at least one game has a non-zero result
+                              const isRoundPlayed = (roundNumber: number): boolean => {
+                                const roundResults = resultsByRound[roundNumber] || [];
+                                return roundResults.some(r => r.homeResult !== 0 || r.awayResult !== 0);
+                              };
+
+                              // Find last round with any results (scan backwards)
+                              const lastPlayedRound = [...rounds].reverse().find(r => isRoundPlayed(r));
+
+                              if (lastPlayedRound !== undefined) {
+                                // Show the last round with results
+                                setSelectedRound(lastPlayedRound);
+                              } else {
+                                // No rounds have been played yet - show Round 1
+                                setSelectedRound(rounds[0]);
+                              }
                             }
 
                             return (
@@ -547,7 +562,11 @@ export default function GroupResultsPage() {
                                 {/* Round Tab Navigation */}
                                 <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700">
                                   {rounds.map(roundNumber => {
-                                    const roundDate = formatRoundDate(roundsMap.get(roundNumber)?.roundDate, language);
+                                    // Primary: actual game date from results (more accurate)
+                                    // Fallback: scheduled date from roundsMap (for future rounds or missing data)
+                                    const roundDateStr = resultsByRound[roundNumber]?.[0]?.date
+                                      || roundsMap.get(roundNumber)?.roundDate;
+                                    const roundDate = formatRoundDate(roundDateStr, language);
                                     return (
                                       <button
                                         key={roundNumber}
