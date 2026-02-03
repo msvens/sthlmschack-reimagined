@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, ReactNode, useMemo } from 'react';
+import React, { useState, useEffect, ReactNode, useMemo } from 'react';
 import { PlayerTournamentList } from './PlayerTournamentList';
 import { OpponentsTab } from './OpponentsTab';
-import { TournamentParticipation } from '@/context/PlayerContext';
+import { HeadToHeadTab } from './HeadToHeadTab';
+import { TournamentParticipation, usePlayer } from '@/context/PlayerContext';
 
-export type PlayerTabType = 'individual' | 'team' | 'opponents';
+export type PlayerTabType = 'individual' | 'team' | 'opponents' | 'h2h';
 
 export interface PlayerHistoryProps {
   /** Tournament participation data (unified list, will be filtered by isTeam) */
@@ -42,6 +43,14 @@ export function PlayerHistory({
   prependToIndividual
 }: PlayerHistoryProps) {
   const [selectedTab, setSelectedTab] = useState<PlayerTabType>('individual');
+  const { selectedOpponentId, selectedOpponentName } = usePlayer();
+
+  // Auto-switch to H2H tab when opponent is selected
+  useEffect(() => {
+    if (selectedOpponentId && selectedOpponentName) {
+      setSelectedTab('h2h');
+    }
+  }, [selectedOpponentId, selectedOpponentName]);
 
   // Filter tournaments by type
   const individualTournaments = useMemo(
@@ -87,6 +96,19 @@ export function PlayerHistory({
         >
           {tabLabels.opponents}
         </button>
+        {/* Dynamic H2H tab - only shown when opponent is selected */}
+        {selectedOpponentId && selectedOpponentName && (
+          <button
+            onClick={() => setSelectedTab('h2h')}
+            className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+              selectedTab === 'h2h'
+                ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            {selectedOpponentName}
+          </button>
+        )}
       </div>
 
       {/* Tab Content */}
@@ -116,6 +138,14 @@ export function PlayerHistory({
 
       {selectedTab === 'opponents' && (
         <OpponentsTab language={language} />
+      )}
+
+      {selectedTab === 'h2h' && selectedOpponentId && selectedOpponentName && (
+        <HeadToHeadTab
+          opponentId={selectedOpponentId}
+          opponentName={selectedOpponentName}
+          language={language}
+        />
       )}
     </div>
   );

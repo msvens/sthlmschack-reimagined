@@ -43,6 +43,11 @@ export interface PlayerContextValue {
   // Tournament participation derived from games (unified list)
   tournaments: TournamentParticipation[];
 
+  // Head-to-head state
+  selectedOpponentId: number | null;
+  selectedOpponentName: string | null;
+  setSelectedOpponent: (opponentId: number | null, name?: string) => void;
+
   // Helper functions
   getPlayerName: (playerId: number) => string;
   getPlayerRating: (playerId: number) => string;

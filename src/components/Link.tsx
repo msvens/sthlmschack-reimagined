@@ -1,7 +1,7 @@
 'use client';
 
 import NextLink from 'next/link';
-import { ReactNode } from 'react';
+import { ReactNode, MouseEvent } from 'react';
 
 export interface LinkProps {
   /** The URL to link to */
@@ -17,7 +17,7 @@ export interface LinkProps {
   /** Title attribute for tooltip */
   title?: string;
   /** Click handler */
-  onClick?: () => void;
+  onClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
   /** Open in new tab */
   external?: boolean;
 }

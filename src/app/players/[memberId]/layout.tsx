@@ -31,6 +31,15 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
   // Tournament participation derived from games
   const [tournaments, setTournaments] = useState<TournamentParticipation[]>([]);
 
+  // Head-to-head state
+  const [selectedOpponentId, setSelectedOpponentId] = useState<number | null>(null);
+  const [selectedOpponentName, setSelectedOpponentName] = useState<string | null>(null);
+
+  const setSelectedOpponent = (opponentId: number | null, name?: string) => {
+    setSelectedOpponentId(opponentId);
+    setSelectedOpponentName(name ?? null);
+  };
+
   // Fetch game data and batch metadata
   useEffect(() => {
     if (!memberId || isNaN(memberId)) {
@@ -246,6 +255,9 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
     tournamentMap,
     tournamentsLoading,
     tournaments,
+    selectedOpponentId,
+    selectedOpponentName,
+    setSelectedOpponent,
     getPlayerName,
     getPlayerRating,
     getTournamentName,

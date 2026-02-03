@@ -4,6 +4,7 @@ import React from 'react';
 import { Link } from '@/components/Link';
 import { Table, TableColumn } from '@/components/Table';
 import { GameDisplay } from '@/lib/api/utils/opponentStats';
+import { usePlayer } from '@/context/PlayerContext';
 
 export interface OpponentGamesTableProps {
   games: GameDisplay[];
@@ -27,6 +28,22 @@ export function OpponentGamesTable({
   error = null,
   emptyMessage
 }: OpponentGamesTableProps) {
+  const { setSelectedOpponent } = usePlayer();
+
+  // Get opponent ID and name from a game
+  const getOpponentInfo = (game: GameDisplay) => {
+    if (game.whiteId === currentPlayerId) {
+      return { id: game.blackId, name: game.blackName };
+    }
+    return { id: game.whiteId, name: game.whiteName };
+  };
+
+  // Handle row click to select opponent for H2H view
+  const handleRowClick = (game: GameDisplay) => {
+    const opponent = getOpponentInfo(game);
+    setSelectedOpponent(opponent.id, opponent.name);
+  };
+
   // Define columns
   const columns: TableColumn<GameDisplay>[] = [
     {
@@ -36,7 +53,10 @@ export function OpponentGamesTable({
         game.whiteId === currentPlayerId ? (
           <span className="font-medium">{game.whiteName}</span>
         ) : (
-          <Link href={`/players/${game.whiteId}`}>
+          <Link
+            href={`/players/${game.whiteId}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             {game.whiteName}
           </Link>
         )
@@ -50,7 +70,10 @@ export function OpponentGamesTable({
         game.blackId === currentPlayerId ? (
           <span className="font-medium">{game.blackName}</span>
         ) : (
-          <Link href={`/players/${game.blackId}`}>
+          <Link
+            href={`/players/${game.blackId}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             {game.blackName}
           </Link>
         )
@@ -72,6 +95,7 @@ export function OpponentGamesTable({
         <Link
           href={`/results/${game.tournamentId}/${game.groupId}`}
           className="truncate max-w-md block"
+          onClick={(e) => e.stopPropagation()}
         >
           <span title={game.tournamentName}>
             {game.tournamentName.length > 50
@@ -95,6 +119,7 @@ export function OpponentGamesTable({
       hover={true}
       striped={false}
       border={true}
+      onRowClick={handleRowClick}
     />
   );
 }
