@@ -108,7 +108,11 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
         // Set team results immediately so UI can render team standings table
         // Player info is fetched lazily when user expands individual matches
         setTeamResults(teamTableData);
-        setTeamRoundResults(teamRoundData);
+        // On refresh, keep existing round results if API returns empty (API may return
+        // empty during updates)
+        if (teamRoundData.length > 0 || isInitialLoad) {
+          setTeamRoundResults(teamRoundData);
+        }
         setIndividualRoundResults([]);
 
       } else {
@@ -120,7 +124,12 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
 
         const individualData = groupResponse.status === 200 ? (groupResponse.data || []) : [];
         setIndividualResults(individualData);
-        setIndividualRoundResults(roundResponse.status === 200 ? (roundResponse.data || []) : []);
+        const roundData = roundResponse.status === 200 ? (roundResponse.data || []) : [];
+        // On refresh, keep existing round results if API returns empty (API may return
+        // empty during updates)
+        if (roundData.length > 0 || isInitialLoad) {
+          setIndividualRoundResults(roundData);
+        }
         setTeamResults([]);
         setTeamRoundResults([]);
 

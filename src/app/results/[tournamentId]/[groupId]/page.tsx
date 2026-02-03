@@ -283,8 +283,13 @@ export default function GroupResultsPage() {
     || (groupStartDate && tournamentState === null && new Date() < new Date(groupStartDate))
   );
 
-  // isFinished: Group end date has passed
-  const isFinished = groupEndDate && new Date() > new Date(groupEndDate);
+  // isFinished: Group end date + 1 day has passed (buffer to avoid timezone edge cases)
+  // TODO: Revisit whether tournamentState should also factor in here
+  const isFinished = groupEndDate && (() => {
+    const endPlusOne = new Date(groupEndDate);
+    endPlusOne.setDate(endPlusOne.getDate() + 1);
+    return new Date() > endPlusOne;
+  })();
 
   // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
@@ -435,6 +440,8 @@ export default function GroupResultsPage() {
 
                         const now = new Date();
                         const endDate = groupEndDate ? new Date(groupEndDate) : null;
+                        // +1 day buffer to avoid timezone edge cases (same as isFinished)
+                        if (endDate) endDate.setDate(endDate.getDate() + 1);
                         const hasEnded = endDate && now > endDate;
 
                         if (hasEnded) {
