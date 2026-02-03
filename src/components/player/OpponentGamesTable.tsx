@@ -4,6 +4,7 @@ import React from 'react';
 import { Link } from '@/components/Link';
 import { Table, TableColumn } from '@/components/Table';
 import { GameDisplay } from '@/lib/api/utils/opponentStats';
+import { usePlayer } from '@/context/PlayerContext';
 
 export interface OpponentGamesTableProps {
   games: GameDisplay[];
@@ -27,6 +28,13 @@ export function OpponentGamesTable({
   error = null,
   emptyMessage
 }: OpponentGamesTableProps) {
+  const { setSelectedOpponent } = usePlayer();
+
+  // Handle opponent click to open H2H view
+  const handleOpponentClick = (opponentId: number, opponentName: string) => {
+    setSelectedOpponent(opponentId, opponentName);
+  };
+
   // Define columns
   const columns: TableColumn<GameDisplay>[] = [
     {
@@ -36,9 +44,12 @@ export function OpponentGamesTable({
         game.whiteId === currentPlayerId ? (
           <span className="font-medium">{game.whiteName}</span>
         ) : (
-          <Link href={`/players/${game.whiteId}`}>
+          <button
+            onClick={() => handleOpponentClick(game.whiteId, game.whiteName)}
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors text-left"
+          >
             {game.whiteName}
-          </Link>
+          </button>
         )
       ),
       align: 'left'
@@ -50,9 +61,12 @@ export function OpponentGamesTable({
         game.blackId === currentPlayerId ? (
           <span className="font-medium">{game.blackName}</span>
         ) : (
-          <Link href={`/players/${game.blackId}`}>
+          <button
+            onClick={() => handleOpponentClick(game.blackId, game.blackName)}
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors text-left"
+          >
             {game.blackName}
-          </Link>
+          </button>
         )
       ),
       align: 'left'
