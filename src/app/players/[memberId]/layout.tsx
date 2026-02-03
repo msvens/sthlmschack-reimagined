@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { ResultsService, PlayerService, TournamentService, formatPlayerRating, formatPlayerName } from '@/lib/api';
 import { GameDto, PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { PlayerProvider, PlayerContextValue, TournamentParticipation } from '@/context/PlayerContext';
@@ -11,14 +11,7 @@ import { calculatePlayerResult, calculatePlayerPoints } from '@/lib/api/utils/op
 
 export default function PlayerLayout({ children }: { children: ReactNode }) {
   const params = useParams();
-  const searchParams = useSearchParams();
   const memberId = params.memberId ? parseInt(params.memberId as string) : null;
-
-  // Read opponent from URL query param (only on initial mount)
-  const [initialOpponentId] = useState(() => {
-    const opponentParam = searchParams.get('opponent');
-    return opponentParam ? parseInt(opponentParam) : null;
-  });
 
   // Current player (fetched first, available immediately)
   const [currentPlayer, setCurrentPlayer] = useState<PlayerInfoDto | null>(null);
@@ -45,27 +38,7 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
   const setSelectedOpponent = useCallback((opponentId: number | null, name?: string) => {
     setSelectedOpponentId(opponentId);
     setSelectedOpponentName(name ?? null);
-
-    // Update URL with opponent query param (using replaceState to avoid re-render)
-    if (opponentId && memberId) {
-      window.history.replaceState(null, '', `/players/${memberId}?opponent=${opponentId}`);
-    } else if (memberId) {
-      window.history.replaceState(null, '', `/players/${memberId}`);
-    }
-  }, [memberId]);
-
-  // Initialize opponent from URL param once playerMap is loaded
-  useEffect(() => {
-    if (!initialOpponentId || playersLoading || selectedOpponentId) return;
-
-    // Look up opponent name from playerMap
-    const opponent = playerMap.get(initialOpponentId);
-    if (opponent) {
-      const name = formatPlayerName(opponent.firstName, opponent.lastName, opponent.elo?.title);
-      setSelectedOpponentId(initialOpponentId);
-      setSelectedOpponentName(name);
-    }
-  }, [initialOpponentId, playerMap, playersLoading, selectedOpponentId]);
+  }, []);
 
   // Fetch game data and batch metadata
   useEffect(() => {

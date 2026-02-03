@@ -43,14 +43,11 @@ export function PlayerHistory({
   prependToIndividual
 }: PlayerHistoryProps) {
   const [selectedTab, setSelectedTab] = useState<PlayerTabType>('individual');
-  const { selectedOpponentId, selectedOpponentName, setSelectedOpponent } = usePlayer();
+  const { selectedOpponentId, selectedOpponentName } = usePlayer();
 
-  // Handle tab change - clear opponent when switching away from H2H
+  // Handle tab change - keep H2H tab available until different opponent selected
   const handleTabChange = (tab: PlayerTabType) => {
     setSelectedTab(tab);
-    if (tab !== 'h2h') {
-      setSelectedOpponent(null);
-    }
   };
 
   // Auto-switch to H2H tab when opponent is selected
