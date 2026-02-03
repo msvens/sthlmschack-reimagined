@@ -47,7 +47,7 @@ describe('Ratings Service Integration Tests', () => {
           expect(firstPlayer.lask).toBeDefined();
         }
       }
-    }, 10000);
+    }, 30000);
 
   });
 

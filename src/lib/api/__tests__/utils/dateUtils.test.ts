@@ -53,9 +53,6 @@ describe('dateUtils', () => {
   });
 
   describe('normalizeEloLookupDate', () => {
-    // Use a fixed "now" for testing
-    const originalDateNow = Date.now;
-
     beforeEach(() => {
       // Mock Date.now to return January 15, 2026
       jest.spyOn(Date, 'now').mockReturnValue(new Date('2026-01-15T12:00:00').getTime());

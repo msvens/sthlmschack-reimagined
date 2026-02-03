@@ -17,11 +17,6 @@ import * as path from 'path';
 const SRC_DIR = path.join(__dirname, '..', 'src');
 const TRANSLATIONS_FILE = path.join(SRC_DIR, 'lib', 'translations.ts');
 
-interface TranslationStats {
-  definedKeys: Set<string>;
-  usedKeys: Set<string>;
-  duplicateValues: Map<string, string[]>; // value -> keys[]
-}
 
 /**
  * Extract all translation keys from the translations.ts file

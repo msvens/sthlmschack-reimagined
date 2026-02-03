@@ -7,13 +7,15 @@
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "test:api": "tsx src/lib/api/test-runner.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "translations:check": "tsx scripts/check-translations.ts",
     "generate:changelog": "tsx scripts/generate-changelog.ts",
     "predev": "yarn generate:changelog",
-    "prebuild": "yarn generate:changelog"
+    "prebuild": "yarn generate:changelog",
+    "ci": "yarn typecheck && yarn lint && yarn test && yarn build"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
