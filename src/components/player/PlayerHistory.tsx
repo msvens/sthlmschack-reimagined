@@ -43,7 +43,15 @@ export function PlayerHistory({
   prependToIndividual
 }: PlayerHistoryProps) {
   const [selectedTab, setSelectedTab] = useState<PlayerTabType>('individual');
-  const { selectedOpponentId, selectedOpponentName } = usePlayer();
+  const { selectedOpponentId, selectedOpponentName, setSelectedOpponent } = usePlayer();
+
+  // Handle tab change - clear opponent when switching away from H2H
+  const handleTabChange = (tab: PlayerTabType) => {
+    setSelectedTab(tab);
+    if (tab !== 'h2h') {
+      setSelectedOpponent(null);
+    }
+  };
 
   // Auto-switch to H2H tab when opponent is selected
   useEffect(() => {
@@ -67,7 +75,7 @@ export function PlayerHistory({
       {/* Tab Navigation */}
       <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
         <button
-          onClick={() => setSelectedTab('individual')}
+          onClick={() => handleTabChange('individual')}
           className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
             selectedTab === 'individual'
               ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
@@ -77,7 +85,7 @@ export function PlayerHistory({
           {tabLabels.individual}
         </button>
         <button
-          onClick={() => setSelectedTab('team')}
+          onClick={() => handleTabChange('team')}
           className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
             selectedTab === 'team'
               ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
@@ -87,7 +95,7 @@ export function PlayerHistory({
           {tabLabels.team}
         </button>
         <button
-          onClick={() => setSelectedTab('opponents')}
+          onClick={() => handleTabChange('opponents')}
           className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
             selectedTab === 'opponents'
               ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
@@ -99,7 +107,7 @@ export function PlayerHistory({
         {/* Dynamic H2H tab - only shown when opponent is selected */}
         {selectedOpponentId && selectedOpponentName && (
           <button
-            onClick={() => setSelectedTab('h2h')}
+            onClick={() => handleTabChange('h2h')}
             className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
               selectedTab === 'h2h'
                 ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
@@ -143,7 +151,6 @@ export function PlayerHistory({
       {selectedTab === 'h2h' && selectedOpponentId && selectedOpponentName && (
         <HeadToHeadTab
           opponentId={selectedOpponentId}
-          opponentName={selectedOpponentName}
           language={language}
         />
       )}

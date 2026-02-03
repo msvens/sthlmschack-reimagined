@@ -16,11 +16,10 @@ import { getTranslation } from '@/lib/translations';
 
 export interface HeadToHeadTabProps {
   opponentId: number;
-  opponentName: string;
   language: Language;
 }
 
-export function HeadToHeadTab({ opponentId, opponentName: _opponentName, language }: HeadToHeadTabProps) {
+export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
   const params = useParams();
   const memberId = params.memberId ? parseInt(params.memberId as string) : null;
   const t = getTranslation(language);
@@ -81,10 +80,7 @@ export function HeadToHeadTab({ opponentId, opponentName: _opponentName, languag
         game.whiteId === memberId ? (
           <span className="font-medium">{game.whiteName}</span>
         ) : (
-          <Link
-            href={`/players/${game.whiteId}`}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <Link href={`/players/${game.whiteId}`}>
             {game.whiteName}
           </Link>
         )
@@ -98,10 +94,7 @@ export function HeadToHeadTab({ opponentId, opponentName: _opponentName, languag
         game.blackId === memberId ? (
           <span className="font-medium">{game.blackName}</span>
         ) : (
-          <Link
-            href={`/players/${game.blackId}`}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <Link href={`/players/${game.blackId}`}>
             {game.blackName}
           </Link>
         )
@@ -123,7 +116,6 @@ export function HeadToHeadTab({ opponentId, opponentName: _opponentName, languag
         <Link
           href={`/results/${game.tournamentId}/${game.groupId}`}
           className="truncate max-w-md block"
-          onClick={(e) => e.stopPropagation()}
         >
           <span title={game.tournamentName}>
             {game.tournamentName.length > 50
