@@ -35,8 +35,6 @@ export interface PlayerContextValue {
   gamesError: string | null;
 
   // Batch-fetched metadata with loading states
-  playerMap: Map<number, PlayerInfoDto>;
-  playersLoading: boolean;
   tournamentMap: Map<number, TournamentDto>;
   tournamentsLoading: boolean;
 

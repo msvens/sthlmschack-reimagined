@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { usePlayer } from '@/context/PlayerContext';
+import { useGlobalPlayerCache } from '@/context/GlobalPlayerCacheContext';
 import { TimeControlFilter, TimeControl, TimeControlCounts } from './TimeControlFilter';
 import { OpponentPieCharts } from './OpponentPieCharts';
 import { OpponentGamesTable } from './OpponentGamesTable';
@@ -11,7 +12,6 @@ import {
   gamesToDisplayFormat,
   calculateStatsByColor
 } from '@/lib/api/utils/opponentStats';
-import { formatPlayerName } from '@/lib/api';
 import { Language } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 
@@ -23,7 +23,8 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
   const params = useParams();
   const memberId = params.memberId ? parseInt(params.memberId as string) : null;
   const t = getTranslation(language);
-  const { games, gamesLoading, gamesError, playerMap, playersLoading, tournamentMap } = usePlayer();
+  const { games, gamesLoading, gamesError, tournamentMap, getPlayerName: getPlayerNameFromContext } = usePlayer();
+  const globalCache = useGlobalPlayerCache();
 
   const [selectedTimeControl, setSelectedTimeControl] = useState<TimeControl>('all');
 
@@ -67,12 +68,22 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
   // Get current player name (includes FIDE title if available)
   const currentPlayerName = useMemo(() => {
     if (!memberId) return '';
-    const player = playerMap.get(memberId);
-    if (player) {
-      return formatPlayerName(player.firstName, player.lastName, player.elo?.title);
-    }
-    return `Player ${memberId}`;
-  }, [memberId, playerMap]);
+    return getPlayerNameFromContext(memberId);
+  }, [memberId, getPlayerNameFromContext]);
+
+  // Build a playerMap adapter from the global cache for gamesToDisplayFormat
+  const playerMapAdapter = useMemo(() => {
+    return { get: (id: number) => globalCache.getPlayer(id) } as Map<number, import('@/lib/api/types').PlayerInfoDto>;
+  }, [globalCache]);
+
+  // Derive loading state: true if any opponent isn't in the cache yet
+  const playersLoading = useMemo(() => {
+    if (!memberId) return false;
+    return filteredGames.some(game => {
+      const opponentId = game.whiteId === memberId ? game.blackId : game.whiteId;
+      return opponentId > 0 && !globalCache.getPlayer(opponentId);
+    });
+  }, [filteredGames, memberId, globalCache]);
 
   // Convert games to display format
   const displayGames = useMemo(() => {
@@ -80,14 +91,14 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
     return gamesToDisplayFormat(
       filteredGames,
       memberId,
-      playerMap,
+      playerMapAdapter,
       tournamentMap,
       currentPlayerName,
       playersLoading,
       t.pages.playerDetail.opponentsTab.table.retrieving,
       t.pages.playerDetail.opponentsTab.table.unknown
     );
-  }, [filteredGames, memberId, playerMap, tournamentMap, currentPlayerName, playersLoading, t]);
+  }, [filteredGames, memberId, playerMapAdapter, tournamentMap, currentPlayerName, playersLoading, t]);
 
   // Loading state
   if (gamesLoading) {

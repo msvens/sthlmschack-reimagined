@@ -2,9 +2,10 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, PlayerService, TournamentService, formatPlayerRating, formatPlayerName } from '@/lib/api';
+import { ResultsService, TournamentService, formatPlayerRating, formatPlayerName } from '@/lib/api';
 import { GameDto, PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { PlayerProvider, PlayerContextValue, TournamentParticipation } from '@/context/PlayerContext';
+import { useGlobalPlayerCache } from '@/context/GlobalPlayerCacheContext';
 import { parseTimeControl } from '@/lib/api/utils/ratingUtils';
 import { isTeamTournament, findTournamentGroup } from '@/lib/api';
 import { calculatePlayerResult, calculatePlayerPoints } from '@/lib/api/utils/opponentStats';
@@ -12,6 +13,7 @@ import { calculatePlayerResult, calculatePlayerPoints } from '@/lib/api/utils/op
 export default function PlayerLayout({ children }: { children: ReactNode }) {
   const params = useParams();
   const memberId = params.memberId ? parseInt(params.memberId as string) : null;
+  const globalCache = useGlobalPlayerCache();
 
   // Current player (fetched first, available immediately)
   const [currentPlayer, setCurrentPlayer] = useState<PlayerInfoDto | null>(null);
@@ -23,8 +25,6 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
   const [gamesError, setGamesError] = useState<string | null>(null);
 
   // Batch-fetched metadata with separate loading states
-  const [playerMap, setPlayerMap] = useState<Map<number, PlayerInfoDto>>(new Map());
-  const [playersLoading, setPlayersLoading] = useState(true);
   const [tournamentMap, setTournamentMap] = useState<Map<number, TournamentDto>>(new Map());
   const [tournamentsLoading, setTournamentsLoading] = useState(true);
 
@@ -55,18 +55,13 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
         setGamesError(null);
 
         const resultsService = new ResultsService();
-        const playerService = new PlayerService();
         const tournamentService = new TournamentService();
 
         // Step 0: Fetch current player info FIRST (needed immediately for page header)
-        const playerResponse = await playerService.getPlayerInfo(memberId);
-        let currentPlayerData: PlayerInfoDto | null = null;
+        const currentPlayerData = await globalCache.getOrFetchPlayer(memberId);
 
-        if (playerResponse.status === 200 && playerResponse.data) {
-          currentPlayerData = playerResponse.data;
+        if (currentPlayerData) {
           setCurrentPlayer(currentPlayerData);
-          // Add to playerMap immediately so it's available in opponents tab
-          setPlayerMap(new Map([[memberId, currentPlayerData]]));
         }
         setCurrentPlayerLoading(false);
 
@@ -183,54 +178,38 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
         setTournaments(participations);
         setTournamentsLoading(false); // Tournaments ready
 
-        // Step 5: Fetch opponent player info LAST (only needed for Opponents tab)
-        // Note: Current player already fetched in Step 0
-        const playerInfoResults = await playerService.getPlayerInfoBatch(Array.from(opponentIds));
-
-        // Start with current player in the map
-        const newPlayerMap = new Map<number, PlayerInfoDto>();
-        if (currentPlayerData) {
-          newPlayerMap.set(memberId, currentPlayerData);
-        }
-
-        // Add opponents
-        playerInfoResults.forEach(result => {
-          if (result.data) {
-            newPlayerMap.set(result.data.id, result.data);
-          }
-        });
-
-        setPlayerMap(newPlayerMap);
-        setPlayersLoading(false); // Player info ready
+        // Step 5: Fetch opponent player info via global cache
+        // Cache handles deduplication — already-cached opponents won't be re-fetched
+        await globalCache.getOrFetchPlayers(Array.from(opponentIds));
       } catch (err) {
         console.error('Error fetching games and metadata:', err);
         setGamesError('Failed to load game data');
         setGamesLoading(false);
         setTournamentsLoading(false);
-        setPlayersLoading(false);
       }
     };
 
     fetchGamesAndMetadata();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memberId]);
 
   // Helper functions (includes FIDE title if available)
-  const getPlayerName = useMemo(() => (playerId: number): string => {
-    const player = playerMap.get(playerId);
+  const getPlayerName = useCallback((playerId: number): string => {
+    const player = globalCache.getPlayer(playerId);
     if (player) {
       return formatPlayerName(player.firstName, player.lastName, player.elo?.title);
     }
     return `Player ${playerId}`;
-  }, [playerMap]);
+  }, [globalCache]);
 
-  const getPlayerRating = useMemo(() => (playerId: number): string => {
-    const player = playerMap.get(playerId);
+  const getPlayerRating = useCallback((playerId: number): string => {
+    const player = globalCache.getPlayer(playerId);
     if (!player || !player.elo) {
       return '-';
     }
     // Show latest standard rating (simplified - not tournament-specific)
     return formatPlayerRating(player.elo, null);
-  }, [playerMap]);
+  }, [globalCache]);
 
   const getTournamentName = useMemo(() => (groupId: number): string => {
     const tournament = tournamentMap.get(groupId);
@@ -250,8 +229,6 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
     games,
     gamesLoading,
     gamesError,
-    playerMap,
-    playersLoading,
     tournamentMap,
     tournamentsLoading,
     tournaments,
