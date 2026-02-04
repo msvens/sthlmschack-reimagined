@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { OrganizationsProvider } from "@/context/OrganizationsContext";
+import { GlobalPlayerCacheProvider } from "@/context/GlobalPlayerCacheContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,11 +36,13 @@ export default function RootLayout({
         <ThemeProvider>
           <LanguageProvider>
             <OrganizationsProvider>
-              <Navbar />
-              <main className="min-h-screen">
-                {children}
-              </main>
-              <Footer />
+              <GlobalPlayerCacheProvider>
+                <Navbar />
+                <main className="min-h-screen">
+                  {children}
+                </main>
+                <Footer />
+              </GlobalPlayerCacheProvider>
             </OrganizationsProvider>
           </LanguageProvider>
         </ThemeProvider>

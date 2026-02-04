@@ -42,7 +42,7 @@ export default function PlayerPage() {
 
   if (loading) {
     return (
-      <PageLayout maxWidth="3xl">
+      <PageLayout maxWidth="4xl">
         <div className="text-center">
           <div className="text-lg text-gray-600 dark:text-gray-400">
             {t.pages.playerDetail.loading}
@@ -54,7 +54,7 @@ export default function PlayerPage() {
 
   if (error) {
     return (
-      <PageLayout maxWidth="3xl">
+      <PageLayout maxWidth="4xl">
         <div className="text-center">
           <div className="p-8 rounded-lg border bg-white dark:bg-dark-bg border-gray-200 dark:border-gray-700">
             <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
@@ -77,7 +77,7 @@ export default function PlayerPage() {
 
   if (!player) {
     return (
-      <PageLayout maxWidth="3xl">
+      <PageLayout maxWidth="4xl">
         <div className="text-center">
           <div className="text-lg text-gray-600 dark:text-gray-400">
             {t.pages.playerDetail.notFound}
@@ -88,7 +88,7 @@ export default function PlayerPage() {
   }
 
   return (
-    <PageLayout maxWidth="3xl">
+    <PageLayout maxWidth="4xl">
       {/* Player Info - Compact, No Borders */}
       <div className="mb-6">
         <PlayerInfo
