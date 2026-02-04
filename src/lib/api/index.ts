@@ -77,5 +77,6 @@ export {
   getMonthStart,
   getMonthStartString,
   normalizeEloLookupDate,
-  getPlayerDateCacheKey
+  getPlayerDateCacheKey,
+  parseLocalDate
 } from './utils/dateUtils';

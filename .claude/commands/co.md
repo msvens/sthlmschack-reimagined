@@ -37,15 +37,20 @@ Validate and commit changes: $ARGUMENTS
    - Show commit hash
    - Show summary of what was committed
 
+7. **Push (if requested)**
+   - If arguments include "push", run `git push origin <current-branch>`
+   - Confirm successful push
+
 ## Important
 
 - **Abort immediately** if `yarn ci` fails (typecheck, lint, test, or build)
 - **Never** add co-authored-by or Claude attribution to commits
 - **Never** commit sensitive files (.env, credentials, etc.)
-- **Never** push automatically - user will push when ready
+- Only push when "push" is in arguments
 
 ## Example usage
 
 ```
-/commit              # Run CI checks and commit
+/co              # Run CI checks and commit
+/co push         # Run CI checks, commit, and push
 ```

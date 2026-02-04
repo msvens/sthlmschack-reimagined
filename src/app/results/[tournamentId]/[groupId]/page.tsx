@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, formatMatchResult, normalizeEloLookupDate } from '@/lib/api';
+import { TournamentService, formatMatchResult, normalizeEloLookupDate, parseLocalDate } from '@/lib/api';
 import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -280,15 +280,16 @@ export default function GroupResultsPage() {
   // isNotStarted: Show registration view only if state is REGISTRATION AND no games played
   const isNotStarted = !hasRoundResults && (
     tournamentState === TournamentState.REGISTRATION
-    || (groupStartDate && tournamentState === null && new Date() < new Date(groupStartDate))
+    || (groupStartDate && tournamentState === null && new Date() < parseLocalDate(groupStartDate))
   );
 
-  // isFinished: Group end date + 1 day has passed (buffer to avoid timezone edge cases)
+  // isFinished: Today's date (local midnight) is strictly after the group end date
+  // Uses parseLocalDate to avoid UTC midnight issues with date-only strings
   // TODO: Revisit whether tournamentState should also factor in here
   const isFinished = groupEndDate && (() => {
-    const endPlusOne = new Date(groupEndDate);
-    endPlusOne.setDate(endPlusOne.getDate() + 1);
-    return new Date() > endPlusOne;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today > parseLocalDate(groupEndDate);
   })();
 
   // Handle row click in final results table - navigate to player detail page
@@ -438,11 +439,10 @@ export default function GroupResultsPage() {
 
                         if (hasResults) return null; // Don't show status message if we have results
 
-                        const now = new Date();
-                        const endDate = groupEndDate ? new Date(groupEndDate) : null;
-                        // +1 day buffer to avoid timezone edge cases (same as isFinished)
-                        if (endDate) endDate.setDate(endDate.getDate() + 1);
-                        const hasEnded = endDate && now > endDate;
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const endDate = groupEndDate ? parseLocalDate(groupEndDate) : null;
+                        const hasEnded = endDate && today > endDate;
 
                         if (hasEnded) {
                           return (

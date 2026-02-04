@@ -2,7 +2,8 @@ import {
   getMonthStart,
   getMonthStartString,
   normalizeEloLookupDate,
-  getPlayerDateCacheKey
+  getPlayerDateCacheKey,
+  parseLocalDate
 } from '../../utils/dateUtils';
 
 describe('dateUtils', () => {
@@ -120,6 +121,41 @@ describe('dateUtils', () => {
       const date = new Date('2026-01-01').getTime();
       expect(getPlayerDateCacheKey(1, date)).toBe('1-2026-01-01');
       expect(getPlayerDateCacheKey(999999, date)).toBe('999999-2026-01-01');
+    });
+  });
+
+  describe('parseLocalDate', () => {
+    it('should parse YYYY-MM-DD as local midnight', () => {
+      const result = parseLocalDate('2026-03-02');
+      expect(result.getFullYear()).toBe(2026);
+      expect(result.getMonth()).toBe(2); // March (0-indexed)
+      expect(result.getDate()).toBe(2);
+      expect(result.getHours()).toBe(0);
+      expect(result.getMinutes()).toBe(0);
+      expect(result.getSeconds()).toBe(0);
+    });
+
+    it('should differ from new Date() for date-only strings in non-UTC timezones', () => {
+      // parseLocalDate always creates local midnight
+      const local = parseLocalDate('2026-06-15');
+      expect(local.getFullYear()).toBe(2026);
+      expect(local.getMonth()).toBe(5); // June
+      expect(local.getDate()).toBe(15);
+      expect(local.getHours()).toBe(0);
+    });
+
+    it('should handle January correctly', () => {
+      const result = parseLocalDate('2026-01-01');
+      expect(result.getFullYear()).toBe(2026);
+      expect(result.getMonth()).toBe(0);
+      expect(result.getDate()).toBe(1);
+    });
+
+    it('should handle December correctly', () => {
+      const result = parseLocalDate('2026-12-31');
+      expect(result.getFullYear()).toBe(2026);
+      expect(result.getMonth()).toBe(11);
+      expect(result.getDate()).toBe(31);
     });
   });
 });
