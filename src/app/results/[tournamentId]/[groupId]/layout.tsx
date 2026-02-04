@@ -2,21 +2,19 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, PlayerService, formatRatingWithType, getPlayerRatingByAlgorithm, getPlayerRatingByRoundType, formatPlayerName, getMonthStartString, getPlayerDateCacheKey } from '@/lib/api';
-import { chunkArray } from '@/lib/api/utils/batchUtils';
+import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getPlayerRatingByRoundType, formatPlayerName } from '@/lib/api';
 import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useGlobalPlayerCache } from '@/context/GlobalPlayerCacheContext';
 import { findTournamentGroup } from '@/lib/api/utils/tournamentGroupUtils';
-
-// Concurrency for date-based API calls (each date triggers a separate batch)
-const DATE_CONCURRENCY = 3;
 
 export default function GroupResultsLayout({ children }: { children: ReactNode }) {
   const params = useParams();
   const { getClubName: getOrgClubName } = useOrganizations();
   const { language } = useLanguage();
+  const globalCache = useGlobalPlayerCache();
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
 
@@ -41,9 +39,6 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
 
   // Round metadata for per-round rating types
   const [roundsMap, setRoundsMap] = useState<Map<number, RoundDto>>(new Map());
-
-  // Historical player data cache: "playerId-YYYY-MM-DD" -> PlayerInfoDto
-  const [playerDateCache, setPlayerDateCache] = useState<Map<string, PlayerInfoDto>>(new Map());
 
   /**
    * Fetch results data (used for both initial load and refresh)
@@ -133,23 +128,13 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
         setTeamResults([]);
         setTeamRoundResults([]);
 
-        // Pre-populate playerDateCache with player info from results
-        // Use the elo.date field which tells us exactly which month's ELO this represents
-        // This covers most tournaments (single day or short duration)
-        // For multi-month tournaments, additional data is fetched lazily when needed
+        // Pre-populate global player cache with player info from results
         if (individualData.length > 0) {
-          setPlayerDateCache(prev => {
-            const newCache = new Map(prev);
-            for (const result of individualData) {
-              if (result.playerInfo?.elo?.date) {
-                // Use the ELO date from the API response as the cache key
-                const eloDate = new Date(result.playerInfo.elo.date).getTime();
-                const monthStart = getMonthStartString(eloDate);
-                newCache.set(`${result.playerInfo.id}-${monthStart}`, result.playerInfo);
-              }
-            }
-            return newCache;
-          });
+          const players = individualData
+            .map(r => r.playerInfo)
+            .filter((p): p is PlayerInfoDto => !!p);
+          globalCache.addPlayers(players);
+          globalCache.addPlayersByDate(players);
         }
       }
 
@@ -168,7 +153,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
         setLoading(false);
       }
     }
-  }, [tournamentId, groupId]);
+  }, [tournamentId, groupId, globalCache]);
 
   // Refresh function for live updates (doesn't show loading state)
   const refreshResults = useCallback(async () => {
@@ -204,7 +189,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   }, [individualResults]);
 
   /**
-   * Helper to find a player in either playerMap or playerDateCache
+   * Helper to find a player in either playerMap or global cache
    * Used as fallback for name/club lookups when playerMap hasn't updated yet
    */
   const findPlayer = useCallback((playerId: number): PlayerInfoDto | undefined => {
@@ -212,12 +197,9 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     const fromMap = playerMap.get(playerId);
     if (fromMap) return fromMap;
 
-    // Fallback: search playerDateCache (in case state hasn't synchronized)
-    for (const player of playerDateCache.values()) {
-      if (player.id === playerId) return player;
-    }
-    return undefined;
-  }, [playerMap, playerDateCache]);
+    // Fallback: check global player cache
+    return globalCache.getPlayer(playerId);
+  }, [playerMap, globalCache]);
 
   // Helper to get player name from ID (includes FIDE title if available)
   const getPlayerName = useCallback((playerId: number): string => {
@@ -246,102 +228,40 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
 
   /**
    * Fetch player info for multiple (playerId, date) pairs
-   * Groups requests by month (since SSF ELO updates monthly) and fetches with controlled concurrency
-   * Results are cached to avoid duplicate API calls
-   * Also populates playerMap for name/club lookups
+   * Delegates to the global player cache which handles deduplication and batching
    */
   const fetchPlayersByDate = useCallback(async (requests: PlayerDateRequest[]): Promise<void> => {
-    // Filter out already cached (playerId, month) combinations
-    const uncached = requests.filter(r => !playerDateCache.has(getPlayerDateCacheKey(r.playerId, r.date)));
-    if (uncached.length === 0) return;
+    await globalCache.getOrFetchPlayersByDate(requests);
 
-    // Group by month-start (API returns same ELO for any date within a month)
-    const byMonth = new Map<string, Set<number>>();
-    for (const req of uncached) {
-      const monthStr = getMonthStartString(req.date);
-      if (!byMonth.has(monthStr)) byMonth.set(monthStr, new Set());
-      byMonth.get(monthStr)!.add(req.playerId);
-    }
-
-    // Convert to array and chunk for controlled concurrency
-    const monthEntries = Array.from(byMonth.entries()).map(([month, ids]) => [month, Array.from(ids)] as [string, number[]]);
-    const monthChunks = chunkArray(monthEntries, DATE_CONCURRENCY);
-
-    const allResults: { monthStr: string; players: PlayerInfoDto[] }[] = [];
-    const playerService = new PlayerService();
-
-    // Process month chunks sequentially
-    for (const chunk of monthChunks) {
-      // Within chunk, fetch months in parallel
-      const chunkResults = await Promise.all(
-        chunk.map(async ([monthStr, playerIds]) => {
-          const results = await playerService.getPlayerInfoBatch(playerIds, new Date(monthStr));
-          const players = results.filter(r => r.data).map(r => r.data!);
-          return { monthStr, players };
-        })
-      );
-      allResults.push(...chunkResults);
-    }
-
-    // Collect all fetched players for playerMap update
-    const allPlayers: PlayerInfoDto[] = [];
-    for (const { players } of allResults) {
-      allPlayers.push(...players);
-    }
-
-    // Update date cache with results (keyed by playerId-monthStart)
-    setPlayerDateCache(prev => {
-      const newCache = new Map(prev);
-      for (const { monthStr, players } of allResults) {
-        for (const player of players) {
-          newCache.set(`${player.id}-${monthStr}`, player);
+    // Also add fetched players to the current-player cache for name/club lookups
+    for (const req of requests) {
+      if (!globalCache.getPlayer(req.playerId)) {
+        const dated = globalCache.getPlayerByDate(req.playerId, req.date);
+        if (dated) {
+          globalCache.addPlayers([dated]);
         }
       }
-      return newCache;
-    });
-
-    // Also update individualResults to populate playerMap (for name/club lookups)
-    // This allows getPlayerName and getPlayerClubId to work after lazy fetching
-    if (allPlayers.length > 0 && groupId) {
-      setIndividualResults(prev => {
-        const existingIds = new Set(prev.map(r => r.playerInfo?.id).filter(Boolean));
-        const newResults = allPlayers
-          .filter(p => !existingIds.has(p.id))
-          .map(playerInfo => ({
-            place: 0,
-            points: 0,
-            secPoints: 0,
-            contenderId: playerInfo.id,
-            teamNumber: 0,
-            wonGames: 0,
-            drawGames: 0,
-            lostGames: 0,
-            groupId: groupId,
-            playerInfo
-          }));
-        return [...prev, ...newResults];
-      });
     }
-  }, [playerDateCache, groupId]);
+  }, [globalCache]);
 
   /**
    * Get cached player info for a specific date
    * Returns undefined if not cached (call fetchPlayersByDate first)
    */
   const getPlayerByDate = useCallback((playerId: number, date: number): PlayerInfoDto | undefined => {
-    return playerDateCache.get(getPlayerDateCacheKey(playerId, date));
-  }, [playerDateCache]);
+    return globalCache.getPlayerByDate(playerId, date);
+  }, [globalCache]);
 
   /**
    * Get formatted ELO for a player at a specific historical date
    * Falls back to current playerMap if historical data not available
    */
   const getPlayerEloByDate = useCallback((playerId: number, date: number): string => {
-    const historicalPlayer = playerDateCache.get(getPlayerDateCacheKey(playerId, date));
+    const historicalPlayer = globalCache.getPlayerByDate(playerId, date);
     const player = historicalPlayer || playerMap.get(playerId);
     const { rating, ratingType } = getPlayerRatingByAlgorithm(player?.elo, rankingAlgorithm);
     return formatRatingWithType(rating, ratingType, language);
-  }, [playerDateCache, playerMap, rankingAlgorithm, language]);
+  }, [globalCache, playerMap, rankingAlgorithm, language]);
 
   /**
    * Get the rated type for a specific round
@@ -360,7 +280,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     date: number,
     roundNumber?: number
   ): string => {
-    const historicalPlayer = playerDateCache.get(getPlayerDateCacheKey(playerId, date));
+    const historicalPlayer = globalCache.getPlayerByDate(playerId, date);
     const player = historicalPlayer || playerMap.get(playerId);
 
     // If round number provided, try to use round-specific rating type
@@ -375,7 +295,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     // Fallback to group-level ranking algorithm
     const { rating, ratingType } = getPlayerRatingByAlgorithm(player?.elo, rankingAlgorithm);
     return formatRatingWithType(rating, ratingType, language);
-  }, [playerDateCache, playerMap, roundsMap, rankingAlgorithm, language]);
+  }, [globalCache, playerMap, roundsMap, rankingAlgorithm, language]);
 
   // Determine if this is a team tournament
   const isTeam = tournament ? isTeamTournament(tournament.type) : false;

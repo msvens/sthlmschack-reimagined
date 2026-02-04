@@ -11,11 +11,12 @@ import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { EloRatingChart } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { PlayerService, TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getPlayerRatingByRoundType, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, getResultDisplayString, formatPlayerName, RoundRatedType } from '@/lib/api';
+import { TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getPlayerRatingByRoundType, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, getResultDisplayString, formatPlayerName, RoundRatedType } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults } from '@/context/GroupResultsContext';
+import { useGlobalPlayerCache } from '@/context/GlobalPlayerCacheContext';
 
 interface PlayerMatch {
   round: number;
@@ -53,6 +54,8 @@ export default function TournamentPlayerDetailPage() {
     getRoundRatedType
   } = useGroupResults();
 
+  const globalCache = useGlobalPlayerCache();
+
   const [player, setPlayer] = useState<PlayerInfoDto | null>(null); // Current player info for display
   const [tournamentPlayer, setTournamentPlayer] = useState<PlayerInfoDto | null>(null); // Historical player info for calculations
   const [tournament, setTournament] = useState<TournamentDto | null>(null);
@@ -82,16 +85,15 @@ export default function TournamentPlayerDetailPage() {
         setLoading(true);
         setError(null);
 
-        // Fetch player info and tournament info in parallel
-        const playerService = new PlayerService();
+        // Fetch player info (via global cache) and tournament info in parallel
         const tournamentService = new TournamentService();
 
-        const [playerResponse, tournamentResponse] = await Promise.all([
-          playerService.getPlayerInfo(memberId),
+        const [playerData, tournamentResponse] = await Promise.all([
+          globalCache.getOrFetchPlayer(memberId),
           tournamentService.getTournament(tournamentId)
         ]);
 
-        if (playerResponse.status !== 200 || !playerResponse.data) {
+        if (!playerData) {
           throw new Error('Failed to fetch player data');
         }
 
@@ -99,7 +101,7 @@ export default function TournamentPlayerDetailPage() {
           throw new Error('Failed to fetch tournament data');
         }
 
-        setPlayer(playerResponse.data);
+        setPlayer(playerData);
         setTournament(tournamentResponse.data);
 
       } catch (err) {
@@ -111,7 +113,7 @@ export default function TournamentPlayerDetailPage() {
     };
 
     fetchData();
-  }, [tournamentId, memberId, groupId]);
+  }, [tournamentId, memberId, groupId, globalCache]);
 
   // Get historical tournament player info
   useEffect(() => {
