@@ -13,7 +13,7 @@ import {
 } from '@/lib/api/utils/opponentStats';
 import {
   findTournamentGroup,
-  getPlayerRatingByAlgorithm,
+  getPlayerRatingStrict,
   formatRatingWithType,
   calculateRatingChange,
   getKFactorForRating,
@@ -135,8 +135,8 @@ export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
       const opponentData = globalCache.getPlayerByDate(opponentId, meta.date) ?? globalCache.getPlayer(opponentId);
       if (!playerData?.elo || !opponentData?.elo) continue;
 
-      const playerResult = getPlayerRatingByAlgorithm(playerData.elo, meta.rankingAlgorithm);
-      const opponentResult = getPlayerRatingByAlgorithm(opponentData.elo, meta.rankingAlgorithm);
+      const playerResult = getPlayerRatingStrict(playerData.elo, meta.rankingAlgorithm);
+      const opponentResult = getPlayerRatingStrict(opponentData.elo, meta.rankingAlgorithm);
       if (!playerResult.rating || !opponentResult.rating) continue;
 
       const kFactor = getKFactorForRating(
@@ -196,8 +196,8 @@ export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
       const opponentData = globalCache.getPlayerByDate(opponentId, meta.date) ?? globalCache.getPlayer(opponentId);
       if (!playerData?.elo || !opponentData?.elo) continue;
 
-      const playerResult = getPlayerRatingByAlgorithm(playerData.elo, meta.rankingAlgorithm);
-      const opponentResult = getPlayerRatingByAlgorithm(opponentData.elo, meta.rankingAlgorithm);
+      const playerResult = getPlayerRatingStrict(playerData.elo, meta.rankingAlgorithm);
+      const opponentResult = getPlayerRatingStrict(opponentData.elo, meta.rankingAlgorithm);
       if (!playerResult.rating || !opponentResult.rating || !playerResult.ratingType) continue;
 
       const kFactor = getKFactorForRating(
@@ -228,7 +228,7 @@ export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
     if (!meta) return '-';
     const player = globalCache.getPlayerByDate(playerId, meta.date) ?? globalCache.getPlayer(playerId);
     if (!player?.elo) return '-';
-    const { rating, ratingType } = getPlayerRatingByAlgorithm(player.elo, meta.rankingAlgorithm);
+    const { rating, ratingType } = getPlayerRatingStrict(player.elo, meta.rankingAlgorithm);
     return formatRatingWithType(rating, ratingType, language);
   };
 

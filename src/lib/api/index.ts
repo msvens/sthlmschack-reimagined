@@ -15,7 +15,7 @@ export { RegistrationService } from './services/registration';
 // Export utility functions
 export { getPlayerRatingHistory, decimateRatingData } from './utils/ratingHistory';
 export { sortTournamentEndResultsByPlace, sortTournamentsByDate } from './utils/sortingUtils';
-export { getPlayerRatingForTournament, getPlayerRatingByAlgorithm, formatPlayerRating, formatRatingWithType, getKFactorForRating, formatPlayerName, getRatingTypeFromRoundRated, getPlayerRatingByRoundType, isJuniorPlayer, RoundRatedType, type PlayerRating, type RatingType, type RoundRatedTypeValue } from './utils/ratingUtils';
+export { getPlayerRatingForTournament, getPlayerRatingByAlgorithm, getPlayerRatingStrict, getPrimaryRatingType, formatPlayerRating, formatRatingWithType, getKFactorForRating, formatPlayerName, getRatingTypeFromRoundRated, getPlayerRatingByRoundType, isJuniorPlayer, RoundRatedType, type PlayerRating, type RatingType, type RoundRatedTypeValue } from './utils/ratingUtils';
 export { RatingAlgorithm, type RatingAlgorithmType } from './types/ratingAlgorithm';
 export {
   calculateExpectedScore,

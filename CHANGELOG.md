@@ -9,7 +9,7 @@ All notable changes to msvens chess will be documented in this file.
 ## [0.9.0] - 2026-02-04
 
 ### Added
-- Head-to-head player comparison view with shareable URLs
+- Head-to-head player comparison view
 - Global player cache for instant opponent data across navigations
 - Global tournament cache for instant tournament data across navigations
 - Historical ELO ratings in head-to-head comparisons
