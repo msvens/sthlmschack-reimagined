@@ -41,26 +41,75 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   const [roundsMap, setRoundsMap] = useState<Map<number, RoundDto>>(new Map());
 
   /**
-   * Fetch results data (used for both initial load and refresh)
-   * @param isInitialLoad - Whether this is the initial page load (shows loading state)
+   * Fetch only results data (standings + round results).
+   * Used by both initial load and live refresh.
    */
-  const fetchResultsData = useCallback(async (isInitialLoad: boolean = false) => {
+  const fetchResults = useCallback(async (isTeam: boolean, isInitialLoad: boolean) => {
+    const resultsService = new ResultsService();
+
+    if (isTeam) {
+      const [teamTableResponse, teamRoundResponse] = await Promise.all([
+        resultsService.getTeamTournamentResults(groupId!),
+        resultsService.getTeamRoundResults(groupId!)
+      ]);
+
+      const teamTableData = teamTableResponse.status === 200 ? (teamTableResponse.data || []) : [];
+      const teamRoundData = teamRoundResponse.status === 200 ? (teamRoundResponse.data || []) : [];
+
+      setTeamResults(teamTableData);
+      // On refresh, keep existing round results if API returns empty (API may return
+      // empty during updates)
+      if (teamRoundData.length > 0 || isInitialLoad) {
+        setTeamRoundResults(teamRoundData);
+      }
+      setIndividualRoundResults([]);
+
+    } else {
+      const [groupResponse, roundResponse] = await Promise.all([
+        resultsService.getTournamentResults(groupId!),
+        resultsService.getTournamentRoundResults(groupId!)
+      ]);
+
+      const individualData = groupResponse.status === 200 ? (groupResponse.data || []) : [];
+      setIndividualResults(individualData);
+      const roundData = roundResponse.status === 200 ? (roundResponse.data || []) : [];
+      // On refresh, keep existing round results if API returns empty (API may return
+      // empty during updates)
+      if (roundData.length > 0 || isInitialLoad) {
+        setIndividualRoundResults(roundData);
+      }
+      setTeamResults([]);
+      setTeamRoundResults([]);
+
+      // Pre-populate global player cache with player info from results
+      if (individualData.length > 0) {
+        const players = individualData
+          .map(r => r.playerInfo)
+          .filter((p): p is PlayerInfoDto => !!p);
+        globalCache.addPlayers(players);
+        globalCache.addPlayersByDate(players);
+      }
+    }
+
+    setLastUpdated(new Date());
+  }, [groupId, globalCache]);
+
+  /**
+   * Full initial load: fetches tournament metadata + results.
+   * Called on mount and when tournamentId/groupId changes.
+   */
+  const fetchInitialData = useCallback(async () => {
     if (!tournamentId || !groupId || isNaN(tournamentId) || isNaN(groupId)) {
       setError('Invalid tournament or group ID');
-      if (isInitialLoad) setLoading(false);
+      setLoading(false);
       return;
     }
 
     try {
-      if (isInitialLoad) {
-        setLoading(true);
-      }
+      setLoading(true);
       setError(null);
 
-      const resultsService = new ResultsService();
       const tournamentService = new TournamentService();
-
-      // Fetch tournament metadata first to determine type
       const tournamentResponse = await tournamentService.getTournament(tournamentId);
 
       if (tournamentResponse.status !== 200 || !tournamentResponse.data) {
@@ -87,59 +136,8 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
         setRoundsMap(newRoundsMap);
       }
 
-      // Detect tournament type and fetch appropriate results
       const isTeam = isTeamTournament(tournamentData.type);
-
-      if (isTeam) {
-        // Fetch team tournament results
-        const [teamTableResponse, teamRoundResponse] = await Promise.all([
-          resultsService.getTeamTournamentResults(groupId),
-          resultsService.getTeamRoundResults(groupId)
-        ]);
-
-        const teamTableData = teamTableResponse.status === 200 ? (teamTableResponse.data || []) : [];
-        const teamRoundData = teamRoundResponse.status === 200 ? (teamRoundResponse.data || []) : [];
-
-        // Set team results immediately so UI can render team standings table
-        // Player info is fetched lazily when user expands individual matches
-        setTeamResults(teamTableData);
-        // On refresh, keep existing round results if API returns empty (API may return
-        // empty during updates)
-        if (teamRoundData.length > 0 || isInitialLoad) {
-          setTeamRoundResults(teamRoundData);
-        }
-        setIndividualRoundResults([]);
-
-      } else {
-        // Fetch individual tournament results
-        const [groupResponse, roundResponse] = await Promise.all([
-          resultsService.getTournamentResults(groupId),
-          resultsService.getTournamentRoundResults(groupId)
-        ]);
-
-        const individualData = groupResponse.status === 200 ? (groupResponse.data || []) : [];
-        setIndividualResults(individualData);
-        const roundData = roundResponse.status === 200 ? (roundResponse.data || []) : [];
-        // On refresh, keep existing round results if API returns empty (API may return
-        // empty during updates)
-        if (roundData.length > 0 || isInitialLoad) {
-          setIndividualRoundResults(roundData);
-        }
-        setTeamResults([]);
-        setTeamRoundResults([]);
-
-        // Pre-populate global player cache with player info from results
-        if (individualData.length > 0) {
-          const players = individualData
-            .map(r => r.playerInfo)
-            .filter((p): p is PlayerInfoDto => !!p);
-          globalCache.addPlayers(players);
-          globalCache.addPlayersByDate(players);
-        }
-      }
-
-      // Update lastUpdated timestamp on successful fetch
-      setLastUpdated(new Date());
+      await fetchResults(isTeam, true);
 
     } catch (err) {
       setError('Failed to load results data');
@@ -149,27 +147,24 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
       setTeamResults([]);
       setTeamRoundResults([]);
     } finally {
-      if (isInitialLoad) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }, [tournamentId, groupId, globalCache]);
+  }, [tournamentId, groupId, fetchResults]);
 
-  // Refresh function for live updates (doesn't show loading state)
+  // Refresh function for live updates (only re-fetches results, not tournament metadata)
   const refreshResults = useCallback(async () => {
-    await fetchResultsData(false);
-  }, [fetchResultsData]);
+    if (!tournament || !groupId) return;
+    try {
+      await fetchResults(isTeamTournament(tournament.type), false);
+    } catch (err) {
+      console.error('Error refreshing results:', err);
+    }
+  }, [tournament, groupId, fetchResults]);
 
   // Initial fetch on mount or when IDs change
   useEffect(() => {
-    if (!tournamentId || !groupId || isNaN(tournamentId) || isNaN(groupId)) {
-      setError('Invalid tournament or group ID');
-      setLoading(false);
-      return;
-    }
-
-    fetchResultsData(true);
-  }, [tournamentId, groupId, fetchResultsData]);
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   // Create player lookup map for O(1) lookups
   const playerMap = useMemo(() => {

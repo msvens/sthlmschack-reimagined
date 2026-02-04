@@ -2,10 +2,11 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, formatPlayerRating, formatPlayerName } from '@/lib/api';
+import { ResultsService, formatPlayerRating, formatPlayerName } from '@/lib/api';
 import { GameDto, PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { PlayerProvider, PlayerContextValue, TournamentParticipation } from '@/context/PlayerContext';
 import { useGlobalPlayerCache } from '@/context/GlobalPlayerCacheContext';
+import { useGlobalTournamentCache } from '@/context/GlobalTournamentCacheContext';
 import { parseTimeControl } from '@/lib/api/utils/ratingUtils';
 import { isTeamTournament, findTournamentGroup } from '@/lib/api';
 import { calculatePlayerResult, calculatePlayerPoints } from '@/lib/api/utils/opponentStats';
@@ -14,6 +15,7 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
   const params = useParams();
   const memberId = params.memberId ? parseInt(params.memberId as string) : null;
   const globalCache = useGlobalPlayerCache();
+  const tournamentCache = useGlobalTournamentCache();
 
   // Current player (fetched first, available immediately)
   const [currentPlayer, setCurrentPlayer] = useState<PlayerInfoDto | null>(null);
@@ -55,7 +57,6 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
         setGamesError(null);
 
         const resultsService = new ResultsService();
-        const tournamentService = new TournamentService();
 
         // Step 0: Fetch current player info FIRST (needed immediately for page header)
         const currentPlayerData = await globalCache.getOrFetchPlayer(memberId);
@@ -94,15 +95,7 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
         });
 
         // Step 3: Fetch tournaments FIRST (priority - needed for Individual, Team, and Opponents tabs)
-        const tournamentResults = await tournamentService.getTournamentFromGroupBatch(Array.from(groupIds));
-
-        const newTournamentMap = new Map<number, TournamentDto>();
-        const groupIdArray = Array.from(groupIds);
-        tournamentResults.forEach((result, index) => {
-          if (result.data) {
-            newTournamentMap.set(groupIdArray[index], result.data);
-          }
-        });
+        const newTournamentMap = await tournamentCache.getOrFetchTournaments(Array.from(groupIds));
 
         setTournamentMap(newTournamentMap);
 

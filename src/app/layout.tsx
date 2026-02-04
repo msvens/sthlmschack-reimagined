@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { OrganizationsProvider } from "@/context/OrganizationsContext";
 import { GlobalPlayerCacheProvider } from "@/context/GlobalPlayerCacheContext";
+import { GlobalTournamentCacheProvider } from "@/context/GlobalTournamentCacheContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,11 +38,13 @@ export default function RootLayout({
           <LanguageProvider>
             <OrganizationsProvider>
               <GlobalPlayerCacheProvider>
-                <Navbar />
-                <main className="min-h-screen">
-                  {children}
-                </main>
-                <Footer />
+                <GlobalTournamentCacheProvider>
+                  <Navbar />
+                  <main className="min-h-screen">
+                    {children}
+                  </main>
+                  <Footer />
+                </GlobalTournamentCacheProvider>
               </GlobalPlayerCacheProvider>
             </OrganizationsProvider>
           </LanguageProvider>
