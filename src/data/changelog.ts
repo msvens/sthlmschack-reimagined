@@ -19,6 +19,36 @@ export const changelog: ChangelogEntry[] = [
     "sections": []
   },
   {
+    "version": "0.9.0",
+    "date": "2026-02-04",
+    "sections": [
+      {
+        "type": "Added",
+        "items": [
+          "Head-to-head player comparison view with shareable URLs",
+          "Global player cache for instant opponent data across navigations",
+          "Global tournament cache for instant tournament data across navigations",
+          "Historical ELO ratings in head-to-head comparisons",
+          "GitHub Actions CI workflow"
+        ]
+      },
+      {
+        "type": "Changed",
+        "items": [
+          "Results page live refresh now only re-fetches standings, not tournament metadata",
+          "Player pages load significantly faster on repeat visits (cached data)"
+        ]
+      },
+      {
+        "type": "Fixed",
+        "items": [
+          "Timezone-related date parsing issues",
+          "Live tournament display issues"
+        ]
+      }
+    ]
+  },
+  {
     "version": "0.8.0",
     "date": "2026-02-02",
     "sections": [

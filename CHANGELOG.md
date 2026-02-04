@@ -6,6 +6,25 @@ All notable changes to msvens chess will be documented in this file.
 
 ---
 
+## [0.9.0] - 2026-02-04
+
+### Added
+- Head-to-head player comparison view with shareable URLs
+- Global player cache for instant opponent data across navigations
+- Global tournament cache for instant tournament data across navigations
+- Historical ELO ratings in head-to-head comparisons
+- GitHub Actions CI workflow
+
+### Changed
+- Results page live refresh now only re-fetches standings, not tournament metadata
+- Player pages load significantly faster on repeat visits (cached data)
+
+### Fixed
+- Timezone-related date parsing issues
+- Live tournament display issues
+
+---
+
 ## [0.8.0] - 2026-02-02
 
 ### Added
