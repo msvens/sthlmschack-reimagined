@@ -266,6 +266,7 @@ export interface Translations {
           standard: string;
           rapid: string;
           blitz: string;
+          unrated: string;
         };
         charts: {
           all: string;
@@ -719,6 +720,7 @@ const translations: Record<Language, Translations> = {
             standard: 'Standard',
             rapid: 'Rapid',
             blitz: 'Blitz',
+            unrated: 'Unrated',
           },
           charts: {
             all: 'All',
@@ -1170,6 +1172,7 @@ const translations: Record<Language, Translations> = {
             standard: 'Normal',
             rapid: 'Snabbschack',
             blitz: 'Blixtschack',
+            unrated: 'Oratade',
           },
           charts: {
             all: 'Alla',

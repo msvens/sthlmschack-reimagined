@@ -1,5 +1,6 @@
 import { GameDto, PlayerInfoDto, TournamentDto } from '../types';
-import { parseTimeControl, formatPlayerRating, formatPlayerName } from './ratingUtils';
+import { getPrimaryRatingType, formatPlayerRating, formatPlayerName } from './ratingUtils';
+import { findTournamentGroup } from './tournamentGroupUtils';
 import {
   getPlayerOutcome,
   getPlayerPoints,
@@ -12,7 +13,7 @@ export interface TournamentInfo {
   groupId: number;
   tournamentId: number;
   name: string;
-  timeControl: 'standard' | 'rapid' | 'blitz';
+  timeControl: 'standard' | 'rapid' | 'blitz' | 'unrated';
 }
 
 export interface OpponentStats {
@@ -81,6 +82,23 @@ export function calculatePlayerPoints(
 }
 
 /**
+ * Get the rating type for a group from the tournament map.
+ * Uses the group's rankingAlgorithm to determine the type.
+ */
+function getGroupRatingType(
+  groupId: number,
+  tournamentMap: Map<number, TournamentDto>
+): 'standard' | 'rapid' | 'blitz' | 'unrated' {
+  const tournament = tournamentMap.get(groupId);
+  if (!tournament) return 'standard';
+  const groupResult = findTournamentGroup(tournament, groupId);
+  if (!groupResult) return 'standard';
+  const ratingType = getPrimaryRatingType(groupResult.group.rankingAlgorithm);
+  if (!ratingType || ratingType === 'lask') return 'unrated';
+  return ratingType;
+}
+
+/**
  * Filter games by time control
  * @param games - Array of games
  * @param tournamentMap - Map of group ID to tournament data
@@ -90,16 +108,14 @@ export function calculatePlayerPoints(
 export function filterGamesByTimeControl(
   games: GameDto[],
   tournamentMap: Map<number, TournamentDto>,
-  timeControl: 'all' | 'standard' | 'rapid' | 'blitz'
+  timeControl: 'all' | 'standard' | 'rapid' | 'blitz' | 'unrated'
 ): GameDto[] {
   if (timeControl === 'all') {
     return games;
   }
 
   return games.filter(game => {
-    const tournament = tournamentMap.get(game.groupiD);
-    const tournamentTimeControl = parseTimeControl(tournament?.thinkingTime) || 'standard';
-    return tournamentTimeControl === timeControl;
+    return getGroupRatingType(game.groupiD, tournamentMap) === timeControl;
   });
 }
 
@@ -219,12 +235,11 @@ export function aggregateOpponentStats(
     // Build tournament list
     const tournaments: TournamentInfo[] = Array.from(record.groupIds).map(groupId => {
       const tournament = tournamentMap.get(groupId);
-      const timeControl = parseTimeControl(tournament?.thinkingTime) || 'standard';
       return {
         groupId,
         tournamentId: tournament?.id || 0,
         name: tournament?.name || `Group ${groupId}`,
-        timeControl
+        timeControl: getGroupRatingType(groupId, tournamentMap)
       };
     });
 

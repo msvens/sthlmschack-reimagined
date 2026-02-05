@@ -50,7 +50,7 @@ export interface PlayerContextValue {
   getPlayerName: (playerId: number) => string;
   getPlayerRating: (playerId: number) => string;
   getTournamentName: (groupId: number) => string;
-  getTournamentTimeControl: (groupId: number) => 'standard' | 'rapid' | 'blitz';
+  getTournamentTimeControl: (groupId: number) => 'standard' | 'rapid' | 'blitz' | 'unrated';
 }
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);

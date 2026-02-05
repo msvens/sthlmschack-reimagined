@@ -7,7 +7,7 @@ import { GameDto, PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { PlayerProvider, PlayerContextValue, TournamentParticipation } from '@/context/PlayerContext';
 import { useGlobalPlayerCache } from '@/context/GlobalPlayerCacheContext';
 import { useGlobalTournamentCache } from '@/context/GlobalTournamentCacheContext';
-import { parseTimeControl } from '@/lib/api/utils/ratingUtils';
+import { getPrimaryRatingType } from '@/lib/api/utils/ratingUtils';
 import { isTeamTournament, findTournamentGroup } from '@/lib/api';
 import { calculatePlayerResult, calculatePlayerPoints } from '@/lib/api/utils/opponentStats';
 
@@ -209,10 +209,14 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
     return tournament?.name || `Unknown Tournament (Group ${groupId})`;
   }, [tournamentMap]);
 
-  const getTournamentTimeControl = useMemo(() => (groupId: number): 'standard' | 'rapid' | 'blitz' => {
+  const getTournamentTimeControl = useMemo(() => (groupId: number): 'standard' | 'rapid' | 'blitz' | 'unrated' => {
     const tournament = tournamentMap.get(groupId);
-    const timeControl = parseTimeControl(tournament?.thinkingTime);
-    return timeControl || 'standard';
+    if (!tournament) return 'standard';
+    const groupResult = findTournamentGroup(tournament, groupId);
+    if (!groupResult) return 'standard';
+    const ratingType = getPrimaryRatingType(groupResult.group.rankingAlgorithm);
+    if (!ratingType || ratingType === 'lask') return 'unrated';
+    return ratingType;
   }, [tournamentMap]);
 
   // Context value

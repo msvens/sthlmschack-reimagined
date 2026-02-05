@@ -34,16 +34,14 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
       all: games.length,
       standard: 0,
       rapid: 0,
-      blitz: 0
+      blitz: 0,
+      unrated: 0
     };
 
-    // Time control counts are calculated below using filterGamesByTimeControl
-    // This forEach was a placeholder that's no longer needed
-
-    // Properly calculate counts using filterGamesByTimeControl
     counts.standard = filterGamesByTimeControl(games, tournamentMap, 'standard').length;
     counts.rapid = filterGamesByTimeControl(games, tournamentMap, 'rapid').length;
     counts.blitz = filterGamesByTimeControl(games, tournamentMap, 'blitz').length;
+    counts.unrated = filterGamesByTimeControl(games, tournamentMap, 'unrated').length;
 
     return counts;
   }, [games, tournamentMap]);
@@ -146,6 +144,7 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
             standard: t.pages.playerDetail.opponentsTab.timeControl.standard,
             rapid: t.pages.playerDetail.opponentsTab.timeControl.rapid,
             blitz: t.pages.playerDetail.opponentsTab.timeControl.blitz,
+            unrated: t.pages.playerDetail.opponentsTab.timeControl.unrated,
             label: t.pages.playerDetail.opponentsTab.timeControl.label
           }}
           variant="dropdown"

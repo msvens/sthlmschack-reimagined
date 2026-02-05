@@ -3,13 +3,14 @@
 import React from 'react';
 import { SelectableList } from '../SelectableList';
 
-export type TimeControl = 'all' | 'standard' | 'rapid' | 'blitz';
+export type TimeControl = 'all' | 'standard' | 'rapid' | 'blitz' | 'unrated';
 
 export interface TimeControlCounts {
   all: number;
   standard: number;
   rapid: number;
   blitz: number;
+  unrated: number;
 }
 
 export interface TimeControlFilterProps {
@@ -21,6 +22,7 @@ export interface TimeControlFilterProps {
     standard: string;
     rapid: string;
     blitz: string;
+    unrated: string;
     label: string;  // "Time Control" or "Tidskontroll"
   };
   compact?: boolean;
@@ -52,6 +54,10 @@ export function TimeControlFilter({
     {
       id: 'blitz',
       label: `${labels.blitz} (${counts.blitz})`
+    },
+    {
+      id: 'unrated',
+      label: `${labels.unrated} (${counts.unrated})`
     }
   ];
 
