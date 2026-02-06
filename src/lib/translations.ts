@@ -55,6 +55,11 @@ export interface Translations {
         description: string;
         link: string;
       };
+      organizations: {
+        title: string;
+        description: string;
+        link: string;
+      };
     };
     about: {
       title: string;
@@ -512,13 +517,18 @@ const translations: Record<Language, Translations> = {
         },
         results: {
           title: 'Tournament Results',
-          description: 'Check the latest results and standings from recent tournaments.',
+          description: 'Check the latest results and standings.',
           link: 'View Results',
         },
         players: {
           title: 'Players',
           description: 'Search and explore chess players, their ratings, and tournament history.',
           link: 'Browse Players',
+        },
+        organizations: {
+          title: 'Clubs & Districts',
+          description: 'Browse chess clubs and districts in Sweden.',
+          link: 'Browse Organizations',
         },
       },
       about: {
@@ -632,7 +642,7 @@ const translations: Record<Language, Translations> = {
       },
       results: {
         title: 'Tournament Results',
-        subtitle: 'Check the latest results and standings from recent chess tournaments.',
+        subtitle: 'Check the latest results and standings.',
         placeholder: 'Tournament results coming soon. This page will display comprehensive results, standings, and player statistics from completed tournaments.',
         filters: {
           dateRange: {
@@ -975,13 +985,18 @@ const translations: Record<Language, Translations> = {
         },
         results: {
           title: 'Turneringsresultat',
-          description: 'Kolla de senaste resultaten och placeringarna från nyligen avslutade turneringar.',
+          description: 'Kolla de senaste resultaten och placeringarna.',
           link: 'Visa Resultat',
         },
         players: {
           title: 'Spelare',
           description: 'Sök och utforska schackspelare, deras rating och turneringshistorik.',
           link: 'Bläddra Spelare',
+        },
+        organizations: {
+          title: 'Klubbar & Distrikt',
+          description: 'Utforska schackklubbar och distrikt i Sverige.',
+          link: 'Bläddra Organisationer',
         },
       },
       about: {
@@ -1095,7 +1110,7 @@ const translations: Record<Language, Translations> = {
       },
       results: {
         title: 'Turneringsresultat',
-        subtitle: 'Kolla de senaste resultaten och placeringarna från nyligen avslutade schackturneringar.',
+        subtitle: 'Kolla de senaste resultaten och placeringarna.',
         placeholder: 'Turneringsresultat kommer snart. Denna sida kommer att visa omfattande resultat, placeringar och spelarstatistik från avslutade turneringar.',
         filters: {
           dateRange: {
