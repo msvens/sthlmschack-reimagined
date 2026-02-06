@@ -35,7 +35,8 @@ export interface GroupResultsContextValue {
   error: string | null;
 
   // Helper functions
-  getPlayerName: (playerId: number) => string;
+  /** Get player name. Pass optional date for historical lookups (team tournaments). */
+  getPlayerName: (playerId: number, date?: number) => string;
   getPlayerElo: (playerId: number) => string;
   getPlayerClubId: (playerId: number) => number | null;
   getClubName: (clubId: number) => string;

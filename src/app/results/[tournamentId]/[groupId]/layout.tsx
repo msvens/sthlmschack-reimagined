@@ -80,19 +80,10 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
       }
       setTeamResults([]);
       setTeamRoundResults([]);
-
-      // Pre-populate global player cache with player info from results
-      if (individualData.length > 0) {
-        const players = individualData
-          .map(r => r.playerInfo)
-          .filter((p): p is PlayerInfoDto => !!p);
-        globalCache.addPlayers(players);
-        globalCache.addPlayersByDate(players);
-      }
     }
 
     setLastUpdated(new Date());
-  }, [groupId, globalCache]);
+  }, [groupId]);
 
   /**
    * Full initial load: fetches tournament metadata + results.
@@ -185,20 +176,27 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
 
   /**
    * Helper to find a player in either playerMap or global cache
-   * Used as fallback for name/club lookups when playerMap hasn't updated yet
+   * Pass optional date for historical lookups (team tournaments)
    */
-  const findPlayer = useCallback((playerId: number): PlayerInfoDto | undefined => {
-    // First check playerMap (populated from individualResults)
+  const findPlayer = useCallback((playerId: number, date?: number): PlayerInfoDto | undefined => {
+    // If date provided, try date-based cache first (for team tournament historical lookups)
+    if (date !== undefined) {
+      const fromDateCache = globalCache.getPlayerByDate(playerId, date);
+      if (fromDateCache) return fromDateCache;
+    }
+
+    // Check playerMap (populated from individualResults)
     const fromMap = playerMap.get(playerId);
     if (fromMap) return fromMap;
 
-    // Fallback: check global player cache
+    // Fallback: check global player cache (current month)
     return globalCache.getPlayer(playerId);
   }, [playerMap, globalCache]);
 
   // Helper to get player name from ID (includes FIDE title if available)
-  const getPlayerName = useCallback((playerId: number): string => {
-    const player = findPlayer(playerId);
+  // Pass optional date for historical lookups (team tournaments)
+  const getPlayerName = useCallback((playerId: number, date?: number): string => {
+    const player = findPlayer(playerId, date);
     if (!player) return `Player ${playerId}`;
     return formatPlayerName(player.firstName, player.lastName, player.elo?.title);
   }, [findPlayer]);
@@ -227,16 +225,6 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
    */
   const fetchPlayersByDate = useCallback(async (requests: PlayerDateRequest[]): Promise<void> => {
     await globalCache.getOrFetchPlayersByDate(requests);
-
-    // Also add fetched players to the current-player cache for name/club lookups
-    for (const req of requests) {
-      if (!globalCache.getPlayer(req.playerId)) {
-        const dated = globalCache.getPlayerByDate(req.playerId, req.date);
-        if (dated) {
-          globalCache.addPlayers([dated]);
-        }
-      }
-    }
   }, [globalCache]);
 
   /**
