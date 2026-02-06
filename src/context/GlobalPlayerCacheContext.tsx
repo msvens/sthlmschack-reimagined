@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
 import { PlayerInfoDto } from '@/lib/api/types';
 import { PlayerService } from '@/lib/api';
-import { getPlayerDateCacheKey } from '@/lib/api/utils/dateUtils';
+import { getPlayerDateCacheKey, normalizeEloLookupDate } from '@/lib/api/utils/dateUtils';
 
 export interface PlayerDateRequest {
   playerId: number;
@@ -20,10 +20,6 @@ export interface GlobalPlayerCacheContextValue {
   getOrFetchPlayers(playerIds: number[]): Promise<Map<number, PlayerInfoDto>>;
   getOrFetchPlayerByDate(playerId: number, date: number): Promise<PlayerInfoDto | undefined>;
   getOrFetchPlayersByDate(requests: PlayerDateRequest[]): Promise<void>;
-
-  // Bulk cache population (for when route contexts fetch data)
-  addPlayers(players: PlayerInfoDto[]): void;
-  addPlayersByDate(players: PlayerInfoDto[]): void;
 }
 
 const GlobalPlayerCacheContext = createContext<GlobalPlayerCacheContextValue | null>(null);
@@ -37,10 +33,9 @@ export function useGlobalPlayerCache() {
 }
 
 export function GlobalPlayerCacheProvider({ children }: { children: ReactNode }) {
-  // Using refs for the actual cache data to avoid re-renders on every cache update.
-  // State counter triggers re-renders only when consumers need fresh data.
-  const playerMapRef = useRef<Map<number, PlayerInfoDto>>(new Map());
-  const playerDateMapRef = useRef<Map<string, PlayerInfoDto>>(new Map());
+  // Single unified cache keyed by "playerId-YYYY-MM-01"
+  // All lookups use a date (current date for "current" player, specific date for historical)
+  const playerCacheRef = useRef<Map<string, PlayerInfoDto>>(new Map());
   const [, setVersion] = useState(0);
 
   const bump = useCallback(() => setVersion(v => v + 1), []);
@@ -53,27 +48,34 @@ export function GlobalPlayerCacheProvider({ children }: { children: ReactNode })
     return playerServiceRef.current;
   }, []);
 
+  // Helper to get current month cache key
+  const getCurrentDateKey = useCallback((playerId: number): string => {
+    return getPlayerDateCacheKey(playerId, normalizeEloLookupDate(Date.now()));
+  }, []);
+
   // --- Sync lookups ---
 
   const getPlayer = useCallback((playerId: number): PlayerInfoDto | undefined => {
-    return playerMapRef.current.get(playerId);
-  }, []);
+    return playerCacheRef.current.get(getCurrentDateKey(playerId));
+  }, [getCurrentDateKey]);
 
   const getPlayerByDate = useCallback((playerId: number, date: number): PlayerInfoDto | undefined => {
-    const key = getPlayerDateCacheKey(playerId, date);
-    return playerDateMapRef.current.get(key);
+    const key = getPlayerDateCacheKey(playerId, normalizeEloLookupDate(date));
+    return playerCacheRef.current.get(key);
   }, []);
 
   // --- Async fetch methods ---
 
   const getOrFetchPlayer = useCallback(async (playerId: number): Promise<PlayerInfoDto | undefined> => {
-    const cached = playerMapRef.current.get(playerId);
+    const normalizedDate = normalizeEloLookupDate(Date.now());
+    const key = getPlayerDateCacheKey(playerId, normalizedDate);
+    const cached = playerCacheRef.current.get(key);
     if (cached) return cached;
 
     const service = getPlayerService();
     const response = await service.getPlayerInfo(playerId);
     if (response.status === 200 && response.data) {
-      playerMapRef.current.set(playerId, response.data);
+      playerCacheRef.current.set(key, response.data);
       bump();
       return response.data;
     }
@@ -81,11 +83,13 @@ export function GlobalPlayerCacheProvider({ children }: { children: ReactNode })
   }, [getPlayerService, bump]);
 
   const getOrFetchPlayers = useCallback(async (playerIds: number[]): Promise<Map<number, PlayerInfoDto>> => {
+    const normalizedDate = normalizeEloLookupDate(Date.now());
     const result = new Map<number, PlayerInfoDto>();
     const missingIds: number[] = [];
 
     for (const id of playerIds) {
-      const cached = playerMapRef.current.get(id);
+      const key = getPlayerDateCacheKey(id, normalizedDate);
+      const cached = playerCacheRef.current.get(key);
       if (cached) {
         result.set(id, cached);
       } else {
@@ -98,7 +102,8 @@ export function GlobalPlayerCacheProvider({ children }: { children: ReactNode })
       const responses = await service.getPlayerInfoBatch(missingIds);
       responses.forEach(response => {
         if (response.data) {
-          playerMapRef.current.set(response.data.id, response.data);
+          const key = getPlayerDateCacheKey(response.data.id, normalizedDate);
+          playerCacheRef.current.set(key, response.data);
           result.set(response.data.id, response.data);
         }
       });
@@ -109,15 +114,16 @@ export function GlobalPlayerCacheProvider({ children }: { children: ReactNode })
   }, [getPlayerService, bump]);
 
   const getOrFetchPlayerByDate = useCallback(async (playerId: number, date: number): Promise<PlayerInfoDto | undefined> => {
-    const key = getPlayerDateCacheKey(playerId, date);
-    const cached = playerDateMapRef.current.get(key);
+    const normalizedDate = normalizeEloLookupDate(date);
+    const key = getPlayerDateCacheKey(playerId, normalizedDate);
+    const cached = playerCacheRef.current.get(key);
     if (cached) return cached;
 
     const service = getPlayerService();
-    const dateObj = new Date(date);
+    const dateObj = new Date(normalizedDate);
     const response = await service.getPlayerInfo(playerId, dateObj);
     if (response.status === 200 && response.data) {
-      playerDateMapRef.current.set(key, response.data);
+      playerCacheRef.current.set(key, response.data);
       bump();
       return response.data;
     }
@@ -128,9 +134,10 @@ export function GlobalPlayerCacheProvider({ children }: { children: ReactNode })
     const missing: PlayerDateRequest[] = [];
 
     for (const req of requests) {
-      const key = getPlayerDateCacheKey(req.playerId, req.date);
-      if (!playerDateMapRef.current.has(key)) {
-        missing.push(req);
+      const normalizedDate = normalizeEloLookupDate(req.date);
+      const key = getPlayerDateCacheKey(req.playerId, normalizedDate);
+      if (!playerCacheRef.current.has(key)) {
+        missing.push({ playerId: req.playerId, date: normalizedDate });
       }
     }
 
@@ -146,44 +153,13 @@ export function GlobalPlayerCacheProvider({ children }: { children: ReactNode })
     responses.forEach((response, index) => {
       if (response.status === 'fulfilled' && response.value.status === 200 && response.value.data) {
         const key = getPlayerDateCacheKey(missing[index].playerId, missing[index].date);
-        playerDateMapRef.current.set(key, response.value.data);
+        playerCacheRef.current.set(key, response.value.data);
         added = true;
       }
     });
 
     if (added) bump();
   }, [getPlayerService, bump]);
-
-  // --- Bulk population ---
-
-  const addPlayers = useCallback((players: PlayerInfoDto[]): void => {
-    if (players.length === 0) return;
-    let added = false;
-    for (const player of players) {
-      if (!playerMapRef.current.has(player.id)) {
-        playerMapRef.current.set(player.id, player);
-        added = true;
-      }
-    }
-    if (added) bump();
-  }, [bump]);
-
-  const addPlayersByDate = useCallback((players: PlayerInfoDto[]): void => {
-    if (players.length === 0) return;
-    let added = false;
-    for (const player of players) {
-      if (player.elo?.date) {
-        // Use the elo.date from the response as the source of truth
-        const dateTimestamp = new Date(player.elo.date).getTime();
-        const key = getPlayerDateCacheKey(player.id, dateTimestamp);
-        if (!playerDateMapRef.current.has(key)) {
-          playerDateMapRef.current.set(key, player);
-          added = true;
-        }
-      }
-    }
-    if (added) bump();
-  }, [bump]);
 
   const value: GlobalPlayerCacheContextValue = {
     getPlayer,
@@ -192,8 +168,6 @@ export function GlobalPlayerCacheProvider({ children }: { children: ReactNode })
     getOrFetchPlayers,
     getOrFetchPlayerByDate,
     getOrFetchPlayersByDate,
-    addPlayers,
-    addPlayersByDate,
   };
 
   return (

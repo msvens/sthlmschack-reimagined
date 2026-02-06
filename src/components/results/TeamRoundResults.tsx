@@ -14,8 +14,8 @@ export interface TeamRoundResultsProps {
   roundResults: TournamentRoundResultDto[];
   /** Function to get club name from club ID */
   getClubName: (clubId: number) => string;
-  /** Function to get player name from player ID */
-  getPlayerName: (playerId: number) => string;
+  /** Function to get player name from player ID, with optional date for historical lookups */
+  getPlayerName: (playerId: number, date?: number) => string;
   /** Function to get player ELO from player ID (current) */
   getPlayerElo: (playerId: number) => string;
   /** Function to get player club ID from player ID */
@@ -517,7 +517,7 @@ export function TeamRoundResults({
                                 href={`/results/${tournamentId}/${groupId}/${game.homePlayerId}`}
                                 color="gray"
                               >
-                                {getPlayerName(game.homePlayerId)}
+                                {getPlayerName(game.homePlayerId, normalizedDate)}
                               </Link>
                             );
                           },
@@ -543,7 +543,7 @@ export function TeamRoundResults({
                                 href={`/results/${tournamentId}/${groupId}/${game.awayPlayerId}`}
                                 color="gray"
                               >
-                                {getPlayerName(game.awayPlayerId)}
+                                {getPlayerName(game.awayPlayerId, normalizedDate)}
                               </Link>
                             );
                           },
