@@ -369,6 +369,17 @@ export interface Translations {
         lastUpdated: string;
         refresh: string;
       };
+      teamDetailPage: {
+        backToStandings: string;
+        matchesPlayed: string;
+        winDrawLoss: string;
+        boardPoints: string;
+        matchPoints: string;
+        noMatches: string;
+        position: string;
+        teamAvgRating: string;
+        opponentAvgRating: string;
+      };
     };
     organizations: {
       title: string;
@@ -823,6 +834,17 @@ const translations: Record<Language, Translations> = {
           lastUpdated: 'Updated',
           refresh: 'Refresh',
         },
+        teamDetailPage: {
+          backToStandings: 'Back to standings',
+          matchesPlayed: 'MP',
+          winDrawLoss: 'W-D-L',
+          boardPoints: 'BP',
+          matchPoints: 'Pts',
+          noMatches: 'No matches played yet',
+          position: 'Pos',
+          teamAvgRating: 'Team Avg Rating',
+          opponentAvgRating: 'Opponents Avg Rating',
+        },
       },
       organizations: {
         title: 'Clubs & Districts',
@@ -1274,6 +1296,17 @@ const translations: Record<Language, Translations> = {
           label: 'Auto',
           lastUpdated: 'Uppdaterad',
           refresh: 'Uppdatera',
+        },
+        teamDetailPage: {
+          backToStandings: 'Tillbaka till ställning',
+          matchesPlayed: 'MP',
+          winDrawLoss: 'V-R-F',
+          boardPoints: 'BP',
+          matchPoints: 'P',
+          noMatches: 'Inga matcher spelade ännu',
+          position: 'Plac',
+          teamAvgRating: 'Lagets snittr.',
+          opponentAvgRating: 'Motståndarnas snittr.',
         },
       },
       organizations: {
