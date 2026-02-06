@@ -1305,8 +1305,8 @@ const translations: Record<Language, Translations> = {
           matchPoints: 'P',
           noMatches: 'Inga matcher spelade ännu',
           position: 'Plac',
-          teamAvgRating: 'Lagets snittr.',
-          opponentAvgRating: 'Motståndarnas snittr.',
+          teamAvgRating: 'Lagets medelranking',
+          opponentAvgRating: 'Motståndarnas medelranking',
         },
       },
       organizations: {
