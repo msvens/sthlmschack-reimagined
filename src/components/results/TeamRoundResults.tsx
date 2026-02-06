@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { TournamentRoundResultDto, GameDto } from '@/lib/api/types';
+import { TournamentRoundResultDto, GameDto, PlayerInfoDto } from '@/lib/api/types';
 import { isWalkoverPlayer, isWalkoverClub, createRoundResultsTeamNameFormatter, normalizeEloLookupDate } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -18,8 +18,8 @@ export interface TeamRoundResultsProps {
   getPlayerName: (playerId: number, date?: number) => string;
   /** Function to get player ELO from player ID (current) */
   getPlayerElo: (playerId: number) => string;
-  /** Function to get player club ID from player ID */
-  getPlayerClubId: (playerId: number) => number | null;
+  /** Function to get player info by ID and date (for club ID lookup) */
+  getPlayerByDate: (playerId: number, date: number) => PlayerInfoDto | undefined;
   /** Tournament ID for player links */
   tournamentId: number;
   /** Group ID for player links */
@@ -87,7 +87,7 @@ export function TeamRoundResults({
   getClubName,
   getPlayerName,
   getPlayerElo,
-  getPlayerClubId,
+  getPlayerByDate,
   tournamentId,
   groupId,
   fetchPlayersByDate,
@@ -221,11 +221,13 @@ export function TeamRoundResults({
   };
 
   // Process a game to determine home/away players and calculate result
-  // Optional matchDate parameter enables historical ELO lookup
-  const processGame = (game: GameDto, homeClubId: number, awayClubId: number, matchDate?: number): DisplayGame => {
-    // Step 1: Pull the club from each player
-    const whiteClubId = getPlayerClubId(game.whiteId);
-    const blackClubId = getPlayerClubId(game.blackId);
+  // matchDate parameter enables historical player data lookup (club ID, ELO)
+  const processGame = (game: GameDto, homeClubId: number, awayClubId: number, matchDate: number): DisplayGame => {
+    // Step 1: Pull the club from each player using date-based lookup
+    const whitePlayer = getPlayerByDate(game.whiteId, matchDate);
+    const blackPlayer = getPlayerByDate(game.blackId, matchDate);
+    const whiteClubId = whitePlayer?.clubId ?? null;
+    const blackClubId = blackPlayer?.clubId ?? null;
 
     // Determine if white player is on home team or away team
     // Strategy: Check which player's club actually matches either home or away team
@@ -480,7 +482,7 @@ export function TeamRoundResults({
                       const rawMatchDate = parseDateToTimestamp(match.date);
                       const normalizedDate = !isNaN(rawMatchDate) && rawMatchDate > 0
                         ? normalizeEloLookupDate(rawMatchDate)
-                        : undefined;
+                        : normalizeEloLookupDate(Date.now());
 
                       // Process games to ensure home team is always in left column
                       // Pass normalized date to enable historical ELO lookup

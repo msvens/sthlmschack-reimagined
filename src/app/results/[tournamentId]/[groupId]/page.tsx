@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { TournamentService, formatMatchResult, normalizeEloLookupDate, parseLocalDate } from '@/lib/api';
-import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState } from '@/lib/api/types';
+import { TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -60,9 +60,9 @@ export default function GroupResultsPage() {
     error: resultsError,
     getPlayerName,
     getPlayerElo,
-    getPlayerClubId,
     getClubName,
     fetchPlayersByDate,
+    getPlayerByDate,
     getPlayerEloByDate,
     refreshResults,
     lastUpdated,
@@ -299,6 +299,13 @@ export default function GroupResultsPage() {
     }
   };
 
+  // Handle row click in team final results table - navigate to team detail page
+  const handleTeamClick = (result: TeamTournamentEndResultDto) => {
+    if (result.contenderId && tournamentId && groupId) {
+      router.push(`/results/${tournamentId}/${groupId}/team/${result.contenderId}-${result.teamNumber}`);
+    }
+  };
+
   // Handle class selection - navigate to first group in that class
   const handleClassSelect = (id: string | number) => {
     const selectedClass = allClasses.find(c => c.classID === id);
@@ -478,6 +485,7 @@ export default function GroupResultsPage() {
                           getClubName={getClubName}
                           loading={false}
                           error={resultsError || undefined}
+                          onRowClick={handleTeamClick}
                         />
                       )
                     ) : isNotStarted ? (
@@ -512,7 +520,7 @@ export default function GroupResultsPage() {
                         getClubName={getClubName}
                         getPlayerName={getPlayerName}
                         getPlayerElo={getPlayerElo}
-                        getPlayerClubId={getPlayerClubId}
+                        getPlayerByDate={getPlayerByDate}
                         tournamentId={tournamentId}
                         groupId={groupId}
                         fetchPlayersByDate={fetchPlayersByDate}
