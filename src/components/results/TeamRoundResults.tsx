@@ -439,7 +439,7 @@ export function TeamRoundResults({
               {/* Match Header - Clickable */}
               <button
                 onClick={() => handleMatchClick(index)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -451,12 +451,12 @@ export function TeamRoundResults({
                       {isWalkoverClub(match.awayId) ? 'W.O' : formatTeamDisplayName(match.awayId, match.awayTeamNumber)}
                     </span>
                   </div>
-                  <div className="ml-4 flex items-center gap-3">
-                    <span className="font-semibold text-gray-900 dark:text-gray-200">
+                  <div className="ml-4 flex items-center gap-2">
+                    <span className="font-medium text-gray-900 dark:text-gray-200">
                       {match.homeScore === 0 && match.awayScore === 0 ? '-' : `${match.homeScore} - ${match.awayScore}`}
                     </span>
                     <svg
-                      className={`w-5 h-5 text-gray-400 transition-transform ${
+                      className={`w-4 h-4 text-gray-400 transition-transform ${
                         expandedMatchIndex === index ? 'rotate-180' : ''
                       }`}
                       fill="none"
