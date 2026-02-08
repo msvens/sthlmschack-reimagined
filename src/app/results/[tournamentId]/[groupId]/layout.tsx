@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getPlayerRatingByRoundType, formatPlayerName } from '@/lib/api';
+import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, formatPlayerName } from '@/lib/api';
 import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament } from '@/lib/api/types';
 import { GroupResultsProvider, GroupResultsContextValue, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
@@ -202,9 +202,10 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   }, [findPlayer]);
 
   // Helper to get player ELO from ID based on group's ranking algorithm
+  // Uses strict rating matching (no fallback to other rating types)
   const getPlayerElo = useCallback((playerId: number): string => {
     const player = findPlayer(playerId);
-    const { rating, ratingType } = getPlayerRatingByAlgorithm(player?.elo, rankingAlgorithm);
+    const { rating, ratingType } = getPlayerRatingStrict(player?.elo, rankingAlgorithm);
     return formatRatingWithType(rating, ratingType, language);
   }, [findPlayer, rankingAlgorithm, language]);
 
@@ -238,11 +239,14 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   /**
    * Get formatted ELO for a player at a specific historical date
    * Falls back to current playerMap if historical data not available
+   * Uses strict rating matching (no fallback to other rating types)
    */
   const getPlayerEloByDate = useCallback((playerId: number, date: number): string => {
     const historicalPlayer = globalCache.getPlayerByDate(playerId, date);
     const player = historicalPlayer || playerMap.get(playerId);
-    const { rating, ratingType } = getPlayerRatingByAlgorithm(player?.elo, rankingAlgorithm);
+    // Use strict rating - only returns the primary rating type for the algorithm
+    // (e.g., rapid for RAPID_STANDARD_BLITZ_ELO), no fallback to standard
+    const { rating, ratingType } = getPlayerRatingStrict(player?.elo, rankingAlgorithm);
     return formatRatingWithType(rating, ratingType, language);
   }, [globalCache, playerMap, rankingAlgorithm, language]);
 
@@ -257,6 +261,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   /**
    * Get formatted ELO for a player at a specific historical date and round
    * Uses round's rated type if available, falls back to group rankingAlgorithm
+   * Uses strict rating matching (no fallback to other rating types)
    */
   const getPlayerEloByDateAndRound = useCallback((
     playerId: number,
@@ -275,8 +280,8 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
       }
     }
 
-    // Fallback to group-level ranking algorithm
-    const { rating, ratingType } = getPlayerRatingByAlgorithm(player?.elo, rankingAlgorithm);
+    // Fallback to group-level ranking algorithm (strict - no fallback to other rating types)
+    const { rating, ratingType } = getPlayerRatingStrict(player?.elo, rankingAlgorithm);
     return formatRatingWithType(rating, ratingType, language);
   }, [globalCache, playerMap, roundsMap, rankingAlgorithm, language]);
 

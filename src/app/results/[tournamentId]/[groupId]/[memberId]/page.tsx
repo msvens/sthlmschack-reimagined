@@ -11,7 +11,7 @@ import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { EloRatingChart } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { TournamentService, formatRatingWithType, getPlayerRatingByAlgorithm, getPlayerRatingByRoundType, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, getResultDisplayString, formatPlayerName, RoundRatedType } from '@/lib/api';
+import { TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, getResultDisplayString, formatPlayerName, RoundRatedType } from '@/lib/api';
 import { PlayerInfoDto, TournamentDto } from '@/lib/api/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -443,7 +443,7 @@ export default function TournamentPlayerDetailPage() {
         }
 
         // Fallback to group-level ranking algorithm
-        const { rating, ratingType } = getPlayerRatingByAlgorithm(whitePlayerElo, rankingAlgorithm);
+        const { rating, ratingType } = getPlayerRatingStrict(whitePlayerElo, rankingAlgorithm);
         return formatRatingWithType(rating, ratingType, language);
       },
       align: 'center',
@@ -486,7 +486,7 @@ export default function TournamentPlayerDetailPage() {
         }
 
         // Fallback to group-level ranking algorithm
-        const { rating, ratingType } = getPlayerRatingByAlgorithm(blackPlayerElo, rankingAlgorithm);
+        const { rating, ratingType } = getPlayerRatingStrict(blackPlayerElo, rankingAlgorithm);
         return formatRatingWithType(rating, ratingType, language);
       },
       align: 'center',
@@ -535,8 +535,8 @@ export default function TournamentPlayerDetailPage() {
           opponentRating = opponentResult.rating;
         } else {
           // Fallback to group-level ranking algorithm
-          const playerResult = getPlayerRatingByAlgorithm(playerData.elo, rankingAlgorithm);
-          const opponentResult = getPlayerRatingByAlgorithm(row.opponent.elo, rankingAlgorithm);
+          const playerResult = getPlayerRatingStrict(playerData.elo, rankingAlgorithm);
+          const opponentResult = getPlayerRatingStrict(row.opponent.elo, rankingAlgorithm);
           playerRating = playerResult.rating;
           ratingType = playerResult.ratingType;
           opponentRating = opponentResult.rating;
@@ -642,8 +642,8 @@ export default function TournamentPlayerDetailPage() {
                   ratingType = playerResult.ratingType;
                   opponentRating = opponentResult.rating;
                 } else {
-                  const playerResult = getPlayerRatingByAlgorithm(playerData?.elo, rankingAlgorithm);
-                  const opponentResult = getPlayerRatingByAlgorithm(match.opponent.elo, rankingAlgorithm);
+                  const playerResult = getPlayerRatingStrict(playerData?.elo, rankingAlgorithm);
+                  const opponentResult = getPlayerRatingStrict(match.opponent.elo, rankingAlgorithm);
                   playerRating = playerResult.rating;
                   ratingType = playerResult.ratingType;
                   opponentRating = opponentResult.rating;
