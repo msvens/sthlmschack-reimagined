@@ -94,7 +94,9 @@ function getGroupRatingType(
   const groupResult = findTournamentGroup(tournament, groupId);
   if (!groupResult) return 'standard';
   const ratingType = getPrimaryRatingType(groupResult.group.rankingAlgorithm);
-  if (!ratingType || ratingType === 'lask') return 'unrated';
+  if (!ratingType) return 'unrated';
+  // LASK was the Swedish national rating for standard games
+  if (ratingType === 'lask') return 'standard';
   return ratingType;
 }
 
