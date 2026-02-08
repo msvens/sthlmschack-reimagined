@@ -11,6 +11,8 @@ import { Table, TableColumn } from '@/components/Table';
 export interface TeamDetailMatchesProps {
   /** All matches involving this team */
   matches: TournamentRoundResultDto[];
+  /** All round results in the tournament (for team name formatting) */
+  allRoundResults: TournamentRoundResultDto[];
   /** Club ID of the selected team */
   selectedClubId: number;
   /** Team number of the selected team */
@@ -79,6 +81,7 @@ function formatMatchDate(dateStr: string | undefined, locale: string): string {
 
 export function TeamDetailMatches({
   matches,
+  allRoundResults,
   selectedClubId,
   selectedTeamNumber,
   getClubName,
@@ -129,10 +132,10 @@ export function TeamDetailMatches({
     return grouped;
   }, [matches]);
 
-  // Create team name formatter
+  // Create team name formatter using all round results to detect multi-team clubs
   const formatTeamDisplayName = useMemo(
-    () => createRoundResultsTeamNameFormatter(matches, getClubName),
-    [matches, getClubName]
+    () => createRoundResultsTeamNameFormatter(allRoundResults, getClubName),
+    [allRoundResults, getClubName]
   );
 
   const rounds = Object.keys(matchesByRound)

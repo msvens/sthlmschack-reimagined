@@ -341,6 +341,7 @@ export default function TeamDetailPage() {
       ) : (
         <TeamDetailMatches
           matches={teamMatches}
+          allRoundResults={teamRoundResults}
           selectedClubId={parsedTeamId.clubId}
           selectedTeamNumber={parsedTeamId.teamNumber}
           getClubName={getClubName}
