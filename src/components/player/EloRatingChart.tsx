@@ -168,7 +168,7 @@ export function EloRatingChart({
           Loading...
         </div>
       ) : !data || data.length === 0 ? (
-        <div className="flex items-center justify-center text-gray-600 dark:text-gray-400" style={{ height }}>
+        <div className="py-3 text-sm text-gray-500 dark:text-gray-400">
           No rating history available
         </div>
       ) : (
