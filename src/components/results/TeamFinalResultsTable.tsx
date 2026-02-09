@@ -96,17 +96,17 @@ export function TeamFinalResultsTable({
     {
       id: 'pp',
       header: t.pages.tournamentResults.teamFinalResultsTable.pp,
-      accessor: (row) => row.points !== undefined ? row.points.toFixed(2) : '-',
+      accessor: (row) => row.secPoints !== undefined ? (Math.round(Number(row.secPoints) * 2) / 2).toFixed(1) : '-',
       align: 'center',
-      noWrap: true,
-      cellStyle: { fontWeight: 'medium' }
+      noWrap: true
     },
     {
       id: 'mp',
       header: t.pages.tournamentResults.teamFinalResultsTable.mp,
-      accessor: (row) => row.secPoints !== undefined ? (Math.round(Number(row.secPoints) * 2) / 2).toFixed(1) : '-',
+      accessor: (row) => row.points !== undefined ? row.points.toFixed(2) : '-',
       align: 'center',
-      noWrap: true
+      noWrap: true,
+      cellStyle: { fontWeight: 'medium' }
     }
   ];
 

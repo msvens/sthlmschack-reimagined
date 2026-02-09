@@ -116,25 +116,12 @@ export default function TeamDetailPage() {
           return;
         }
 
-        // Get player info from the date-keyed cache to determine club
-        const whitePlayer = getPlayerByDate(game.whiteId, lookupDate);
-        const blackPlayer = getPlayerByDate(game.blackId, lookupDate);
-        const whiteClubId = whitePlayer?.clubId;
-        const blackClubId = blackPlayer?.clubId;
-
-        // Determine which player is on which team
-        let whiteIsHome: boolean;
-        if (whiteClubId === match.homeId) {
-          whiteIsHome = true;
-        } else if (whiteClubId === match.awayId) {
-          whiteIsHome = false;
-        } else if (blackClubId === match.homeId) {
-          whiteIsHome = false;
-        } else if (blackClubId === match.awayId) {
-          whiteIsHome = true;
-        } else {
-          return; // Can't determine
-        }
+        // Determine which player is on home/away team using table number
+        // In team chess: away team has white on board 1 (table 0), colors alternate by board
+        // Even tables (0, 2, 4...): away team plays white (home plays black)
+        // Odd tables (1, 3, 5...): home team plays white
+        const tableNr = game.tableNr ?? 0;
+        const whiteIsHome = tableNr % 2 === 1;
 
         const homePlayerId = whiteIsHome ? game.whiteId : game.blackId;
         const awayPlayerId = whiteIsHome ? game.blackId : game.whiteId;
@@ -346,7 +333,6 @@ export default function TeamDetailPage() {
           selectedTeamNumber={parsedTeamId.teamNumber}
           getClubName={getClubName}
           getPlayerName={getPlayerName}
-          getPlayerByDate={getPlayerByDate}
           tournamentId={tournamentId!}
           groupId={groupId!}
           getPlayerEloByDate={getPlayerEloByDate}

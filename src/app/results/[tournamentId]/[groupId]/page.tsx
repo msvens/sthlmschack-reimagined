@@ -62,7 +62,6 @@ export default function GroupResultsPage() {
     getPlayerElo,
     getClubName,
     fetchPlayersByDate,
-    getPlayerByDate,
     getPlayerEloByDate,
     refreshResults,
     lastUpdated,
@@ -520,7 +519,6 @@ export default function GroupResultsPage() {
                         getClubName={getClubName}
                         getPlayerName={getPlayerName}
                         getPlayerElo={getPlayerElo}
-                        getPlayerByDate={getPlayerByDate}
                         tournamentId={tournamentId}
                         groupId={groupId}
                         fetchPlayersByDate={fetchPlayersByDate}

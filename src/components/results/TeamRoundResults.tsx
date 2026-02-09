@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { TournamentRoundResultDto, GameDto, PlayerInfoDto } from '@/lib/api/types';
-import { isWalkoverPlayer, isWalkoverClub, createRoundResultsTeamNameFormatter, normalizeEloLookupDate } from '@/lib/api';
+import { TournamentRoundResultDto, GameDto } from '@/lib/api/types';
+import { isWalkoverPlayer, isWalkoverClub, createRoundResultsTeamNameFormatter, normalizeEloLookupDate, calculatePoints, ResultCode } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { Link } from '@/components/Link';
@@ -18,8 +18,6 @@ export interface TeamRoundResultsProps {
   getPlayerName: (playerId: number, date?: number) => string;
   /** Function to get player ELO from player ID (current) */
   getPlayerElo: (playerId: number) => string;
-  /** Function to get player info by ID and date (for club ID lookup) */
-  getPlayerByDate: (playerId: number, date: number) => PlayerInfoDto | undefined;
   /** Tournament ID for player links */
   tournamentId: number;
   /** Group ID for player links */
@@ -55,6 +53,8 @@ interface DisplayGame {
   awayScore: number;
   isWalkover: boolean;
   couldNotDeduceClub: boolean; // Debug flag when we can't determine player teams
+  resultCode: number | null; // Original result code for special display (e.g., adjudicated)
+  whiteIsHome: boolean; // Whether white player is on home team
 }
 
 /**
@@ -87,7 +87,6 @@ export function TeamRoundResults({
   getClubName,
   getPlayerName,
   getPlayerElo,
-  getPlayerByDate,
   tournamentId,
   groupId,
   fetchPlayersByDate,
@@ -223,134 +222,28 @@ export function TeamRoundResults({
   // Process a game to determine home/away players and calculate result
   // matchDate parameter enables historical player data lookup (club ID, ELO)
   const processGame = (game: GameDto, homeClubId: number, awayClubId: number, matchDate: number): DisplayGame => {
-    // Step 1: Pull the club from each player using date-based lookup
-    const whitePlayer = getPlayerByDate(game.whiteId, matchDate);
-    const blackPlayer = getPlayerByDate(game.blackId, matchDate);
-    const whiteClubId = whitePlayer?.clubId ?? null;
-    const blackClubId = blackPlayer?.clubId ?? null;
-
-    // Determine if white player is on home team or away team
-    // Strategy: Check which player's club actually matches either home or away team
-    // Players might be playing for a different club than their registered main club
-    let whiteIsHome: boolean;
-    let couldNotDeduceClub = false;
-
-    if (isWalkoverPlayer(game.whiteId)) {
-      // White is W.O, so use black's club - if black is home, white must be away (and vice versa)
-      if (blackClubId === homeClubId) {
-        whiteIsHome = false; // Black is home, so W.O is away
-      } else if (blackClubId === awayClubId) {
-        whiteIsHome = true; // Black is away, so W.O is home
-      } else {
-        // Black's club doesn't match either team - shouldn't happen often
-        whiteIsHome = blackClubId !== homeClubId;
-        couldNotDeduceClub = true;
-      }
-    } else if (isWalkoverPlayer(game.blackId)) {
-      // Black is W.O, so use white's club
-      if (whiteClubId === homeClubId) {
-        whiteIsHome = true; // White is home, so W.O is away
-      } else if (whiteClubId === awayClubId) {
-        whiteIsHome = false; // White is away, so W.O is home
-      } else {
-        // White's club doesn't match either team
-        whiteIsHome = whiteClubId === homeClubId;
-        couldNotDeduceClub = true;
-      }
-    } else {
-      // Step 2: Check if player1 (white) has either home or away team as their club
-      if (whiteClubId === homeClubId) {
-        whiteIsHome = true;
-      } else if (whiteClubId === awayClubId) {
-        whiteIsHome = false;
-      // Step 3: If not, check player2 (black) has either home or away team as their club
-      } else if (blackClubId === homeClubId) {
-        whiteIsHome = false; // Black is home, so white is away
-      } else if (blackClubId === awayClubId) {
-        whiteIsHome = true; // Black is away, so white is home
-      } else {
-        // Step 4: Neither player's registered club matches the teams playing
-        // This is the problematic case - mark for debugging
-        couldNotDeduceClub = true;
-        // Fall back to color-based assignment (white=home)
-        whiteIsHome = true;
-        console.warn(`Could not deduce club assignment for game: white=${game.whiteId} (club=${whiteClubId}), black=${game.blackId} (club=${blackClubId}), match: ${homeClubId} vs ${awayClubId}`);
-      }
-    }
+    // Determine if white player is on home team using table number
+    // In team chess: away team has white on board 1 (table 0), colors alternate by board
+    // Even tables (0, 2, 4...): away team plays white (home plays black)
+    // Odd tables (1, 3, 5...): home team plays white
+    const tableNr = game.tableNr ?? 0;
+    const whiteIsHome = tableNr % 2 === 1;
+    const couldNotDeduceClub = false;
 
     // Handle W.O (walkover) cases
-    // result === 2: white wins on W.O
-    // result === -2: black wins on W.O
-    // playerId === -1: the missing player
     const isWalkover = Math.abs(game.result) === 2 || isWalkoverPlayer(game.whiteId) || isWalkoverPlayer(game.blackId);
 
-    let homePlayerId: number;
-    let awayPlayerId: number;
-    let homeScore: number = 0;
-    let awayScore: number = 0;
+    // Assign players based on home/away
+    const homePlayerId = whiteIsHome ? game.whiteId : game.blackId;
+    const awayPlayerId = whiteIsHome ? game.blackId : game.whiteId;
 
-    if (whiteIsHome) {
-      // White is home team
-      homePlayerId = game.whiteId;
-      awayPlayerId = game.blackId;
-
-      // Calculate scores based on result
-      // Check for null/undefined first (unplayed games)
-      // Also check for double walkover (both players missing)
-      if (game.result == null || (isWalkoverPlayer(game.whiteId) && isWalkoverPlayer(game.blackId))) {
-        // Unplayed or double walkover - scores stay at 0
-      } else if (game.result === 2) {
-        // White wins on W.O
-        homeScore = 1;
-        awayScore = 0;
-      } else if (game.result === -2) {
-        // Black wins on W.O
-        homeScore = 0;
-        awayScore = 1;
-      } else if (game.result === 1) {
-        // White wins
-        homeScore = 1;
-        awayScore = 0;
-      } else if (game.result === -1) {
-        // Black wins
-        homeScore = 0;
-        awayScore = 1;
-      } else {
-        // Draw (result === 0)
-        homeScore = 0.5;
-        awayScore = 0.5;
-      }
-    } else {
-      // Black is home team (need to flip)
-      homePlayerId = game.blackId;
-      awayPlayerId = game.whiteId;
-
-      // Calculate scores based on result (flipped perspective)
-      // Check for null/undefined first (unplayed games)
-      // Also check for double walkover (both players missing)
-      if (game.result == null || (isWalkoverPlayer(game.whiteId) && isWalkoverPlayer(game.blackId))) {
-        // Unplayed or double walkover - scores stay at 0
-      } else if (game.result === 2) {
-        // White wins on W.O (away team wins)
-        homeScore = 0;
-        awayScore = 1;
-      } else if (game.result === -2) {
-        // Black wins on W.O (home team wins)
-        homeScore = 1;
-        awayScore = 0;
-      } else if (game.result === 1) {
-        // White wins (away team wins)
-        homeScore = 0;
-        awayScore = 1;
-      } else if (game.result === -1) {
-        // Black wins (home team wins)
-        homeScore = 1;
-        awayScore = 0;
-      } else {
-        // Draw (result === 0)
-        homeScore = 0.5;
-        awayScore = 0.5;
-      }
+    // Calculate scores using the utility function (handles all result codes including -10 for adjudicated 0-0)
+    let homeScore = 0;
+    let awayScore = 0;
+    if (game.result != null && !(isWalkoverPlayer(game.whiteId) && isWalkoverPlayer(game.blackId))) {
+      const [whitePoints, blackPoints] = calculatePoints(game.result);
+      homeScore = whiteIsHome ? whitePoints : blackPoints;
+      awayScore = whiteIsHome ? blackPoints : whitePoints;
     }
 
     // Use historical ELO if date is provided and function is available, otherwise fall back to current ELO
@@ -371,20 +264,44 @@ export function TeamRoundResults({
       homeScore,
       awayScore,
       isWalkover,
-      couldNotDeduceClub
+      couldNotDeduceClub,
+      resultCode: game.result ?? null,
+      whiteIsHome
     };
   };
 
   // Format game result for display
+  // Handles special result codes like adjudicated 0-0, walkovers, etc.
   const formatGameResult = (game: DisplayGame): string => {
-    if (game.homeScore === 1 && game.awayScore === 0) {
-      return game.isWalkover ? '1 - 0 w.o' : '1 - 0';
-    } else if (game.homeScore === 0 && game.awayScore === 1) {
-      return game.isWalkover ? '0 - 1 w.o' : '0 - 1';
-    } else if (game.homeScore === 0.5 && game.awayScore === 0.5) {
-      return '½ - ½';
+    const { homeScore, awayScore, isWalkover, resultCode } = game;
+
+    // No result yet
+    if (resultCode == null) return '-';
+
+    // Format the score part
+    const formatScore = (score: number): string => {
+      if (score === 0.5) return '½';
+      return String(score);
+    };
+
+    // Check for special adjudicated results (both players get 0 or both get 1)
+    const isAdjudicated = resultCode === ResultCode.BOTH_NO_RESULT ||
+                          resultCode === ResultCode.BOTH_WIN ||
+                          resultCode === ResultCode.SCHACK4AN_BOTH_NO_RESULT ||
+                          resultCode === ResultCode.SCHACK4AN_BOTH_WIN ||
+                          resultCode === ResultCode.POINT310_BOTH_NO_RESULT ||
+                          resultCode === ResultCode.POINT310_BOTH_WIN;
+
+    // Build result string from home team's perspective
+    const scoreStr = `${formatScore(homeScore)} - ${formatScore(awayScore)}`;
+
+    if (isWalkover) {
+      return `${scoreStr} w.o`;
+    } else if (isAdjudicated) {
+      return `${scoreStr} adj`;
     }
-    return '-';
+
+    return scoreStr;
   };
 
   return (
