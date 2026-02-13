@@ -5,7 +5,7 @@ import { Table, TableColumn } from './Table';
 import { Link } from './Link';
 import { useOrganizations } from '@/context/OrganizationsContext';
 import { getTranslation } from '@/lib/translations';
-import type { TournamentDto } from '@/lib/api/types';
+import type { TournamentDto } from '@/lib/api';
 
 interface TournamentListProps {
   tournaments: TournamentDto[];

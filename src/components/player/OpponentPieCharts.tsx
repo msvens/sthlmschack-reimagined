@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
-import { ColorStats } from '@/lib/api/utils/opponentStats';
+import { ColorStats } from '@/lib/api';
 
 export interface OpponentPieChartsProps {
   allStats: ColorStats;

@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { Table, TableColumn, TableDensity, DensityThresholds } from '@/components/Table';
-import { TournamentEndResultDto } from '@/lib/api/types';
-import { formatRatingWithType, getPlayerRatingByAlgorithm, formatPlayerName } from '@/lib/api';
+import { TournamentEndResultDto, formatRatingWithType, getPlayerRatingByAlgorithm, formatPlayerName } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 

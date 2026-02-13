@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService } from '@/lib/api';
-import { TournamentDto } from '@/lib/api/types';
+import { TournamentService, TournamentDto } from '@/lib/api';
 
 export default function TournamentRedirectPage() {
   const params = useParams();

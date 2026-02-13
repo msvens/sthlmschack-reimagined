@@ -1,8 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
-import { TournamentDto } from '@/lib/api/types';
-import { TournamentService } from '@/lib/api';
+import { TournamentDto, TournamentService } from '@/lib/api';
 
 export interface GlobalTournamentCacheContextValue {
   // Sync lookup (cache-only)

@@ -9,8 +9,7 @@ import { DistrictSelector } from '@/components/organizations/DistrictSelector';
 import { RatingFilters, RatingFiltersValue, getDefaultRatingFilters } from '@/components/organizations/RatingFilters';
 import { RatingTable } from '@/components/RatingTable';
 import { getTranslation } from '@/lib/translations';
-import { RatingsService } from '@/lib/api/services/ratings';
-import type { PlayerInfoDto, DistrictDTO } from '@/lib/api/types';
+import { RatingsService, type PlayerInfoDto, type DistrictDTO } from '@/lib/api';
 
 export default function DistrictDetailPage() {
   const params = useParams();

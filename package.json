@@ -8,17 +8,17 @@
     "start": "next start -p 3001",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test:api": "tsx src/lib/api/test-runner.ts",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "translations:check": "tsx scripts/check-translations.ts",
     "generate:changelog": "tsx scripts/generate-changelog.ts",
-    "predev": "yarn generate:changelog",
-    "prebuild": "yarn generate:changelog",
-    "ci": "yarn typecheck && yarn lint && yarn test && yarn build"
+    "predev": "pnpm generate:changelog",
+    "prebuild": "pnpm generate:changelog",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@msvens/schack-se-sdk": "github:msvens/schack-se-sdk",
     "next": "15.5.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",

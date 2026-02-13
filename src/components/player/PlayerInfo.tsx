@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { PlayerInfoDto } from '@/lib/api/types';
+import { PlayerInfoDto } from '@/lib/api';
 import { Link } from '@/components/Link';
 
 export interface PlayerInfoProps {

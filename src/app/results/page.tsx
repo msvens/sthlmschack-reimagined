@@ -11,8 +11,7 @@ import { TournamentList } from "@/components/TournamentList";
 import { TournamentCategoryFilter, TournamentTypeFilter, TournamentStateFilter } from "@/components/filters";
 import { useLanguage } from "@/context/LanguageContext";
 import { getTranslation } from "@/lib/translations";
-import { TournamentService } from "@/lib/api/services/tournaments";
-import type { TournamentDto, GroupSearchAnswerDto } from "@/lib/api/types";
+import { TournamentService, type TournamentDto, type GroupSearchAnswerDto } from "@/lib/api";
 import {
   TournamentCategory,
   countByCategory,

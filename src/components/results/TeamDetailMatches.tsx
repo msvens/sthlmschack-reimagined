@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { TournamentRoundResultDto, GameDto } from '@/lib/api/types';
-import { isWalkoverPlayer, isWalkoverClub, createRoundResultsTeamNameFormatter, normalizeEloLookupDate, calculatePoints, ResultCode } from '@/lib/api';
+import { TournamentRoundResultDto, GameDto, isWalkoverPlayer, isWalkoverClub, createRoundResultsTeamNameFormatter, normalizeEloLookupDate, calculatePoints, ResultCode } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { Link } from '@/components/Link';

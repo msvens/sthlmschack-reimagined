@@ -9,8 +9,7 @@ import { PageTitle } from '@/components/PageTitle';
 import { DropdownMenu, DropdownMenuItem } from '@/components/DropdownMenu';
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
-import { PlayerService, formatPlayerName } from '@/lib/api';
-import { PlayerInfoDto } from '@/lib/api/types';
+import { PlayerService, formatPlayerName, PlayerInfoDto } from '@/lib/api';
 import { getRecentPlayers, RecentPlayer } from '@/lib/recentPlayers';
 
 export default function PlayersPage() {

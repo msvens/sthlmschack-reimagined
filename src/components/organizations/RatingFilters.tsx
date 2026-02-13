@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { SelectableList, SelectableListItem } from '@/components/SelectableList';
-import { RatingType, PlayerCategory } from '@/lib/api/types';
+import { RatingType, PlayerCategory } from '@/lib/api';
 import type { getTranslation } from '@/lib/translations';
 
 export interface RatingFiltersValue {

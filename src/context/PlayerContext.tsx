@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import { GameDto, PlayerInfoDto, TournamentDto } from '@/lib/api/types';
+import { GameDto, PlayerInfoDto, TournamentDto } from '@/lib/api';
 
 /**
  * Tournament participation derived from games

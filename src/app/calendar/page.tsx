@@ -9,8 +9,7 @@ import { TournamentCategoryFilter, TournamentTypeFilter, TournamentStateFilter }
 import { useOrganizations } from "@/context/OrganizationsContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { getTranslation } from "@/lib/translations";
-import { TournamentService } from '@/lib/api';
-import type { TournamentDto } from '@/lib/api/types';
+import { TournamentService, type TournamentDto } from '@/lib/api';
 import {
   TournamentCategory,
   countByCategory,

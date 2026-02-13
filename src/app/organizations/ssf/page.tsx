@@ -7,8 +7,7 @@ import { PageTitle } from '@/components/PageTitle';
 import { RatingFilters, RatingFiltersValue, getDefaultRatingFilters } from '@/components/organizations/RatingFilters';
 import { RatingTable } from '@/components/RatingTable';
 import { getTranslation } from '@/lib/translations';
-import { RatingsService } from '@/lib/api/services/ratings';
-import type { PlayerInfoDto } from '@/lib/api/types';
+import { RatingsService, type PlayerInfoDto } from '@/lib/api';
 
 export default function SSFRankingPage() {
   const { language } = useLanguage();

@@ -12,21 +12,8 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { DatePicker } from '@/components/DatePicker';
-import { getPlayerRatingHistory } from '@/lib/api';
+import { getPlayerRatingHistory, type RatingDataPoint } from '@/lib/api';
 import { useResponsiveDataPoints } from '@/hooks';
-
-export interface RatingDataPoint {
-  /** Date string (e.g., "2024-01" or "2024-01-15") */
-  date: string;
-  /** Standard/classical rating */
-  standard?: number;
-  /** Rapid rating */
-  rapid?: number;
-  /** Blitz rating */
-  blitz?: number;
-  /** LASK rating (Swedish national rating) */
-  lask?: number;
-}
 
 export interface EloRatingChartProps {
   /** Player ID to fetch rating history for */

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { loadOrganizationData, createOrganizationLookups } from '@/lib/organizations/organizationDataLoader';
-import type { DistrictDTO, ClubDTO } from '@/lib/api/types';
+import type { DistrictDTO, ClubDTO } from '@/lib/api';
 
 interface OrganizationsContextType {
   districts: DistrictDTO[];

@@ -2,14 +2,10 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, formatPlayerRating, formatPlayerName } from '@/lib/api';
-import { GameDto, PlayerInfoDto, TournamentDto } from '@/lib/api/types';
+import { ResultsService, formatPlayerRating, formatPlayerName, GameDto, PlayerInfoDto, TournamentDto, getPrimaryRatingType, isTeamTournament, findTournamentGroup, calculatePlayerResult, calculatePlayerPoints } from '@/lib/api';
 import { PlayerProvider, PlayerContextValue, TournamentParticipation } from '@/context/PlayerContext';
 import { useGlobalPlayerCache } from '@/context/GlobalPlayerCacheContext';
 import { useGlobalTournamentCache } from '@/context/GlobalTournamentCacheContext';
-import { getPrimaryRatingType } from '@/lib/api/utils/ratingUtils';
-import { isTeamTournament, findTournamentGroup } from '@/lib/api';
-import { calculatePlayerResult, calculatePlayerPoints } from '@/lib/api/utils/opponentStats';
 
 export default function PlayerLayout({ children }: { children: ReactNode }) {
   const params = useParams();

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Link } from '@/components/Link';
 import { Table, TableColumn } from '@/components/Table';
-import { GameDisplay } from '@/lib/api/utils/opponentStats';
+import { GameDisplay } from '@/lib/api';
 import { usePlayer } from '@/context/PlayerContext';
 
 export interface OpponentGamesTableProps {
