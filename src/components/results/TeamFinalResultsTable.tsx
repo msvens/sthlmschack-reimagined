@@ -2,8 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { Table, TableColumn, TableDensity, DensityThresholds } from '@/components/Table';
-import { TeamTournamentEndResultDto } from '@/lib/api/types';
-import { createTeamNameFormatter } from '@/lib/api';
+import { TeamTournamentEndResultDto, createTeamNameFormatter } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 

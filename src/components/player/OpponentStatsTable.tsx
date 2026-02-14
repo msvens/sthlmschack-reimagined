@@ -2,8 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Link } from '@/components/Link';
-import { OpponentStats } from '@/lib/api/utils/opponentStats';
-import { sortOpponentStats } from '@/lib/api/utils/opponentStats';
+import { OpponentStats, sortOpponentStats } from '@/lib/api';
 
 export interface OpponentStatsTableProps {
   opponentStats: OpponentStats[];

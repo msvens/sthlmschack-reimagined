@@ -10,8 +10,7 @@ import { RatingTable } from '@/components/RatingTable';
 import { Link } from '@/components/Link';
 import { TextDisplay } from '@/components/TextDisplay';
 import { getTranslation } from '@/lib/translations';
-import { RatingsService } from '@/lib/api/services/ratings';
-import type { PlayerInfoDto, ClubDTO } from '@/lib/api/types';
+import { RatingsService, type PlayerInfoDto, type ClubDTO } from '@/lib/api';
 
 export default function ClubDetailPage() {
   const params = useParams();

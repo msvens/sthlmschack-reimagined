@@ -9,18 +9,17 @@ import { Table, TableColumn } from '@/components/Table';
 import {
   gamesToDisplayFormat,
   calculatePlayerResult,
-  GameDisplay
-} from '@/lib/api/utils/opponentStats';
-import {
+  GameDisplay,
   findTournamentGroup,
   getPlayerRatingStrict,
   formatRatingWithType,
   calculateRatingChange,
   getKFactorForRating,
   isCountableResult,
-  isWalkoverResultCode
+  isWalkoverResultCode,
+  normalizeEloLookupDate,
+  parseLocalDate
 } from '@/lib/api';
-import { normalizeEloLookupDate, parseLocalDate } from '@/lib/api/utils/dateUtils';
 import { Language } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 
@@ -94,7 +93,7 @@ export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
 
   // Build a playerMap adapter from the global cache for gamesToDisplayFormat
   const playerMapAdapter = useMemo(() => {
-    return { get: (id: number) => globalCache.getPlayer(id) } as Map<number, import('@/lib/api/types').PlayerInfoDto>;
+    return { get: (id: number) => globalCache.getPlayer(id) } as Map<number, import('@/lib/api').PlayerInfoDto>;
   }, [globalCache]);
 
   // Derive loading state: true if either player isn't in the cache yet

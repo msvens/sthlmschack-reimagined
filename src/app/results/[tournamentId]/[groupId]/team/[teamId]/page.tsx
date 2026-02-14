@@ -3,8 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, normalizeEloLookupDate, createTeamNameFormatter, isWalkoverPlayer } from '@/lib/api';
-import { TournamentDto } from '@/lib/api/types';
+import { TournamentService, normalizeEloLookupDate, createTeamNameFormatter, isWalkoverPlayer, TournamentDto } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';

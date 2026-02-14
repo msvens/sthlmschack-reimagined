@@ -11,7 +11,7 @@ import {
   filterGamesByTimeControl,
   gamesToDisplayFormat,
   calculateStatsByColor
-} from '@/lib/api/utils/opponentStats';
+} from '@/lib/api';
 import { Language } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 
@@ -71,7 +71,7 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
 
   // Build a playerMap adapter from the global cache for gamesToDisplayFormat
   const playerMapAdapter = useMemo(() => {
-    return { get: (id: number) => globalCache.getPlayer(id) } as Map<number, import('@/lib/api/types').PlayerInfoDto>;
+    return { get: (id: number) => globalCache.getPlayer(id) } as Map<number, import('@/lib/api').PlayerInfoDto>;
   }, [globalCache]);
 
   // Derive loading state: true if any opponent isn't in the cache yet

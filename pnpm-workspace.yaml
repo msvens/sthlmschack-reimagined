@@ -1,0 +1,5 @@
+onlyBuiltDependencies:
+  - "@msvens/schack-se-sdk"
+  - esbuild
+  - sharp
+  - unrs-resolver

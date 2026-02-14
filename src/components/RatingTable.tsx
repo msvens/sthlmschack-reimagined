@@ -3,9 +3,9 @@
 import { useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Table, TableColumn } from '@/components/Table';
-import type { PlayerInfoDto } from '@/lib/api/types';
+import type { PlayerInfoDto } from '@/lib/api';
 import type { getTranslation } from '@/lib/translations';
-import { RatingType } from '@/lib/api/types';
+import { RatingType } from '@/lib/api';
 
 interface PlayerWithRank extends PlayerInfoDto {
   rank: number;

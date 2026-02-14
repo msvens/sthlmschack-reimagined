@@ -8,7 +8,7 @@
  * - Remote API with caching
  */
 
-import type { DistrictDTO, ClubDTO } from '@/lib/api/types';
+import type { DistrictDTO, ClubDTO } from '@/lib/api';
 
 export interface OrganizationData {
   districts: DistrictDTO[];
