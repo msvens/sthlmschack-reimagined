@@ -19,6 +19,38 @@ export const changelog: ChangelogEntry[] = [
     "sections": []
   },
   {
+    "version": "1.0.0",
+    "date": "2026-02-14",
+    "sections": [
+      {
+        "type": "Added",
+        "items": [
+          "Team detail page for team tournaments",
+          "LASK games grouped with standard in time control filter"
+        ]
+      },
+      {
+        "type": "Changed",
+        "items": [
+          "Redesigned landing page with cleaner layout",
+          "Migrated to @msvens/schack-se-sdk and switched to pnpm",
+          "Compact display for empty rating charts and team match rows",
+          "Updated Swedish translations for team average ratings"
+        ]
+      },
+      {
+        "type": "Fixed",
+        "items": [
+          "Team tournament display and table number rule",
+          "Team number display in team detail matches",
+          "ELO fallback in rapid tournaments",
+          "Opponents tab filter now uses ranking algorithm",
+          "H2H table showing fallback ratings instead of actual ratings"
+        ]
+      }
+    ]
+  },
+  {
     "version": "0.9.0",
     "date": "2026-02-04",
     "sections": [

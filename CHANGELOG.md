@@ -6,6 +6,25 @@ All notable changes to msvens chess will be documented in this file.
 
 ---
 
+## [1.0.0] - 2026-02-14
+
+### Added
+- Team detail page for team tournaments
+- LASK games grouped with standard in time control filter
+
+### Changed
+- Redesigned landing page with cleaner layout
+- Migrated to @msvens/schack-se-sdk and switched to pnpm
+- Compact display for empty rating charts and team match rows
+- Updated Swedish translations for team average ratings
+
+### Fixed
+- Team tournament display and table number rule
+- Team number display in team detail matches
+- ELO fallback in rapid tournaments
+- Opponents tab filter now uses ranking algorithm
+- H2H table showing fallback ratings instead of actual ratings
+
 ## [0.9.0] - 2026-02-04
 
 ### Added
