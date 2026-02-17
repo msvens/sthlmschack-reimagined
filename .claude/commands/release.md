@@ -26,13 +26,13 @@ Create a new release with version: $ARGUMENTS
    - Add new empty `## [Unreleased]` section above it with a `---` separator
 
 4. **Validate**
-   - Run `yarn tsc --noEmit`
-   - Run `yarn lint`
-   - Run `yarn test`
+   - Run `pnpm tsc --noEmit`
+   - Run `pnpm lint`
+   - Run `pnpm test`
    - If any fails: Stop and report errors
 
 5. **Build**
-   - Run `yarn build` (includes `yarn generate:changelog` via prebuild hook)
+   - Run `pnpm build` (includes `pnpm generate:changelog` via prebuild hook)
    - If fails: Stop and report errors
 
 6. **Commit and tag**

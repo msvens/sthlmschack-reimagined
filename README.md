@@ -195,8 +195,8 @@ Implement lazy loading of player data on match expansion:
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
-- Yarn package manager
+- Node.js 22+
+- pnpm package manager
 - Modern web browser
 
 ### Installation
@@ -206,18 +206,18 @@ git clone https://github.com/msvens/sthlmschack-reimagined.git
 cd sthlmschack-reimagined
 
 # Install dependencies
-yarn install
+pnpm install
 
 # Start development server
-yarn dev
+pnpm dev
 ```
 
 ### Development Commands
-- `yarn dev` - Start development server with webpack
-- `yarn dev:turbo` - Start development server with Turbopack (experimental)
-- `yarn build` - Build production application
-- `yarn start` - Start production server
-- `yarn lint` - Run ESLint for code quality
+- `pnpm dev` - Start development server
+- `pnpm build` - Build production application
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint for code quality
+- `pnpm check` - Run typecheck, lint, test, and build
 
 ### Quick Start
 Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.

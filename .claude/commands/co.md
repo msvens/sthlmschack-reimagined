@@ -9,7 +9,7 @@ Validate and commit changes: $ARGUMENTS
    - If no changes, inform user and stop
 
 2. **Run CI checks**
-   - Run `yarn ci` (typecheck, lint, test, build)
+   - Run `pnpm check` (typecheck, lint, test, build)
    - If any step fails: Stop and report errors
 
 3. **Analyze changes for commit**
@@ -43,7 +43,7 @@ Validate and commit changes: $ARGUMENTS
 
 ## Important
 
-- **Abort immediately** if `yarn ci` fails (typecheck, lint, test, or build)
+- **Abort immediately** if `pnpm check` fails (typecheck, lint, test, or build)
 - **Never** add co-authored-by or Claude attribution to commits
 - **Never** commit sensitive files (.env, credentials, etc.)
 - Only push when "push" is in arguments
