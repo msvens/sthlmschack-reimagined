@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import NavbarConfig from "@/components/NavbarConfig";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
@@ -39,7 +39,7 @@ export default function RootLayout({
             <OrganizationsProvider>
               <GlobalPlayerCacheProvider>
                 <GlobalTournamentCacheProvider>
-                  <Navbar />
+                  <NavbarConfig />
                   <main className="min-h-screen">
                     {children}
                   </main>
