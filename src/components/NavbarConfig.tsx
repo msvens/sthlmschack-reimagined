@@ -8,6 +8,7 @@ import {
   Cog6ToothIcon,
   SunIcon,
   MoonIcon,
+  AcademicCapIcon,
 } from '@heroicons/react/24/outline';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -68,6 +69,13 @@ export default function NavbarConfig() {
     icon: Cog6ToothIcon,
     label: t.navbar.more,
     items: [
+      {
+        kind: 'link',
+        id: 'elo',
+        href: '/elo',
+        icon: AcademicCapIcon,
+        label: 'ELO',
+      },
       {
         kind: 'action',
         id: 'theme',

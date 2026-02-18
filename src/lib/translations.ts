@@ -389,6 +389,57 @@ export interface Translations {
         opponentAvgRating: string;
       };
     };
+    elo: {
+      navigation: {
+        basics: string;
+        formula: string;
+        finePrint: string;
+        calculator: string;
+      };
+      calculator: {
+        title: string;
+        player1: string;
+        player2: string;
+        rating: string;
+        eloType: string;
+        standard: string;
+        rapid: string;
+        blitz: string;
+        result: string;
+        player1Wins: string;
+        draw: string;
+        player2Wins: string;
+        kFactor: string;
+        auto: string;
+        manual: string;
+        calculate: string;
+        expectedScore: string;
+        ratingChange: string;
+        newRating: string;
+        inputMode: string;
+        manualInput: string;
+        searchPlayer: string;
+        memberId: string;
+        topPlayer: string;
+        firstName: string;
+        lastName: string;
+        search: string;
+        selectPlayer: string;
+        noResults: string;
+        searching: string;
+        enterRating: string;
+        enterMemberId: string;
+        lookingUp: string;
+        playerNotFound: string;
+        selectTopPlayer: string;
+        men: string;
+        women: string;
+        removeCap: string;
+        uncapped: string;
+        performanceRating: string;
+        autoHint: string;
+      };
+    };
     organizations: {
       title: string;
       subtitle: string;
@@ -862,6 +913,57 @@ const translations: Record<Language, Translations> = {
           opponentAvgRating: 'Opponents Avg Rating',
         },
       },
+      elo: {
+        navigation: {
+          basics: 'Basics',
+          formula: 'The Formula',
+          finePrint: 'Fine Print',
+          calculator: 'Calculator',
+        },
+        calculator: {
+          title: 'ELO Calculator',
+          player1: 'White',
+          player2: 'Black',
+          rating: 'Rating',
+          eloType: 'ELO Type',
+          standard: 'Standard',
+          rapid: 'Rapid',
+          blitz: 'Blitz',
+          result: 'Result',
+          player1Wins: 'White wins',
+          draw: 'Draw',
+          player2Wins: 'Black wins',
+          kFactor: 'K-Factor',
+          auto: 'Auto',
+          manual: 'Manual',
+          calculate: 'Calculate',
+          expectedScore: 'Expected Score',
+          ratingChange: 'Rating Change',
+          newRating: 'New Rating',
+          inputMode: 'Input Mode',
+          manualInput: 'Manual',
+          searchPlayer: 'Search',
+          memberId: 'Member ID',
+          topPlayer: 'Top Player',
+          firstName: 'First name',
+          lastName: 'Last name',
+          search: 'Search',
+          selectPlayer: 'Select a player',
+          noResults: 'No players found',
+          searching: 'Searching...',
+          enterRating: 'Enter rating',
+          enterMemberId: 'Enter member ID',
+          lookingUp: 'Looking up...',
+          playerNotFound: 'Player not found',
+          selectTopPlayer: 'Select a top player',
+          men: 'Men',
+          women: 'Women',
+          removeCap: 'Remove 400-point cap',
+          uncapped: 'Uncapped',
+          performanceRating: 'Performance',
+          autoHint: 'Uses the SSF player\'s K-factor when available, otherwise estimates from rating',
+        },
+      },
       organizations: {
         title: 'Clubs & Districts',
         subtitle: 'Explore chess clubs and districts in Sweden.',
@@ -1331,6 +1433,57 @@ const translations: Record<Language, Translations> = {
           position: 'Plac',
           teamAvgRating: 'Lagets medelranking',
           opponentAvgRating: 'Motståndarnas medelranking',
+        },
+      },
+      elo: {
+        navigation: {
+          basics: 'Grunder',
+          formula: 'Formeln',
+          finePrint: 'Detaljerna',
+          calculator: 'Kalkylator',
+        },
+        calculator: {
+          title: 'ELO-kalkylator',
+          player1: 'Vit',
+          player2: 'Svart',
+          rating: 'Rating',
+          eloType: 'ELO-typ',
+          standard: 'Standard',
+          rapid: 'Snabb',
+          blitz: 'Blixt',
+          result: 'Resultat',
+          player1Wins: 'Vit vinner',
+          draw: 'Remi',
+          player2Wins: 'Svart vinner',
+          kFactor: 'K-faktor',
+          auto: 'Auto',
+          manual: 'Manuell',
+          calculate: 'Beräkna',
+          expectedScore: 'Förväntat resultat',
+          ratingChange: 'Ratingändring',
+          newRating: 'Ny rating',
+          inputMode: 'Inmatningsläge',
+          manualInput: 'Manuell',
+          searchPlayer: 'Sök',
+          memberId: 'Medlems-ID',
+          topPlayer: 'Toppspelare',
+          firstName: 'Förnamn',
+          lastName: 'Efternamn',
+          search: 'Sök',
+          selectPlayer: 'Välj en spelare',
+          noResults: 'Inga spelare hittades',
+          searching: 'Söker...',
+          enterRating: 'Ange rating',
+          enterMemberId: 'Ange medlems-ID',
+          lookingUp: 'Söker...',
+          playerNotFound: 'Spelare hittades inte',
+          selectTopPlayer: 'Välj en toppspelare',
+          men: 'Herrar',
+          women: 'Damer',
+          removeCap: 'Ta bort 400-poängsgräns',
+          uncapped: 'Utan gräns',
+          performanceRating: 'Prestation',
+          autoHint: 'Använder SSF-spelarens K-faktor om tillgänglig, annars uppskattas den utifrån rating',
         },
       },
       organizations: {
