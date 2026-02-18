@@ -13,6 +13,9 @@ export interface Translations {
       english: string;
       swedish: string;
     };
+    more: string;
+    darkMode: string;
+    lightMode: string;
   };
   footer: {
     projectInfo: {
@@ -483,6 +486,9 @@ const translations: Record<Language, Translations> = {
         english: 'English',
         swedish: 'Svenska',
       },
+      more: 'More',
+      darkMode: 'Dark Mode',
+      lightMode: 'Light Mode',
     },
     footer: {
       projectInfo: {
@@ -951,6 +957,9 @@ const translations: Record<Language, Translations> = {
         english: 'English',
         swedish: 'Svenska',
       },
+      more: 'Mer',
+      darkMode: 'Mörkt Läge',
+      lightMode: 'Ljust Läge',
     },
     footer: {
       projectInfo: {
