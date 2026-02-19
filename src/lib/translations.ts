@@ -418,9 +418,11 @@ export interface Translations {
         newRating: string;
         inputMode: string;
         manualInput: string;
-        searchPlayer: string;
-        memberId: string;
-        topPlayer: string;
+        ssfSearch: string;
+        ssfId: string;
+        fideId: string;
+        fideSearch: string;
+        topPlayers: string;
         firstName: string;
         lastName: string;
         search: string;
@@ -428,12 +430,14 @@ export interface Translations {
         noResults: string;
         searching: string;
         enterRating: string;
-        enterMemberId: string;
+        enterSsfId: string;
+        enterFideId: string;
+        fideSearchComingSoon: string;
         lookingUp: string;
         playerNotFound: string;
         selectTopPlayer: string;
-        men: string;
-        women: string;
+        loadingTopPlayers: string;
+        noOfficialRating: string;
         removeCap: string;
         uncapped: string;
         performanceRating: string;
@@ -942,9 +946,11 @@ const translations: Record<Language, Translations> = {
           newRating: 'New Rating',
           inputMode: 'Input Mode',
           manualInput: 'Manual',
-          searchPlayer: 'Search',
-          memberId: 'Member ID',
-          topPlayer: 'Top Player',
+          ssfSearch: 'SSF Search',
+          ssfId: 'SSF Id',
+          fideId: 'FIDE Id',
+          fideSearch: 'FIDE Search',
+          topPlayers: 'Top Players',
           firstName: 'First name',
           lastName: 'Last name',
           search: 'Search',
@@ -952,12 +958,14 @@ const translations: Record<Language, Translations> = {
           noResults: 'No players found',
           searching: 'Searching...',
           enterRating: 'Enter rating',
-          enterMemberId: 'Enter member ID',
+          enterSsfId: 'Enter SSF ID',
+          enterFideId: 'Enter FIDE ID',
+          fideSearchComingSoon: 'FIDE search is not yet available',
           lookingUp: 'Looking up...',
           playerNotFound: 'Player not found',
           selectTopPlayer: 'Select a top player',
-          men: 'Men',
-          women: 'Women',
+          loadingTopPlayers: 'Loading top players...',
+          noOfficialRating: 'No official Elo \u2014 using default rating of 1400',
           removeCap: 'Remove 400-point cap',
           uncapped: 'Uncapped',
           performanceRating: 'Performance',
@@ -1464,9 +1472,11 @@ const translations: Record<Language, Translations> = {
           newRating: 'Ny rating',
           inputMode: 'Inmatningsläge',
           manualInput: 'Manuell',
-          searchPlayer: 'Sök',
-          memberId: 'Medlems-ID',
-          topPlayer: 'Toppspelare',
+          ssfSearch: 'SSF-sök',
+          ssfId: 'SSF-Id',
+          fideId: 'FIDE-Id',
+          fideSearch: 'FIDE-sök',
+          topPlayers: 'Toppspelare',
           firstName: 'Förnamn',
           lastName: 'Efternamn',
           search: 'Sök',
@@ -1474,12 +1484,14 @@ const translations: Record<Language, Translations> = {
           noResults: 'Inga spelare hittades',
           searching: 'Söker...',
           enterRating: 'Ange rating',
-          enterMemberId: 'Ange medlems-ID',
+          enterSsfId: 'Ange SSF-ID',
+          enterFideId: 'Ange FIDE-ID',
+          fideSearchComingSoon: 'FIDE-sökning är inte tillgänglig ännu',
           lookingUp: 'Söker...',
           playerNotFound: 'Spelare hittades inte',
           selectTopPlayer: 'Välj en toppspelare',
-          men: 'Herrar',
-          women: 'Damer',
+          loadingTopPlayers: 'Laddar toppspelare...',
+          noOfficialRating: 'Ingen officiell Elo \u2014 använder standardrating 1400',
           removeCap: 'Ta bort 400-poängsgräns',
           uncapped: 'Utan gräns',
           performanceRating: 'Prestation',

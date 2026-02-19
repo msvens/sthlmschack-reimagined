@@ -55,6 +55,13 @@ export default function NavbarConfig() {
       icon: BuildingOffice2Icon,
       label: t.navbar.navigation.organizations,
     },
+    {
+      kind: 'link',
+      id: 'elo',
+      href: '/elo',
+      icon: AcademicCapIcon,
+      label: 'Elo',
+    },
   ];
 
   const themeLabel = theme === 'dark' ? t.navbar.lightMode : t.navbar.darkMode;
@@ -69,13 +76,6 @@ export default function NavbarConfig() {
     icon: Cog6ToothIcon,
     label: t.navbar.more,
     items: [
-      {
-        kind: 'link',
-        id: 'elo',
-        href: '/elo',
-        icon: AcademicCapIcon,
-        label: 'Elo',
-      },
       {
         kind: 'action',
         id: 'theme',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { PageTitle } from '@/components/PageTitle';
 import { TextField } from '@/components/TextField';
 import { Button } from '@/components/Button';
@@ -14,11 +14,14 @@ import {
   calculatePerformanceRating,
   getKFactorForRating,
   PlayerService,
+  FideService,
   formatPlayerName,
   PlayerInfoDto,
   MemberFIDERatingDTO,
+  FidePlayer,
+  FidePlayerInfo,
+  FideRatingPeriod,
 } from '@/lib/api';
-import { topPlayersMen, topPlayersWomen, TopPlayer } from '@/data/topPlayers';
 
 /** Expected score without the 400-point cap */
 function calculateExpectedScoreUncapped(playerRating: number, opponentRating: number): number {
@@ -37,9 +40,23 @@ function calculateRatingChangeUncapped(
   return kFactor * (actualScore - expected);
 }
 
+const DEFAULT_RATING = 1400;
+
 type EloType = 'standard' | 'rapid' | 'blitz';
 type GameResult = 'win' | 'draw' | 'loss';
-type InputMode = 'manual' | 'search' | 'memberId' | 'topPlayer';
+type InputMode = 'manual' | 'ssfId' | 'ssfSearch' | 'fideId' | 'fideSearch' | 'topPlayer';
+
+interface PlayerRatings {
+  standard: number;
+  rapid: number;
+  blitz: number;
+}
+
+interface PlayerKFactors {
+  standard: number | null;
+  rapid: number | null;
+  blitz: number | null;
+}
 
 interface PlayerState {
   rating: string;
@@ -47,9 +64,18 @@ interface PlayerState {
   firstName: string;
   lastName: string;
   memberIdInput: string;
+  fideIdInput: string;
   selectedPlayerName: string;
   /** K-factor from player profile (null = use auto-calculation) */
   profileKFactor: number | null;
+  /** True when the displayed rating is a default (missing from source) */
+  usingDefaultRating: boolean;
+  /** All three rating types from the last lookup (null for manual input) */
+  ratings: PlayerRatings | null;
+  /** All three K-factors from the last lookup */
+  kFactors: PlayerKFactors | null;
+  /** Birth year from FIDE data — used for junior K=40 rule */
+  birthYear: number | null;
 }
 
 const initialPlayerState: PlayerState = {
@@ -58,33 +84,92 @@ const initialPlayerState: PlayerState = {
   firstName: '',
   lastName: '',
   memberIdInput: '',
+  fideIdInput: '',
   selectedPlayerName: '',
   profileKFactor: null,
+  usingDefaultRating: false,
+  ratings: null,
+  kFactors: null,
+  birthYear: null,
 };
 
-function getRatingFromPlayer(player: PlayerInfoDto, eloType: EloType): number {
-  switch (eloType) {
-    case 'standard': return player.elo?.rating ?? 0;
-    case 'rapid': return player.elo?.rapidRating ?? 0;
-    case 'blitz': return player.elo?.blitzRating ?? 0;
-  }
+const FIDE_TITLE_ABBREV: Record<string, string> = {
+  'Grandmaster': 'GM',
+  'International Master': 'IM',
+  'FIDE Master': 'FM',
+  'Candidate Master': 'CM',
+  'Woman Grandmaster': 'WGM',
+  'Woman International Master': 'WIM',
+  'Woman FIDE Master': 'WFM',
+  'Woman Candidate Master': 'WCM',
+};
+
+function formatFidePlayerName(player: FidePlayer): string {
+  const parts: string[] = [];
+  if (player.title && player.title !== 'None') parts.push(player.title);
+  parts.push(player.name);
+  if (player.country) parts.push(`(${player.country})`);
+  return parts.join(' ');
 }
 
-function getKFactorFromPlayer(elo: MemberFIDERatingDTO | null | undefined, eloType: EloType): number | null {
-  if (!elo) return null;
-  switch (eloType) {
-    case 'standard': return elo.k || null;
-    case 'rapid': return elo.rapidk || null;
-    case 'blitz': return elo.blitzK || null;
+function formatFidePlayerInfoName(player: FidePlayerInfo): string {
+  const parts: string[] = [];
+  if (player.fide_title && player.fide_title !== 'None') {
+    parts.push(FIDE_TITLE_ABBREV[player.fide_title] ?? player.fide_title);
   }
+  parts.push(player.name);
+  if (player.federation) parts.push(`(${player.federation})`);
+  return parts.join(' ');
 }
 
-function getRatingFromTopPlayer(player: TopPlayer, eloType: EloType): number {
-  switch (eloType) {
-    case 'standard': return player.standardRating;
-    case 'rapid': return player.rapidRating;
-    case 'blitz': return player.blitzRating;
-  }
+/** Apply default rating of 1400 when a looked-up rating is 0/missing */
+function applyRating(rating: number): { ratingStr: string; usingDefault: boolean } {
+  if (rating > 0) return { ratingStr: String(rating), usingDefault: false };
+  return { ratingStr: String(DEFAULT_RATING), usingDefault: true };
+}
+
+function getRatingsFromSsfPlayer(player: PlayerInfoDto): PlayerRatings {
+  return {
+    standard: player.elo?.rating ?? 0,
+    rapid: player.elo?.rapidRating ?? 0,
+    blitz: player.elo?.blitzRating ?? 0,
+  };
+}
+
+function getKFactorsFromSsfPlayer(elo: MemberFIDERatingDTO | null | undefined): PlayerKFactors {
+  return {
+    standard: elo?.k || null,
+    rapid: elo?.rapidk || null,
+    blitz: elo?.blitzK || null,
+  };
+}
+
+function getRatingsFromFideHistory(period: FideRatingPeriod): PlayerRatings {
+  return {
+    standard: period.classical_rating ?? 0,
+    rapid: period.rapid_rating ?? 0,
+    blitz: period.blitz_rating ?? 0,
+  };
+}
+
+function getRatingsFromFidePlayer(player: FidePlayer): PlayerRatings {
+  return {
+    standard: player.rating ?? 0,
+    rapid: player.rapid_rating ?? 0,
+    blitz: player.blitz_rating ?? 0,
+  };
+}
+
+/** Derive the active rating and K-factor for the given eloType from stored ratings */
+function deriveFromRatings(
+  ratings: PlayerRatings,
+  kFactors: PlayerKFactors | null,
+  eloType: EloType,
+): { ratingStr: string; profileKFactor: number | null; usingDefault: boolean } {
+  const raw = ratings[eloType];
+  const { ratingStr, usingDefault } = applyRating(raw);
+  const profileKFactor = kFactors?.[eloType] ?? null;
+  return { ratingStr, profileKFactor, usingDefault };
 }
 
 function PlayerInput({
@@ -92,11 +177,15 @@ function PlayerInput({
   state,
   onChange,
   eloType,
+  topPlayers,
+  topPlayersLoading,
 }: {
   label: string;
   state: PlayerState;
   onChange: (state: PlayerState) => void;
   eloType: EloType;
+  topPlayers: FidePlayer[];
+  topPlayersLoading: boolean;
 }) {
   const { language } = useLanguage();
   const t = getTranslation(language);
@@ -108,12 +197,15 @@ function PlayerInput({
   const [lookupError, setLookupError] = useState('');
   const searchButtonRef = useRef<HTMLDivElement>(null);
   const playerService = new PlayerService();
+  const fideService = new FideService('/api/chesstools');
 
   const inputModes: { value: InputMode; label: string }[] = [
     { value: 'manual', label: calc.manualInput },
-    { value: 'search', label: calc.searchPlayer },
-    { value: 'memberId', label: calc.memberId },
-    { value: 'topPlayer', label: calc.topPlayer },
+    { value: 'ssfId', label: calc.ssfId },
+    { value: 'ssfSearch', label: calc.ssfSearch },
+    { value: 'fideId', label: calc.fideId },
+    { value: 'fideSearch', label: calc.fideSearch },
+    { value: 'topPlayer', label: calc.topPlayers },
   ];
 
   const handleSearch = async () => {
@@ -144,19 +236,23 @@ function PlayerInput({
   const handleSearchSelect = (item: DropdownMenuItem) => {
     const player = searchResults.find((p) => p.id === item.id);
     if (player) {
-      const rating = getRatingFromPlayer(player, eloType);
-      const kFactor = getKFactorFromPlayer(player.elo, eloType);
+      const ratings = getRatingsFromSsfPlayer(player);
+      const kFactors = getKFactorsFromSsfPlayer(player.elo);
+      const { ratingStr, profileKFactor, usingDefault } = deriveFromRatings(ratings, kFactors, eloType);
       onChange({
         ...state,
-        rating: rating > 0 ? String(rating) : '',
+        rating: ratingStr,
         selectedPlayerName: formatPlayerName(player.firstName, player.lastName, player.elo?.title),
-        profileKFactor: kFactor,
+        profileKFactor,
+        usingDefaultRating: usingDefault,
+        ratings,
+        kFactors,
       });
     }
     setShowDropdown(false);
   };
 
-  const handleMemberIdLookup = async () => {
+  const handleSsfIdLookup = async () => {
     const memberId = parseInt(state.memberIdInput.trim());
     if (isNaN(memberId)) return;
     setIsSearching(true);
@@ -166,13 +262,17 @@ function PlayerInput({
       const response = await playerService.getPlayerInfo(memberId);
       if (response.status === 200 && response.data) {
         const player = response.data;
-        const rating = getRatingFromPlayer(player, eloType);
-        const kFactor = getKFactorFromPlayer(player.elo, eloType);
+        const ratings = getRatingsFromSsfPlayer(player);
+        const kFactors = getKFactorsFromSsfPlayer(player.elo);
+        const { ratingStr, profileKFactor, usingDefault } = deriveFromRatings(ratings, kFactors, eloType);
         onChange({
           ...state,
-          rating: rating > 0 ? String(rating) : '',
+          rating: ratingStr,
           selectedPlayerName: formatPlayerName(player.firstName, player.lastName, player.elo?.title),
-          profileKFactor: kFactor,
+          profileKFactor,
+          usingDefaultRating: usingDefault,
+          ratings,
+          kFactors,
         });
       } else {
         setLookupError(calc.playerNotFound);
@@ -184,21 +284,89 @@ function PlayerInput({
     }
   };
 
-  const handleTopPlayerSelect = (player: TopPlayer) => {
-    const rating = getRatingFromTopPlayer(player, eloType);
+  const handleFideIdLookup = async () => {
+    const fideId = parseInt(state.fideIdInput.trim());
+    if (isNaN(fideId)) return;
+    setIsSearching(true);
+    setLookupError('');
+
+    try {
+      const response = await fideService.getPlayerInfo(fideId, true);
+      if (response.status === 200 && response.data) {
+        const player = response.data;
+        const latest = player.history?.[0];
+        const ratings = latest ? getRatingsFromFideHistory(latest) : { standard: 0, rapid: 0, blitz: 0 };
+        const { ratingStr, usingDefault } = deriveFromRatings(ratings, null, eloType);
+        onChange({
+          ...state,
+          rating: ratingStr,
+          selectedPlayerName: formatFidePlayerInfoName(player),
+          profileKFactor: null,
+          usingDefaultRating: usingDefault,
+          ratings,
+          kFactors: null,
+          birthYear: player.birth_year ?? null,
+        });
+      } else {
+        setLookupError(calc.playerNotFound);
+      }
+    } catch {
+      setLookupError(calc.playerNotFound);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleTopPlayerSelect = async (player: FidePlayer) => {
+    // Show player name immediately with the top list ratings (has all three types)
+    const fallbackRatings = getRatingsFromFidePlayer(player);
+    const { ratingStr: fallbackStr, usingDefault: fallbackDefault } = deriveFromRatings(fallbackRatings, null, eloType);
     onChange({
       ...state,
-      rating: String(rating),
-      selectedPlayerName: player.name,
+      selectedPlayerName: formatFidePlayerName(player),
+      rating: fallbackStr,
       profileKFactor: null,
+      usingDefaultRating: fallbackDefault,
+      ratings: fallbackRatings,
+      kFactors: null,
+      birthYear: null,
     });
+
+    // Fetch full player info for more accurate ratings
+    const fideId = parseInt(player.fideid);
+    if (isNaN(fideId)) return;
+    setIsSearching(true);
+
+    try {
+      const response = await fideService.getPlayerInfo(fideId, true);
+      if (response.status === 200 && response.data) {
+        const latest = response.data.history?.[0];
+        const ratings = latest ? getRatingsFromFideHistory(latest) : fallbackRatings;
+        const { ratingStr, usingDefault } = deriveFromRatings(ratings, null, eloType);
+        onChange({
+          ...state,
+          rating: ratingStr,
+          selectedPlayerName: formatFidePlayerName(player),
+          profileKFactor: null,
+          usingDefaultRating: usingDefault,
+          ratings,
+          kFactors: null,
+          birthYear: response.data.birth_year ?? null,
+        });
+      }
+    } catch {
+      // Already showing fallback data, nothing to do
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (state.inputMode === 'search') handleSearch();
-      else if (state.inputMode === 'memberId') handleMemberIdLookup();
+      if (state.inputMode === 'ssfSearch') handleSearch();
+      else if (state.inputMode === 'ssfId') handleSsfIdLookup();
+      else if (state.inputMode === 'fideId') handleFideIdLookup();
     }
   };
 
@@ -218,7 +386,7 @@ function PlayerInput({
           <button
             key={mode.value}
             onClick={() => {
-              onChange({ ...state, inputMode: mode.value, selectedPlayerName: '', profileKFactor: null });
+              onChange({ ...state, inputMode: mode.value, selectedPlayerName: '', profileKFactor: null, usingDefaultRating: false, ratings: null, kFactors: null });
               setShowDropdown(false);
               setLookupError('');
             }}
@@ -238,7 +406,7 @@ function PlayerInput({
         <TextField
           label={calc.rating}
           value={state.rating}
-          onChange={(e) => onChange({ ...state, rating: e.target.value, profileKFactor: null })}
+          onChange={(e) => onChange({ ...state, rating: e.target.value, profileKFactor: null, usingDefaultRating: false, ratings: null, kFactors: null })}
           type="number"
           placeholder={calc.enterRating}
           compact
@@ -246,8 +414,8 @@ function PlayerInput({
         />
       )}
 
-      {/* Search by name */}
-      {state.inputMode === 'search' && (
+      {/* SSF Search by name */}
+      {state.inputMode === 'ssfSearch' && (
         <div className="space-y-2" onKeyDown={handleKeyDown}>
           <div className="flex gap-2">
             <TextField
@@ -295,20 +463,20 @@ function PlayerInput({
         </div>
       )}
 
-      {/* Member ID lookup */}
-      {state.inputMode === 'memberId' && (
+      {/* SSF ID lookup */}
+      {state.inputMode === 'ssfId' && (
         <div className="space-y-2" onKeyDown={handleKeyDown}>
           <TextField
-            label={calc.memberId}
+            label={calc.ssfId}
             value={state.memberIdInput}
             onChange={(e) => onChange({ ...state, memberIdInput: e.target.value })}
-            placeholder={calc.enterMemberId}
+            placeholder={calc.enterSsfId}
             type="number"
             compact
             fullWidth
           />
           <Button
-            onClick={handleMemberIdLookup}
+            onClick={handleSsfIdLookup}
             disabled={isSearching || !state.memberIdInput.trim()}
             variant="outlined"
             compact
@@ -324,51 +492,79 @@ function PlayerInput({
         </div>
       )}
 
-      {/* Top player select */}
-      {state.inputMode === 'topPlayer' && (
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">{calc.men}</label>
-            <select
-              value={topPlayersMen.find((p) => p.name === state.selectedPlayerName)?.fideId ?? ''}
-              onChange={(e) => {
-                const player = topPlayersMen.find((p) => p.fideId === Number(e.target.value));
-                if (player) handleTopPlayerSelect(player);
-              }}
-              className="w-full px-3 py-1.5 text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 hover:border-gray-900 dark:hover:border-white"
-            >
-              <option value="">{calc.selectTopPlayer}</option>
-              {topPlayersMen.map((p) => (
-                <option key={p.fideId} value={p.fideId}>
-                  {p.name} ({p.country})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">{calc.women}</label>
-            <select
-              value={topPlayersWomen.find((p) => p.name === state.selectedPlayerName)?.fideId ?? ''}
-              onChange={(e) => {
-                const player = topPlayersWomen.find((p) => p.fideId === Number(e.target.value));
-                if (player) handleTopPlayerSelect(player);
-              }}
-              className="w-full px-3 py-1.5 text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 hover:border-gray-900 dark:hover:border-white"
-            >
-              <option value="">{calc.selectTopPlayer}</option>
-              {topPlayersWomen.map((p) => (
-                <option key={p.fideId} value={p.fideId}>
-                  {p.name} ({p.country})
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* FIDE ID lookup */}
+      {state.inputMode === 'fideId' && (
+        <div className="space-y-2" onKeyDown={handleKeyDown}>
+          <TextField
+            label={calc.fideId}
+            value={state.fideIdInput}
+            onChange={(e) => onChange({ ...state, fideIdInput: e.target.value })}
+            placeholder={calc.enterFideId}
+            type="number"
+            compact
+            fullWidth
+          />
+          <Button
+            onClick={handleFideIdLookup}
+            disabled={isSearching || !state.fideIdInput.trim()}
+            variant="outlined"
+            compact
+          >
+            {isSearching ? calc.lookingUp : calc.search}
+          </Button>
           {state.rating && (
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {calc.rating}: {state.rating}
+              {state.profileKFactor != null && ` (K=${state.profileKFactor})`}
             </p>
           )}
         </div>
+      )}
+
+      {/* FIDE Search - coming soon */}
+      {state.inputMode === 'fideSearch' && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+          {calc.fideSearchComingSoon}
+        </p>
+      )}
+
+      {/* Top player select */}
+      {state.inputMode === 'topPlayer' && (
+        <div className="space-y-2">
+          {topPlayersLoading ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">{calc.loadingTopPlayers}</p>
+          ) : (
+            <select
+              value={topPlayers.find((p) => formatFidePlayerName(p) === state.selectedPlayerName)?.fideid ?? ''}
+              onChange={(e) => {
+                const player = topPlayers.find((p) => p.fideid === e.target.value);
+                if (player) handleTopPlayerSelect(player);
+              }}
+              className="w-full px-3 py-1.5 text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 hover:border-gray-900 dark:hover:border-white"
+            >
+              <option value="">{calc.selectTopPlayer}</option>
+              {topPlayers.map((p) => (
+                <option key={p.fideid} value={p.fideid}>
+                  {formatFidePlayerName(p)} — {p.rating}
+                </option>
+              ))}
+            </select>
+          )}
+          {isSearching && (
+            <p className="text-xs text-gray-500 dark:text-gray-400">{calc.lookingUp}</p>
+          )}
+          {state.rating && !isSearching && (
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {calc.rating}: {state.rating}
+              {state.profileKFactor != null && ` (K=${state.profileKFactor})`}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Default rating info */}
+      {state.usingDefaultRating && (
+        <p className="text-xs text-amber-600 dark:text-amber-400">{calc.noOfficialRating}</p>
       )}
 
       {lookupError && (
@@ -391,6 +587,37 @@ export default function EloCalculatorPage() {
   const [manualK1, setManualK1] = useState('20');
   const [manualK2, setManualK2] = useState('20');
   const [removeCap, setRemoveCap] = useState(false);
+  const [topPlayers, setTopPlayers] = useState<FidePlayer[]>([]);
+  const [topPlayersLoading, setTopPlayersLoading] = useState(false);
+
+  // When eloType changes, re-derive the active rating from stored ratings
+  useEffect(() => {
+    for (const [player, setPlayer] of [[player1, setPlayer1], [player2, setPlayer2]] as const) {
+      if (player.ratings) {
+        const { ratingStr, profileKFactor, usingDefault } = deriveFromRatings(player.ratings, player.kFactors, eloType);
+        if (ratingStr !== player.rating) {
+          setPlayer((prev) => ({ ...prev, rating: ratingStr, profileKFactor, usingDefaultRating: usingDefault }));
+        }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eloType]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fideService = new FideService('/api/chesstools');
+    setTopPlayersLoading(true);
+    fideService.getTopByRating(10).then((response) => {
+      if (!cancelled && response.status === 200 && response.data) {
+        setTopPlayers(response.data);
+      }
+    }).catch(() => {
+      // silently fail - dropdown will just be empty
+    }).finally(() => {
+      if (!cancelled) setTopPlayersLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const rating1 = parseInt(player1.rating) || 0;
   const rating2 = parseInt(player2.rating) || 0;
@@ -399,11 +626,12 @@ export default function EloCalculatorPage() {
   const actualScore1 = result === 'win' ? 1 : result === 'draw' ? 0.5 : 0;
   const actualScore2 = 1 - actualScore1;
 
-  // K-factor: manual override > profile K-factor > auto-calculated
+  // K-factor: manual override > profile K-factor > auto-calculated (with junior rule)
   const getK = (playerState: PlayerState, rating: number): number => {
     if (kFactorMode === 'manual') return parseInt(manualK1) || 20;
     if (playerState.profileKFactor != null) return playerState.profileKFactor;
-    return getKFactorForRating(eloType, rating);
+    const birthdate = playerState.birthYear ? `${playerState.birthYear}-01-01` : null;
+    return getKFactorForRating(eloType, rating, null, birthdate);
   };
   const k1 = kFactorMode === 'manual' ? (parseInt(manualK1) || 20) : getK(player1, rating1);
   const k2 = kFactorMode === 'manual' ? (parseInt(manualK2) || 20) : getK(player2, rating2);
@@ -442,12 +670,16 @@ export default function EloCalculatorPage() {
           state={player1}
           onChange={setPlayer1}
           eloType={eloType}
+          topPlayers={topPlayers}
+          topPlayersLoading={topPlayersLoading}
         />
         <PlayerInput
           label={calc.player2}
           state={player2}
           onChange={setPlayer2}
           eloType={eloType}
+          topPlayers={topPlayers}
+          topPlayersLoading={topPlayersLoading}
         />
       </div>
 
