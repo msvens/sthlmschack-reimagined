@@ -15,15 +15,15 @@ export interface TeamRoundResultsProps {
   getClubName: (clubId: number) => string;
   /** Function to get player name from player ID, with optional date for historical lookups */
   getPlayerName: (playerId: number, date?: number) => string;
-  /** Function to get player ELO from player ID (current) */
+  /** Function to get player Elo from player ID (current) */
   getPlayerElo: (playerId: number) => string;
   /** Tournament ID for player links */
   tournamentId: number;
   /** Group ID for player links */
   groupId: number;
-  /** Function to fetch player info for specific dates (historical ELO) */
+  /** Function to fetch player info for specific dates (historical Elo) */
   fetchPlayersByDate?: (requests: PlayerDateRequest[]) => Promise<void>;
-  /** Function to get player ELO at a specific historical date */
+  /** Function to get player Elo at a specific historical date */
   getPlayerEloByDate?: (playerId: number, date: number) => string;
 }
 
@@ -166,7 +166,7 @@ export function TeamRoundResults({
     }
   }
 
-  // Fetch historical ELO data when a match is expanded
+  // Fetch historical Elo data when a match is expanded
   useEffect(() => {
     if (expandedMatchIndex === null || !selectedRound || !fetchPlayersByDate) return;
 
@@ -178,7 +178,7 @@ export function TeamRoundResults({
     const allGames = match.boards[0]?.games || [];
     if (allGames.length === 0) return;
 
-    // Parse match date to timestamp and normalize for ELO lookup
+    // Parse match date to timestamp and normalize for Elo lookup
     // (falls back to current month if match date is in the future)
     const matchDate = parseDateToTimestamp(match.date);
     if (isNaN(matchDate) || matchDate <= 0) return;
@@ -219,7 +219,7 @@ export function TeamRoundResults({
   };
 
   // Process a game to determine home/away players and calculate result
-  // matchDate parameter enables historical player data lookup (club ID, ELO)
+  // matchDate parameter enables historical player data lookup (club ID, Elo)
   const processGame = (game: GameDto, homeClubId: number, awayClubId: number, matchDate: number): DisplayGame => {
     // Determine if white player is on home team using table number
     // In team chess: away team has white on board 1 (table 0), colors alternate by board
@@ -245,7 +245,7 @@ export function TeamRoundResults({
       awayScore = whiteIsHome ? blackPoints : whitePoints;
     }
 
-    // Use historical ELO if date is provided and function is available, otherwise fall back to current ELO
+    // Use historical Elo if date is provided and function is available, otherwise fall back to current Elo
     const getElo = (playerId: number): string => {
       if (isWalkoverPlayer(playerId)) return '-';
       if (matchDate && getPlayerEloByDate) {
@@ -393,7 +393,7 @@ export function TeamRoundResults({
                       // Get all games from this match
                       const allGames = match.boards[0]?.games || [];
 
-                      // Parse match date for historical ELO lookup
+                      // Parse match date for historical Elo lookup
                       // Normalize to handle future dates (falls back to current month)
                       const rawMatchDate = parseDateToTimestamp(match.date);
                       const normalizedDate = !isNaN(rawMatchDate) && rawMatchDate > 0
@@ -401,7 +401,7 @@ export function TeamRoundResults({
                         : normalizeEloLookupDate(Date.now());
 
                       // Process games to ensure home team is always in left column
-                      // Pass normalized date to enable historical ELO lookup
+                      // Pass normalized date to enable historical Elo lookup
                       const processedGames = allGames.map(game =>
                         processGame(game, match.homeId, match.awayId, normalizedDate)
                       );

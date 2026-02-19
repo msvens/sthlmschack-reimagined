@@ -199,7 +199,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     return formatPlayerName(player.firstName, player.lastName, player.elo?.title);
   }, [findPlayer]);
 
-  // Helper to get player ELO from ID based on group's ranking algorithm
+  // Helper to get player Elo from ID based on group's ranking algorithm
   // Uses strict rating matching (no fallback to other rating types)
   const getPlayerElo = useCallback((playerId: number): string => {
     const player = findPlayer(playerId);
@@ -235,7 +235,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   }, [globalCache]);
 
   /**
-   * Get formatted ELO for a player at a specific historical date
+   * Get formatted Elo for a player at a specific historical date
    * Falls back to current playerMap if historical data not available
    * Uses strict rating matching (no fallback to other rating types)
    */
@@ -243,7 +243,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     const historicalPlayer = globalCache.getPlayerByDate(playerId, date);
     const player = historicalPlayer || playerMap.get(playerId);
     // Use strict rating - only returns the primary rating type for the algorithm
-    // (e.g., rapid for RAPID_STANDARD_BLITZ_ELO), no fallback to standard
+    // (e.g., rapid for RAPID_STANDARD_BLITZ_Elo), no fallback to standard
     const { rating, ratingType } = getPlayerRatingStrict(player?.elo, rankingAlgorithm);
     return formatRatingWithType(rating, ratingType, language);
   }, [globalCache, playerMap, rankingAlgorithm, language]);
@@ -257,7 +257,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   }, [roundsMap]);
 
   /**
-   * Get formatted ELO for a player at a specific historical date and round
+   * Get formatted Elo for a player at a specific historical date and round
    * Uses round's rated type if available, falls back to group rankingAlgorithm
    * Uses strict rating matching (no fallback to other rating types)
    */

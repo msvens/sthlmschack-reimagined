@@ -74,7 +74,7 @@ export default function NavbarConfig() {
         id: 'elo',
         href: '/elo',
         icon: AcademicCapIcon,
-        label: 'ELO',
+        label: 'Elo',
       },
       {
         kind: 'action',

@@ -74,7 +74,7 @@ function CalculationEnglish() {
           Expected Score
         </h2>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
-          The foundation of the ELO system is the <em>expected score</em> &mdash; a prediction
+          The foundation of the Elo system is the <em>expected score</em> &mdash; a prediction
           of how likely you are to score points against a given opponent. The formula is:
         </p>
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 font-mono text-sm text-center text-gray-900 dark:text-gray-200">
@@ -82,7 +82,7 @@ function CalculationEnglish() {
         </div>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-3">
           Where <code className="text-sm">E</code> is the expected score (between 0 and 1),
-          and the ratings are FIDE ELO ratings. An expected score of 0.75 means you&apos;re
+          and the ratings are FIDE Elo ratings. An expected score of 0.75 means you&apos;re
           expected to score 75% &mdash; roughly winning 3 out of 4 games.
         </p>
       </section>
@@ -149,7 +149,7 @@ function CalculationSwedish() {
           Förväntat resultat
         </h2>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
-          Grunden i ELO-systemet är det <em>förväntade resultatet</em> &mdash; en förutsägelse
+          Grunden i Elo-systemet är det <em>förväntade resultatet</em> &mdash; en förutsägelse
           av hur sannolikt det är att du tar poäng mot en given motståndare. Formeln är:
         </p>
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 font-mono text-sm text-center text-gray-900 dark:text-gray-200">
@@ -157,7 +157,7 @@ function CalculationSwedish() {
         </div>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-3">
           Där <code className="text-sm">E</code> är det förväntade resultatet (mellan 0 och 1),
-          och ratingarna är FIDE ELO-ratingar. Ett förväntat resultat på 0,75 innebär att du
+          och ratingarna är FIDE Elo-ratingar. Ett förväntat resultat på 0,75 innebär att du
           förväntas ta 75% &mdash; ungefär att vinna 3 av 4 partier.
         </p>
       </section>
@@ -223,7 +223,7 @@ export default function EloCalculationPage() {
     <>
       <PageTitle
         title={language === 'en' ? 'The Formula' : 'Formeln'}
-        subtitle={language === 'en' ? 'How ELO ratings are calculated' : 'Hur ELO-rating beräknas'}
+        subtitle={language === 'en' ? 'How Elo ratings are calculated' : 'Hur Elo-rating beräknas'}
       />
       {language === 'en' ? <CalculationEnglish /> : <CalculationSwedish />}
       <div className="mt-8">

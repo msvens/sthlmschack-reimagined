@@ -41,7 +41,7 @@ export interface GroupResultsContextValue {
   getPlayerClubId: (playerId: number) => number | null;
   getClubName: (clubId: number) => string;
 
-  // Historical ELO functions for team tournaments
+  // Historical Elo functions for team tournaments
   fetchPlayersByDate: (requests: PlayerDateRequest[]) => Promise<void>;
   getPlayerByDate: (playerId: number, date: number) => PlayerInfoDto | undefined;
   getPlayerEloByDate: (playerId: number, date: number) => string;
@@ -51,7 +51,7 @@ export interface GroupResultsContextValue {
   roundsMap: Map<number, RoundDto>;
   /** Get the rated type for a specific round */
   getRoundRatedType: (roundNumber: number) => number | undefined;
-  /** Get formatted ELO for a player at a specific date and round (uses round-specific rating type) */
+  /** Get formatted Elo for a player at a specific date and round (uses round-specific rating type) */
   getPlayerEloByDateAndRound: (playerId: number, date: number, roundNumber?: number) => string;
 
   // Live updates

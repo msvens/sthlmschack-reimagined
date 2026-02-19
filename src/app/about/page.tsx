@@ -43,7 +43,7 @@ function AboutEnglish() {
           </li>
           <li>
             <span className="font-medium text-gray-700 dark:text-gray-300">Data compatibility.</span>{' '}
-            ELO performances, scores, and other statistics should match what result.schack.se shows.
+            Elo performances, scores, and other statistics should match what result.schack.se shows.
           </li>
         </ul>
 
@@ -129,7 +129,7 @@ function AboutSwedish() {
           </li>
           <li>
             <span className="font-medium text-gray-700 dark:text-gray-300">Datakompatibilitet.</span>{' '}
-            ELO-prestationer, poäng och annan statistik ska matcha det som result.schack.se visar.
+            Elo-prestationer, poäng och annan statistik ska matcha det som result.schack.se visar.
           </li>
         </ul>
 

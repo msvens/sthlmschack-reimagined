@@ -53,9 +53,9 @@ export function EloRatingChart({
   memberId,
   height = 400,
   labels = {
-    standard: 'ELO',
-    rapid: 'Snabb-ELO',
-    blitz: 'Blixt-ELO',
+    standard: 'Elo',
+    rapid: 'Snabb-Elo',
+    blitz: 'Blixt-Elo',
     lask: 'LASK'
   },
   showDatePickers = true,
@@ -200,7 +200,7 @@ export function EloRatingChart({
               connectNulls
             />
 
-            {/* Standard ELO - Muted Blue */}
+            {/* Standard Elo - Muted Blue */}
             <Line
               type="monotone"
               dataKey="standard"
@@ -212,7 +212,7 @@ export function EloRatingChart({
               connectNulls
             />
 
-            {/* Rapid ELO - Muted Rose */}
+            {/* Rapid Elo - Muted Rose */}
             <Line
               type="monotone"
               dataKey="rapid"
@@ -224,7 +224,7 @@ export function EloRatingChart({
               connectNulls
             />
 
-            {/* Blitz ELO - Muted Emerald */}
+            {/* Blitz Elo - Muted Emerald */}
             <Line
               type="monotone"
               dataKey="blitz"

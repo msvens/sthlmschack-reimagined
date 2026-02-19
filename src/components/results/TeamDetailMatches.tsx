@@ -24,7 +24,7 @@ export interface TeamDetailMatchesProps {
   tournamentId: number;
   /** Group ID for player links */
   groupId: number;
-  /** Function to get player ELO at a specific historical date */
+  /** Function to get player Elo at a specific historical date */
   getPlayerEloByDate: (playerId: number, date: number) => string;
 }
 
@@ -169,7 +169,7 @@ export function TeamDetailMatches({
       awayScore = whiteIsHome ? blackPoints : whitePoints;
     }
 
-    // Get ELOs
+    // Get Elos
     const getElo = (playerId: number): string => {
       if (isWalkoverPlayer(playerId)) return '-';
       return getPlayerEloByDate(playerId, matchDate);
@@ -270,7 +270,7 @@ export function TeamDetailMatches({
 
           const matchDate = formatMatchDate(match.date, language);
 
-          // Parse match date for ELO lookup
+          // Parse match date for Elo lookup
           const rawMatchDate = parseDateToTimestamp(match.date);
           const normalizedDate = !isNaN(rawMatchDate) && rawMatchDate > 0
             ? normalizeEloLookupDate(rawMatchDate)

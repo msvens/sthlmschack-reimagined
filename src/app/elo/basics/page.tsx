@@ -15,7 +15,7 @@ function BasicsEnglish() {
           to pair opponents of similar skill, seed tournaments, and track improvement over time.
           The system was developed by Hungarian-American physicist Arpad Elo in the 1960s and
           adopted by FIDE (the World Chess Federation) in 1970. Today, virtually every national
-          federation uses FIDE ELO ratings as their official rating system.
+          federation uses FIDE Elo ratings as their official rating system.
         </p>
       </section>
 
@@ -61,7 +61,7 @@ function BasicsEnglish() {
           Rating Scale
         </h2>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-          ELO ratings are numbers typically ranging from about 1000 to 2900. Here is a rough
+          Elo ratings are numbers typically ranging from about 1000 to 2900. Here is a rough
           guide to what the numbers mean:
         </p>
         <div className="overflow-x-auto">
@@ -108,8 +108,8 @@ function BasicsEnglish() {
         </h2>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
           Before September 2016, the Swedish Chess Federation (SSF) maintained its own national
-          rating system called <strong>LASK</strong>. It was broadly similar to ELO but had its
-          own formula and scale. In September 2016, SSF switched entirely to FIDE ELO ratings
+          rating system called <strong>LASK</strong>. It was broadly similar to Elo but had its
+          own formula and scale. In September 2016, SSF switched entirely to FIDE Elo ratings
           for all official purposes. LASK ratings are still visible in historical data but are
           no longer updated.
         </p>
@@ -142,7 +142,7 @@ function BasicsSwedish() {
           lotta motståndare med liknande skicklighet, seeda turneringar och följa utveckling
           över tid. Systemet utvecklades av den ungersk-amerikanske fysikern Arpad Elo på
           1960-talet och antogs av FIDE (Internationella schackförbundet) 1970. Idag använder
-          i princip alla nationella förbund FIDE:s ELO-ratingar som sitt officiella ratingsystem.
+          i princip alla nationella förbund FIDE:s Elo-ratingar som sitt officiella ratingsystem.
         </p>
       </section>
 
@@ -188,7 +188,7 @@ function BasicsSwedish() {
           Ratingskalan
         </h2>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-          ELO-ratingar är tal som normalt sträcker sig från cirka 1000 till 2900. Här är en
+          Elo-ratingar är tal som normalt sträcker sig från cirka 1000 till 2900. Här är en
           ungefärlig guide till vad siffrorna betyder:
         </p>
         <div className="overflow-x-auto">
@@ -235,9 +235,9 @@ function BasicsSwedish() {
         </h2>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
           Före september 2016 hade Svenska Schackförbundet (SSF) sitt eget nationella
-          ratingsystem kallat <strong>LASK</strong>. Det var i stort sett likt ELO men hade
+          ratingsystem kallat <strong>LASK</strong>. Det var i stort sett likt Elo men hade
           sin egen formel och skala. I september 2016 gick SSF helt över till FIDE:s
-          ELO-ratingar för alla officiella ändamål. LASK-ratingar syns fortfarande i
+          Elo-ratingar för alla officiella ändamål. LASK-ratingar syns fortfarande i
           historiska data men uppdateras inte längre.
         </p>
       </section>
@@ -263,7 +263,7 @@ export default function EloBasicsPage() {
   return (
     <>
       <PageTitle
-        title={language === 'en' ? 'ELO Basics' : 'ELO-grunder'}
+        title={language === 'en' ? 'Elo Basics' : 'Elo-grunder'}
         subtitle={language === 'en' ? 'Understanding chess ratings' : 'Förstå schackratingar'}
       />
       {language === 'en' ? <BasicsEnglish /> : <BasicsSwedish />}

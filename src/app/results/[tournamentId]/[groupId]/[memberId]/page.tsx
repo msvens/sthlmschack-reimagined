@@ -19,7 +19,7 @@ import { useGlobalPlayerCache } from '@/context/GlobalPlayerCacheContext';
 
 interface PlayerMatch {
   round: number;
-  roundDate: number; // Unix timestamp for historical ELO lookup
+  roundDate: number; // Unix timestamp for historical Elo lookup
   opponent: PlayerInfoDto;
   result: 'win' | 'draw' | 'loss';
   color: 'white' | 'black';
@@ -430,7 +430,7 @@ export default function TournamentPlayerDetailPage() {
       id: 'whiteElo',
       header: t.pages.tournamentResults.roundByRound.elo,
       accessor: (row) => {
-        // Use historical ELO at round date for both tournament types
+        // Use historical Elo at round date for both tournament types
         const whitePlayerElo = row.color === 'white'
           ? getPlayerByDate(memberId!, row.roundDate)?.elo
           : row.opponent.elo;
@@ -473,7 +473,7 @@ export default function TournamentPlayerDetailPage() {
       id: 'blackElo',
       header: t.pages.tournamentResults.roundByRound.elo,
       accessor: (row) => {
-        // Use historical ELO at round date for both tournament types
+        // Use historical Elo at round date for both tournament types
         const blackPlayerElo = row.color === 'black'
           ? getPlayerByDate(memberId!, row.roundDate)?.elo
           : row.opponent.elo;
@@ -509,10 +509,10 @@ export default function TournamentPlayerDetailPage() {
       id: 'eloChange',
       header: t.common.eloLabels.eloChange,
       accessor: (row) => {
-        // Non-countable results (walkovers, not set, postponed, etc.) don't count for ELO
+        // Non-countable results (walkovers, not set, postponed, etc.) don't count for Elo
         if (row.isWalkover || !row.isCountable) return '-';
 
-        // Skip ELO calculation for unrated rounds
+        // Skip Elo calculation for unrated rounds
         if (row.roundRatedType === RoundRatedType.UNRATED) return '-';
 
         // Use historical player data at round date for both tournament types
@@ -607,7 +607,7 @@ export default function TournamentPlayerDetailPage() {
               return sum + score;
             }, 0);
 
-            // Group matches by rating type for separate ELO calculations
+            // Group matches by rating type for separate Elo calculations
             type RatingStats = {
               totalChange: number;
               opponentRatings: number[];
@@ -676,7 +676,7 @@ export default function TournamentPlayerDetailPage() {
               return String(Math.round(avgOpponent + ratingDiff));
             };
 
-            // Format ELO change
+            // Format Elo change
             const formatChange = (stats: RatingStats): string => {
               if (stats.gameCount === 0) return '-';
               const rounded = Math.round(stats.totalChange * 10) / 10;
@@ -821,7 +821,7 @@ export default function TournamentPlayerDetailPage() {
         />
       </div>
 
-      {/* ELO Rating History Chart */}
+      {/* Elo Rating History Chart */}
       <div className="mt-8 mb-8">
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
           {t.common.eloLabels.ratingHistory}

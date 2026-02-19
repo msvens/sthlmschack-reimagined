@@ -97,7 +97,7 @@ export default function PlayerPage() {
         />
       </div>
 
-      {/* ELO Rating History Chart */}
+      {/* Elo Rating History Chart */}
       <div className="mt-8 mb-8">
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
           {t.common.eloLabels.ratingHistory}

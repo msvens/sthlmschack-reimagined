@@ -129,7 +129,7 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
             </div>
           )}
 
-          {/* ELO Rating */}
+          {/* Elo Rating */}
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">{t.eloRating.title}:</span>
             <span className="text-gray-900 dark:text-gray-200 font-medium">{formatRating(player.elo?.rating)}</span>

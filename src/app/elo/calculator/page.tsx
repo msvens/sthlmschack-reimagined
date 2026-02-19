@@ -453,7 +453,7 @@ export default function EloCalculatorPage() {
 
       {/* Settings */}
       <div className="space-y-2 mb-6">
-        {/* ELO Type */}
+        {/* Elo Type */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500 dark:text-gray-400 w-16 flex-shrink-0">{calc.eloType}:</span>
           <div className="flex gap-1">

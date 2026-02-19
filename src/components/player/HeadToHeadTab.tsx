@@ -117,7 +117,7 @@ export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
     );
   }, [opponentGames, memberId, playerMapAdapter, tournamentMap, currentPlayerName, playersLoading, t]);
 
-  // Precompute ELO change per game (keyed by gameId)
+  // Precompute Elo change per game (keyed by gameId)
   const eloChangeMap = useMemo(() => {
     if (!memberId) return new Map<number, number>();
     const map = new Map<number, number>();
@@ -221,7 +221,7 @@ export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
     return { statsByType, totalScore, playedCount };
   }, [memberId, opponentId, opponentGames, groupMeta, globalCache]);
 
-  // Get historical ELO for a player in a specific game's tournament group
+  // Get historical Elo for a player in a specific game's tournament group
   const getEloDisplay = (playerId: number, groupId: number): string => {
     const meta = groupMeta.get(groupId);
     if (!meta) return '-';
@@ -385,7 +385,7 @@ export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
             </div>
           </div>
 
-          {/* ELO stats per rating type */}
+          {/* Elo stats per rating type */}
           {ratingTypeCount === 0 ? (
             <div className="grid grid-cols-2 gap-3">
               <div>
