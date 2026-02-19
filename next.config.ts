@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  skipTrailingSlashRedirect: true,
   images: {
     remotePatterns: [
       {
@@ -21,7 +22,9 @@ const nextConfig: NextConfig = {
       {
         source: '/api/chess-dev/v1/:path*',
         destination: 'https://halvarsson.no-ip.com/webapp/memdb/public/api/v1/:path*'
-      }
+      },
+      // ChessTools FIDE API proxy — handled by route handler in
+      // src/app/api/chesstools/[...path]/route.ts to preserve trailing slashes
     ]
   }
 };
