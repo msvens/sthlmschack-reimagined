@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { PageTitle } from '@/components/PageTitle';
 import { TextField } from '@/components/TextField';
 import { Button } from '@/components/Button';
 import { Toggle } from '@/components/Toggle';
-import { DropdownMenu, DropdownMenuItem } from '@/components/DropdownMenu';
+import { PlayerSearchInput } from '@/components/PlayerSearchInput';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import {
@@ -61,8 +61,6 @@ interface PlayerKFactors {
 interface PlayerState {
   rating: string;
   inputMode: InputMode;
-  firstName: string;
-  lastName: string;
   memberIdInput: string;
   fideIdInput: string;
   selectedPlayerName: string;
@@ -81,8 +79,6 @@ interface PlayerState {
 const initialPlayerState: PlayerState = {
   rating: '',
   inputMode: 'manual',
-  firstName: '',
-  lastName: '',
   memberIdInput: '',
   fideIdInput: '',
   selectedPlayerName: '',
@@ -218,11 +214,8 @@ function PlayerInput({
   const t = getTranslation(language);
   const calc = t.pages.elo.calculator;
 
-  const [searchResults, setSearchResults] = useState<PlayerInfoDto[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [lookupError, setLookupError] = useState('');
-  const searchButtonRef = useRef<HTMLDivElement>(null);
   const playerService = new PlayerService();
   const fideService = new FideService('/api/chesstools');
 
@@ -234,50 +227,6 @@ function PlayerInput({
     { value: 'fideSearch', label: calc.fideSearch },
     { value: 'topPlayer', label: calc.topPlayers },
   ];
-
-  const handleSearch = async () => {
-    if (!state.firstName.trim() && !state.lastName.trim()) return;
-    setIsSearching(true);
-    setLookupError('');
-    setShowDropdown(false);
-
-    try {
-      const response = await playerService.searchPlayer(
-        state.firstName.trim(),
-        state.lastName.trim()
-      );
-      if (response.status === 200 && response.data && response.data.length > 0) {
-        setSearchResults(response.data);
-        setShowDropdown(true);
-      } else {
-        setSearchResults([]);
-        setLookupError(calc.noResults);
-      }
-    } catch {
-      setLookupError(calc.noResults);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleSearchSelect = (item: DropdownMenuItem) => {
-    const player = searchResults.find((p) => p.id === item.id);
-    if (player) {
-      const ratings = getRatingsFromSsfPlayer(player);
-      const kFactors = getKFactorsFromSsfPlayer(player.elo);
-      const { ratingStr, profileKFactor, usingDefault } = deriveFromRatings(ratings, kFactors, eloType);
-      onChange({
-        ...state,
-        rating: ratingStr,
-        selectedPlayerName: formatPlayerName(player.firstName, player.lastName, player.elo?.title),
-        profileKFactor,
-        usingDefaultRating: usingDefault,
-        ratings,
-        kFactors,
-      });
-    }
-    setShowDropdown(false);
-  };
 
   const handleSsfIdLookup = async () => {
     const memberId = parseInt(state.memberIdInput.trim());
@@ -392,8 +341,7 @@ function PlayerInput({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (state.inputMode === 'ssfSearch') handleSearch();
-      else if (state.inputMode === 'ssfId') handleSsfIdLookup();
+      if (state.inputMode === 'ssfId') handleSsfIdLookup();
       else if (state.inputMode === 'fideId') handleFideIdLookup();
     }
   };
@@ -415,7 +363,6 @@ function PlayerInput({
             key={mode.value}
             onClick={() => {
               onChange({ ...state, inputMode: mode.value, selectedPlayerName: '', profileKFactor: null, usingDefaultRating: false, ratings: null, kFactors: null });
-              setShowDropdown(false);
               setLookupError('');
             }}
             className={`px-2.5 py-1 text-xs rounded transition-colors ${
@@ -444,44 +391,26 @@ function PlayerInput({
 
       {/* SSF Search by name */}
       {state.inputMode === 'ssfSearch' && (
-        <div className="space-y-2" onKeyDown={handleKeyDown}>
-          <div className="flex gap-2">
-            <TextField
-              label={calc.firstName}
-              value={state.firstName}
-              onChange={(e) => onChange({ ...state, firstName: e.target.value })}
-              compact
-              fullWidth
-            />
-            <TextField
-              label={calc.lastName}
-              value={state.lastName}
-              onChange={(e) => onChange({ ...state, lastName: e.target.value })}
-              compact
-              fullWidth
-            />
-          </div>
-          <div ref={searchButtonRef} className="relative">
-            <Button
-              onClick={handleSearch}
-              disabled={isSearching || (!state.firstName.trim() && !state.lastName.trim())}
-              variant="outlined"
-              compact
-            >
-              {isSearching ? calc.searching : calc.search}
-            </Button>
-            <DropdownMenu
-              items={searchResults.map((p) => ({
-                id: p.id,
-                primary: formatPlayerName(p.firstName, p.lastName, p.elo?.title),
-                secondary: p.club || undefined,
-              }))}
-              isVisible={showDropdown}
-              onItemClick={handleSearchSelect}
-              onClose={() => setShowDropdown(false)}
-              anchorElement={searchButtonRef.current}
-            />
-          </div>
+        <div className="space-y-2">
+          <PlayerSearchInput
+            onSelect={(player) => {
+              const ratings = getRatingsFromSsfPlayer(player);
+              const kFactors = getKFactorsFromSsfPlayer(player.elo);
+              const { ratingStr, profileKFactor, usingDefault } = deriveFromRatings(ratings, kFactors, eloType);
+              onChange({
+                ...state,
+                rating: ratingStr,
+                selectedPlayerName: formatPlayerName(player.firstName, player.lastName, player.elo?.title),
+                profileKFactor,
+                usingDefaultRating: usingDefault,
+                ratings,
+                kFactors,
+              });
+            }}
+            placeholder={t.pages.players.search.namePlaceholder}
+            noResultsMessage={t.pages.players.search.nameSearchHint}
+            compact
+          />
           {state.rating && (
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {calc.rating}: {state.rating}

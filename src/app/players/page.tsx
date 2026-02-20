@@ -1,30 +1,25 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { PageTitle } from '@/components/PageTitle';
-import { DropdownMenu, DropdownMenuItem } from '@/components/DropdownMenu';
-import { Button } from '@/components/Button';
+import { PlayerSearchInput } from '@/components/PlayerSearchInput';
 import { TextField } from '@/components/TextField';
-import { PlayerService, formatPlayerName, PlayerInfoDto } from '@/lib/api';
+import { PlayerService } from '@/lib/api';
 import { getRecentPlayers, RecentPlayer } from '@/lib/recentPlayers';
 
 export default function PlayersPage() {
   const { language } = useLanguage();
   const router = useRouter();
   const t = getTranslation(language);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [memberIdSearch, setMemberIdSearch] = useState('');
   const [fideIdSearch, setFideIdSearch] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<PlayerInfoDto[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [memberIdError, setMemberIdError] = useState('');
+  const [fideIdError, setFideIdError] = useState('');
   const [recentPlayers, setRecentPlayers] = useState<RecentPlayer[]>([]);
-  const buttonContainerRef = useRef<HTMLDivElement>(null);
   const playerService = new PlayerService();
 
   // Load recent players on mount
@@ -32,160 +27,91 @@ export default function PlayersPage() {
     setRecentPlayers(getRecentPlayers());
   }, []);
 
-  // Unified search handler - tries memberId, then fideId, then name
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSearching(true);
-    setShowDropdown(false);
+  const handleMemberIdSearch = async () => {
+    const memberId = parseInt(memberIdSearch.trim());
+    if (isNaN(memberId)) return;
+    setMemberIdError('');
 
     try {
-      // Priority 1: Try Member ID if provided
-      if (memberIdSearch.trim()) {
-        const memberId = parseInt(memberIdSearch.trim());
-        if (!isNaN(memberId)) {
-          router.push(`/players/${memberId}`);
-          return;
-        }
+      const response = await playerService.getPlayerInfo(memberId);
+      if (response.status === 200 && response.data) {
+        router.push(`/players/${response.data.id}`);
+      } else {
+        setMemberIdError(t.pages.players.search.playerNotFound);
       }
-
-      // Priority 2: Try FIDE ID if provided
-      if (fideIdSearch.trim()) {
-        const fideId = parseInt(fideIdSearch.trim());
-        if (!isNaN(fideId)) {
-          // Date parameter optional, defaults to today
-          const response = await playerService.getPlayerByFIDEId(fideId);
-
-          if (response.status === 200 && response.data) {
-            router.push(`/players/${response.data.id}`);
-            return;
-          }
-        }
-      }
-
-      // Priority 3: Try name search if both names provided
-      if (firstName.trim() && lastName.trim()) {
-        const response = await playerService.searchPlayer(firstName.trim(), lastName.trim());
-
-        if (response.status === 200 && response.data) {
-          const results = response.data;
-
-          if (results.length > 0) {
-            // Show results in dropdown (even for single match)
-            setSearchResults(results);
-            setShowDropdown(true);
-          } else {
-            // No results
-            setSearchResults([]);
-            setShowDropdown(false);
-          }
-          return;
-        }
-      }
-
-      // If we get here, no valid search criteria or no results
-      setSearchResults([]);
-      setShowDropdown(false);
-    } catch (error) {
-      console.error('Search error:', error);
-      setSearchResults([]);
-      setShowDropdown(false);
-    } finally {
-      setIsSearching(false);
+    } catch {
+      setMemberIdError(t.pages.players.search.playerNotFound);
     }
   };
 
-  const clearSearches = () => {
-    setFirstName('');
-    setLastName('');
-    setMemberIdSearch('');
-    setFideIdSearch('');
-    setSearchResults([]);
-    setShowDropdown(false);
+  const handleFideIdSearch = async () => {
+    const fideId = parseInt(fideIdSearch.trim());
+    if (isNaN(fideId)) return;
+    setFideIdError('');
+
+    try {
+      const response = await playerService.getPlayerByFIDEId(fideId);
+      if (response.status === 200 && response.data) {
+        router.push(`/players/${response.data.id}`);
+      } else {
+        setFideIdError(t.pages.players.search.playerNotFound);
+      }
+    } catch {
+      setFideIdError(t.pages.players.search.playerNotFound);
+    }
   };
 
-  const handlePlayerSelect = (item: DropdownMenuItem) => {
-    router.push(`/players/${item.id}`);
-    setShowDropdown(false);
+  const handleKeyDown = (field: 'memberId' | 'fideId') => (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (field === 'memberId') handleMemberIdSearch();
+      else handleFideIdSearch();
+    }
   };
-
-  const dropdownItems: DropdownMenuItem[] = searchResults.map(player => ({
-    id: player.id,
-    primary: formatPlayerName(player.firstName, player.lastName, player.elo?.title),
-    secondary: player.club || undefined
-  }));
 
   return (
     <PageLayout fullScreen maxWidth="4xl">
       {/* Header */}
       <PageTitle title={t.pages.players.title} subtitle={t.pages.players.subtitle} />
 
-      {/* Unified Search Form */}
-      <form onSubmit={handleSearch} className="space-y-4 mb-12">
-        {/* Line 1: First Name & Last Name */}
-        <div>
-          <div className="flex gap-4">
-            <TextField
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="First name"
-              fullWidth
-            />
-            <TextField
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Last name"
-              fullWidth
-            />
-          </div>
-          <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
-            Enter both first and last name to search for players.
-          </p>
-        </div>
-
-        {/* Line 2: MemberId */}
-        <TextField
-          value={memberIdSearch}
-          onChange={(e) => setMemberIdSearch(e.target.value)}
-          placeholder={t.pages.players.search.memberIdPlaceholder}
+      {/* Search fields — each searches on Enter */}
+      <div className="space-y-4 mb-12">
+        <PlayerSearchInput
+          onSelect={(player) => router.push(`/players/${player.id}`)}
+          placeholder={t.pages.players.search.namePlaceholder}
+          label={t.pages.players.search.byName}
+          noResultsMessage={t.pages.players.search.nameSearchHint}
           fullWidth
         />
 
-        {/* Line 3: FideId */}
-        <TextField
-          value={fideIdSearch}
-          onChange={(e) => setFideIdSearch(e.target.value)}
-          placeholder="FIDE ID"
-          fullWidth
-        />
-
-        {/* Line 4: Clear & Search buttons (right-aligned) */}
-        <div ref={buttonContainerRef} className="flex justify-end gap-4 pt-2">
-          <Button
-            type="button"
-            onClick={clearSearches}
-            variant="outlined"
-          >
-            {t.common.actions.clear}
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSearching}
-            variant="outlined"
-          >
-            {isSearching ? '...' : t.common.actions.search}
-          </Button>
+        <div onKeyDown={handleKeyDown('memberId')}>
+          <TextField
+            label={t.pages.players.search.byMemberId}
+            value={memberIdSearch}
+            onChange={(e) => { setMemberIdSearch(e.target.value); setMemberIdError(''); }}
+            placeholder={t.pages.players.search.memberIdPlaceholder}
+            type="number"
+            fullWidth
+          />
+          {memberIdError && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{memberIdError}</p>
+          )}
         </div>
 
-        {/* Dropdown for multiple name search results */}
-        <DropdownMenu
-          items={dropdownItems}
-          isVisible={showDropdown}
-          onItemClick={handlePlayerSelect}
-          onClose={() => setShowDropdown(false)}
-          anchorElement={buttonContainerRef.current}
-          maxItems={5}
-        />
-      </form>
+        <div onKeyDown={handleKeyDown('fideId')}>
+          <TextField
+            label={t.pages.players.search.byFideId}
+            value={fideIdSearch}
+            onChange={(e) => { setFideIdSearch(e.target.value); setFideIdError(''); }}
+            placeholder="FIDE ID"
+            type="number"
+            fullWidth
+          />
+          {fideIdError && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{fideIdError}</p>
+          )}
+        </div>
+      </div>
 
       {/* Recent Players */}
       {recentPlayers.length > 0 && (
