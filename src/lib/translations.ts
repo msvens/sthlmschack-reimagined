@@ -209,11 +209,15 @@ export interface Translations {
       search: {
         byName: string;
         byMemberId: string;
+        byFideId: string;
         searchButton: string;
         clearButton: string;
         noResults: string;
+        nameSearchHint: string;
+        playerNotFound: string;
         searchPlaceholder: string;
         memberIdPlaceholder: string;
+        namePlaceholder: string;
       };
       recentPlayers: string;
     };
@@ -737,11 +741,15 @@ const translations: Record<Language, Translations> = {
         search: {
           byName: 'Search by Name',
           byMemberId: 'Search by Member ID',
+          byFideId: 'Search by FIDE ID',
           searchButton: 'Search',
           clearButton: 'Clear',
           noResults: 'No players found. Try a different search term.',
+          nameSearchHint: 'No results \u2014 try "first last" (partial names work)',
+          playerNotFound: 'Player not found',
           searchPlaceholder: 'Enter first or last name...',
           memberIdPlaceholder: 'Enter member ID...',
+          namePlaceholder: 'First Last, e.g. Mag Carl',
         },
         recentPlayers: 'Recent Players',
       },
@@ -1263,11 +1271,15 @@ const translations: Record<Language, Translations> = {
         search: {
           byName: 'Sök efter Namn',
           byMemberId: 'Sök efter Medlems-ID',
+          byFideId: 'Sök efter FIDE-ID',
           searchButton: 'Sök',
           clearButton: 'Rensa',
           noResults: 'Inga spelare hittades. Prova en annan sökterm.',
+          nameSearchHint: 'Inga resultat \u2014 prova "förnamn efternamn" (del av namn fungerar)',
+          playerNotFound: 'Spelare hittades inte',
           searchPlaceholder: 'Ange förnamn eller efternamn...',
           memberIdPlaceholder: 'Ange medlems-ID...',
+          namePlaceholder: 'Förnamn Efternamn, t.ex. Mag Carl',
         },
         recentPlayers: 'Senaste Spelare',
       },
