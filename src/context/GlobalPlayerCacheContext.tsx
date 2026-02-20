@@ -97,6 +97,8 @@ export function GlobalPlayerCacheProvider({ children }: { children: ReactNode })
 
     if (missingIds.length > 0) {
       const service = getPlayerService();
+      // TODO: Switch to getPlayerList once the SSF API handles missing IDs
+      // gracefully (currently POST /player/list/ returns 500 if any ID is unknown)
       const responses = await service.getPlayerInfoBatch(missingIds);
       responses.forEach(response => {
         if (response.data) {

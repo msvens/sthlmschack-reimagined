@@ -18,7 +18,7 @@ import {
   formatPlayerName,
   PlayerInfoDto,
   MemberFIDERatingDTO,
-  FidePlayer,
+  FideActivePlayer,
   FidePlayerInfo,
   FideRatingPeriod,
 } from '@/lib/api';
@@ -104,10 +104,45 @@ const FIDE_TITLE_ABBREV: Record<string, string> = {
   'Woman Candidate Master': 'WCM',
 };
 
-function formatFidePlayerName(player: FidePlayer): string {
-  const parts: string[] = [];
-  if (player.title && player.title !== 'None') parts.push(player.title);
-  parts.push(player.name);
+const FEDERATION_SHORT: Record<string, string> = {
+  'United States of America': 'USA',
+  'United States': 'USA',
+  'Russian Federation': 'RUS',
+  'People\'s Republic of China': 'CHN',
+  'China': 'CHN',
+  'United Kingdom': 'GBR',
+  'England': 'ENG',
+  'Czech Republic': 'CZE',
+  'Republic of Korea': 'KOR',
+  'Korea': 'KOR',
+  'Islamic Republic of Iran': 'IRI',
+  'Iran': 'IRI',
+  'Netherlands': 'NED',
+  'The Netherlands': 'NED',
+  'Germany': 'GER',
+  'France': 'FRA',
+  'India': 'IND',
+  'Norway': 'NOR',
+  'Azerbaijan': 'AZE',
+  'Armenia': 'ARM',
+  'Uzbekistan': 'UZB',
+  'Poland': 'POL',
+  'Hungary': 'HUN',
+  'Spain': 'ESP',
+  'Ukraine': 'UKR',
+  'Romania': 'ROU',
+  'Sweden': 'SWE',
+  'Denmark': 'DEN',
+  'Finland': 'FIN',
+  'Iceland': 'ISL',
+};
+
+function shortenFederation(federation: string): string {
+  return FEDERATION_SHORT[federation] ?? federation;
+}
+
+function formatFideActivePlayerName(player: FideActivePlayer): string {
+  const parts: string[] = [player.name];
   if (player.country) parts.push(`(${player.country})`);
   return parts.join(' ');
 }
@@ -118,7 +153,7 @@ function formatFidePlayerInfoName(player: FidePlayerInfo): string {
     parts.push(FIDE_TITLE_ABBREV[player.fide_title] ?? player.fide_title);
   }
   parts.push(player.name);
-  if (player.federation) parts.push(`(${player.federation})`);
+  if (player.federation) parts.push(`(${shortenFederation(player.federation)})`);
   return parts.join(' ');
 }
 
@@ -152,14 +187,6 @@ function getRatingsFromFideHistory(period: FideRatingPeriod): PlayerRatings {
   };
 }
 
-function getRatingsFromFidePlayer(player: FidePlayer): PlayerRatings {
-  return {
-    standard: player.rating ?? 0,
-    rapid: player.rapid_rating ?? 0,
-    blitz: player.blitz_rating ?? 0,
-  };
-}
-
 /** Derive the active rating and K-factor for the given eloType from stored ratings */
 function deriveFromRatings(
   ratings: PlayerRatings,
@@ -184,7 +211,7 @@ function PlayerInput({
   state: PlayerState;
   onChange: (state: PlayerState) => void;
   eloType: EloType;
-  topPlayers: FidePlayer[];
+  topPlayers: FideActivePlayer[];
   topPlayersLoading: boolean;
 }) {
   const { language } = useLanguage();
@@ -317,13 +344,14 @@ function PlayerInput({
     }
   };
 
-  const handleTopPlayerSelect = async (player: FidePlayer) => {
-    // Show player name immediately with the top list ratings (has all three types)
-    const fallbackRatings = getRatingsFromFidePlayer(player);
+  const handleTopPlayerSelect = async (player: FideActivePlayer) => {
+    // Show player name immediately with the rating from the top list (classical only)
+    const standardRating = parseInt(player.rating) || 0;
+    const fallbackRatings: PlayerRatings = { standard: standardRating, rapid: 0, blitz: 0 };
     const { ratingStr: fallbackStr, usingDefault: fallbackDefault } = deriveFromRatings(fallbackRatings, null, eloType);
     onChange({
       ...state,
-      selectedPlayerName: formatFidePlayerName(player),
+      selectedPlayerName: formatFideActivePlayerName(player),
       rating: fallbackStr,
       profileKFactor: null,
       usingDefaultRating: fallbackDefault,
@@ -332,8 +360,8 @@ function PlayerInput({
       birthYear: null,
     });
 
-    // Fetch full player info for more accurate ratings
-    const fideId = parseInt(player.fideid);
+    // Fetch full player info for all rating types
+    const fideId = parseInt(player.fide_id);
     if (isNaN(fideId)) return;
     setIsSearching(true);
 
@@ -346,7 +374,7 @@ function PlayerInput({
         onChange({
           ...state,
           rating: ratingStr,
-          selectedPlayerName: formatFidePlayerName(player),
+          selectedPlayerName: formatFidePlayerInfoName(response.data),
           profileKFactor: null,
           usingDefaultRating: usingDefault,
           ratings,
@@ -535,17 +563,17 @@ function PlayerInput({
             <p className="text-sm text-gray-500 dark:text-gray-400">{calc.loadingTopPlayers}</p>
           ) : (
             <select
-              value={topPlayers.find((p) => formatFidePlayerName(p) === state.selectedPlayerName)?.fideid ?? ''}
+              value={topPlayers.find((p) => formatFideActivePlayerName(p) === state.selectedPlayerName)?.fide_id ?? ''}
               onChange={(e) => {
-                const player = topPlayers.find((p) => p.fideid === e.target.value);
+                const player = topPlayers.find((p) => p.fide_id === e.target.value);
                 if (player) handleTopPlayerSelect(player);
               }}
               className="w-full px-3 py-1.5 text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 hover:border-gray-900 dark:hover:border-white"
             >
               <option value="">{calc.selectTopPlayer}</option>
               {topPlayers.map((p) => (
-                <option key={p.fideid} value={p.fideid}>
-                  {formatFidePlayerName(p)} — {p.rating}
+                <option key={p.fide_id} value={p.fide_id}>
+                  {formatFideActivePlayerName(p)} — {p.rating}
                 </option>
               ))}
             </select>
@@ -587,7 +615,7 @@ export default function EloCalculatorPage() {
   const [manualK1, setManualK1] = useState('20');
   const [manualK2, setManualK2] = useState('20');
   const [removeCap, setRemoveCap] = useState(false);
-  const [topPlayers, setTopPlayers] = useState<FidePlayer[]>([]);
+  const [topPlayers, setTopPlayers] = useState<FideActivePlayer[]>([]);
   const [topPlayersLoading, setTopPlayersLoading] = useState(false);
 
   // When eloType changes, re-derive the active rating from stored ratings
@@ -607,7 +635,7 @@ export default function EloCalculatorPage() {
     let cancelled = false;
     const fideService = new FideService('/api/chesstools');
     setTopPlayersLoading(true);
-    fideService.getTopByRating(10).then((response) => {
+    fideService.getTopActive(10).then((response) => {
       if (!cancelled && response.status === 200 && response.data) {
         setTopPlayers(response.data);
       }

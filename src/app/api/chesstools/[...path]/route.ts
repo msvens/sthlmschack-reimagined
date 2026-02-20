@@ -2,20 +2,13 @@ import { NextRequest } from 'next/server';
 
 const CHESSTOOLS_BASE = 'https://api.chesstools.org';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params;
-  const url = new URL(request.url);
+// Transparent proxy: forwards the request path exactly as received,
+// preserving trailing slashes. The SDK controls the exact path per endpoint.
+async function proxy(request: NextRequest) {
+  const originalPath = request.nextUrl.pathname.replace('/api/chesstools', '');
+  const search = request.nextUrl.search;
+  const target = `${CHESSTOOLS_BASE}${originalPath}${search}`;
 
-  // Reconstruct path from route segments and always append trailing slash.
-  // Some ChessTools endpoints (e.g. player_info/) require it and return 404
-  // without it. Endpoints that don't need it return a 307 redirect that fetch
-  // follows automatically. This also makes us resilient to upstream proxies
-  // (nginx) that strip trailing slashes before the request reaches us.
-  const apiPath = path.join('/');
-  const target = `${CHESSTOOLS_BASE}/${apiPath}/${url.search}`;
   const response = await fetch(target);
   const data = await response.text();
 
@@ -24,3 +17,5 @@ export async function GET(
     headers: { 'Content-Type': response.headers.get('Content-Type') || 'application/json' },
   });
 }
+
+export const GET = proxy;

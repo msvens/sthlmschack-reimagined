@@ -11,22 +11,11 @@ const nextConfig: NextConfig = {
       }
     ]
   },
-  async rewrites() {
-    return [
-      // Production API rewrite (used by default via SSF_PROXY_URL)
-      {
-        source: '/api/chess/v1/:path*',
-        destination: 'https://member.schack.se/public/api/v1/:path*'
-      },
-      // Development API rewrite (halvarsson test server, use via SSF_DEV_PROXY_URL)
-      {
-        source: '/api/chess-dev/v1/:path*',
-        destination: 'https://halvarsson.no-ip.com/webapp/memdb/public/api/v1/:path*'
-      },
-      // ChessTools FIDE API proxy — handled by route handler in
-      // src/app/api/chesstools/[...path]/route.ts to preserve trailing slashes
-    ]
-  }
+  // API proxies are handled by route handlers (not rewrites) to preserve
+  // trailing slashes. The SSF API is inconsistent: GET endpoints break WITH
+  // trailing slashes, POST endpoints break WITHOUT them.
+  //   SSF API:       src/app/api/chess/v1/[...path]/route.ts
+  //   ChessTools API: src/app/api/chesstools/[...path]/route.ts
 };
 
 export default nextConfig;
