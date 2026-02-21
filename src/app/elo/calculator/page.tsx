@@ -409,6 +409,7 @@ function PlayerInput({
             }}
             placeholder={t.pages.players.search.namePlaceholder}
             noResultsMessage={t.pages.players.search.nameSearchHint}
+            searchLabel={calc.search}
             compact
           />
           {state.rating && (

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { TextField } from '@/components/TextField';
+import { Button } from '@/components/Button';
 import { PlayerService, formatPlayerName, PlayerInfoDto } from '@/lib/api';
 
 interface PlayerSearchInputProps {
@@ -11,6 +12,7 @@ interface PlayerSearchInputProps {
   label?: string;
   fullWidth?: boolean;
   noResultsMessage?: string;
+  searchLabel?: string;
 }
 
 export function PlayerSearchInput({
@@ -20,6 +22,7 @@ export function PlayerSearchInput({
   label,
   fullWidth = false,
   noResultsMessage = 'No players found',
+  searchLabel = 'Search',
 }: PlayerSearchInputProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PlayerInfoDto[]>([]);
@@ -119,15 +122,27 @@ export function PlayerSearchInput({
 
   return (
     <div ref={wrapperRef} className={`relative ${fullWidth ? 'w-full' : ''}`}>
-      <div onKeyDown={handleKeyDown}>
+      {label && (
+        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+          {label}
+        </label>
+      )}
+      <div className="flex gap-2" onKeyDown={handleKeyDown}>
         <TextField
-          label={isSearching ? (label ? `${label} ...` : '...') : label}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
           compact={compact}
-          fullWidth={fullWidth}
+          fullWidth
         />
+        <Button
+          onClick={handleSearch}
+          disabled={isSearching || !query.trim()}
+          variant="outlined"
+          compact={compact}
+        >
+          {isSearching ? '...' : searchLabel}
+        </Button>
       </div>
 
       {/* Dropdown results */}

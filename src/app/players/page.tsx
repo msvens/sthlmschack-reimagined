@@ -7,6 +7,7 @@ import { getTranslation } from '@/lib/translations';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { PageTitle } from '@/components/PageTitle';
 import { PlayerSearchInput } from '@/components/PlayerSearchInput';
+import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
 import { PlayerService } from '@/lib/api';
 import { getRecentPlayers, RecentPlayer } from '@/lib/recentPlayers';
@@ -19,6 +20,8 @@ export default function PlayersPage() {
   const [fideIdSearch, setFideIdSearch] = useState('');
   const [memberIdError, setMemberIdError] = useState('');
   const [fideIdError, setFideIdError] = useState('');
+  const [memberIdLoading, setMemberIdLoading] = useState(false);
+  const [fideIdLoading, setFideIdLoading] = useState(false);
   const [recentPlayers, setRecentPlayers] = useState<RecentPlayer[]>([]);
   const playerService = new PlayerService();
 
@@ -31,6 +34,7 @@ export default function PlayersPage() {
     const memberId = parseInt(memberIdSearch.trim());
     if (isNaN(memberId)) return;
     setMemberIdError('');
+    setMemberIdLoading(true);
 
     try {
       const response = await playerService.getPlayerInfo(memberId);
@@ -41,6 +45,8 @@ export default function PlayersPage() {
       }
     } catch {
       setMemberIdError(t.pages.players.search.playerNotFound);
+    } finally {
+      setMemberIdLoading(false);
     }
   };
 
@@ -48,6 +54,7 @@ export default function PlayersPage() {
     const fideId = parseInt(fideIdSearch.trim());
     if (isNaN(fideId)) return;
     setFideIdError('');
+    setFideIdLoading(true);
 
     try {
       const response = await playerService.getPlayerByFIDEId(fideId);
@@ -58,6 +65,8 @@ export default function PlayersPage() {
       }
     } catch {
       setFideIdError(t.pages.players.search.playerNotFound);
+    } finally {
+      setFideIdLoading(false);
     }
   };
 
@@ -70,7 +79,7 @@ export default function PlayersPage() {
   };
 
   return (
-    <PageLayout fullScreen maxWidth="4xl">
+    <PageLayout fullScreen maxWidth="3xl">
       {/* Header */}
       <PageTitle title={t.pages.players.title} subtitle={t.pages.players.subtitle} />
 
@@ -81,32 +90,55 @@ export default function PlayersPage() {
           placeholder={t.pages.players.search.namePlaceholder}
           label={t.pages.players.search.byName}
           noResultsMessage={t.pages.players.search.nameSearchHint}
+          searchLabel={t.common.actions.search}
           fullWidth
         />
 
         <div onKeyDown={handleKeyDown('memberId')}>
-          <TextField
-            label={t.pages.players.search.byMemberId}
-            value={memberIdSearch}
-            onChange={(e) => { setMemberIdSearch(e.target.value); setMemberIdError(''); }}
-            placeholder={t.pages.players.search.memberIdPlaceholder}
-            type="number"
-            fullWidth
-          />
+          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+            {t.pages.players.search.byMemberId}
+          </label>
+          <div className="flex gap-2">
+            <TextField
+              value={memberIdSearch}
+              onChange={(e) => { setMemberIdSearch(e.target.value); setMemberIdError(''); }}
+              placeholder={t.pages.players.search.memberIdPlaceholder}
+              type="number"
+              fullWidth
+            />
+            <Button
+              onClick={handleMemberIdSearch}
+              disabled={memberIdLoading || !memberIdSearch.trim()}
+              variant="outlined"
+            >
+              {memberIdLoading ? '...' : t.common.actions.search}
+            </Button>
+          </div>
           {memberIdError && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{memberIdError}</p>
           )}
         </div>
 
         <div onKeyDown={handleKeyDown('fideId')}>
-          <TextField
-            label={t.pages.players.search.byFideId}
-            value={fideIdSearch}
-            onChange={(e) => { setFideIdSearch(e.target.value); setFideIdError(''); }}
-            placeholder="FIDE ID"
-            type="number"
-            fullWidth
-          />
+          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+            {t.pages.players.search.byFideId}
+          </label>
+          <div className="flex gap-2">
+            <TextField
+              value={fideIdSearch}
+              onChange={(e) => { setFideIdSearch(e.target.value); setFideIdError(''); }}
+              placeholder="FIDE ID"
+              type="number"
+              fullWidth
+            />
+            <Button
+              onClick={handleFideIdSearch}
+              disabled={fideIdLoading || !fideIdSearch.trim()}
+              variant="outlined"
+            >
+              {fideIdLoading ? '...' : t.common.actions.search}
+            </Button>
+          </div>
           {fideIdError && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{fideIdError}</p>
           )}
