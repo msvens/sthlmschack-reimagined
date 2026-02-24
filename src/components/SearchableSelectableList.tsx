@@ -183,7 +183,7 @@ export function SearchableSelectableList({
   };
 
   return (
-    <div className={className} ref={dropdownRef}>
+    <div className={`relative ${className}`} ref={dropdownRef}>
       {/* Title */}
       {title && (
         <h2 className="text-xs font-semibold mb-2 text-gray-500 dark:text-gray-400 uppercase">
