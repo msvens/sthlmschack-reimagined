@@ -6,6 +6,7 @@ export type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 export interface NavBrand {
   href: string;
   lines: string[];
+  logo?: string;
 }
 
 // --- Dropdown menu items (inside a dropdown panel) ---
