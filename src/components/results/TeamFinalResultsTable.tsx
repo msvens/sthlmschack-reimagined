@@ -53,13 +53,15 @@ export function TeamFinalResultsTable({
       header: t.pages.tournamentResults.teamFinalResultsTable.pos,
       accessor: 'place',
       align: 'left',
-      noWrap: true
+      noWrap: true,
+      sortValue: (row) => row.place
     },
     {
       id: 'team',
       header: t.pages.tournamentResults.teamFinalResultsTable.team,
       accessor: (row) => formatTeamName(row.contenderId, row.teamNumber),
-      align: 'left'
+      align: 'left',
+      sortValue: (row) => formatTeamName(row.contenderId, row.teamNumber).toLowerCase()
     },
     {
       id: 'sp',

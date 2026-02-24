@@ -71,24 +71,28 @@ export function TournamentList({
           </Link>
         ),
         align: 'left',
+        sortValue: (row) => row.name.toLowerCase(),
       },
       {
         id: 'club',
         header: t.pages.calendar.tournamentList.organizer,
         accessor: 'club',
         align: 'left',
+        sortValue: (row) => row.club.toLowerCase(),
       },
       {
         id: 'start',
         header: t.pages.calendar.tournamentList.start,
         accessor: 'start',
         align: 'left',
+        sortValue: (row) => row.start,
       },
       {
         id: 'end',
         header: t.pages.calendar.tournamentList.end,
         accessor: 'end',
         align: 'left',
+        sortValue: (row) => row.end,
       },
     ];
 
@@ -107,6 +111,7 @@ export function TournamentList({
           </>
         ),
         align: 'left',
+        sortValue: (row) => `${row.lastUpdatedDate} ${row.lastUpdatedTime}`,
         // Hide entire column (header + cells) below md breakpoint
         headerClassName: 'hidden md:table-cell',
         cellClassName: 'hidden md:table-cell',

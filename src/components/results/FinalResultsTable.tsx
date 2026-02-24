@@ -47,20 +47,23 @@ export function FinalResultsTable({
       header: t.pages.tournamentResults.finalResultsTable.pos,
       accessor: 'place',
       align: 'left',
-      noWrap: true
+      noWrap: true,
+      sortValue: (row) => row.place
     },
     {
       id: 'name',
       header: t.pages.tournamentResults.finalResultsTable.name,
       accessor: (row) => row.playerInfo ? formatPlayerName(row.playerInfo.firstName, row.playerInfo.lastName, row.playerInfo.elo?.title) : 'Unknown Player',
-      align: 'left'
+      align: 'left',
+      sortValue: (row) => row.playerInfo ? `${row.playerInfo.lastName} ${row.playerInfo.firstName}`.toLowerCase() : ''
     },
     {
       id: 'club',
       header: t.pages.tournamentResults.finalResultsTable.club,
       accessor: (row) => row.playerInfo?.club || '-',
       align: 'left',
-      cellClassName: 'max-w-[9ch] sm:max-w-none overflow-hidden whitespace-nowrap sm:whitespace-normal'
+      cellClassName: 'max-w-[9ch] sm:max-w-none overflow-hidden whitespace-nowrap sm:whitespace-normal',
+      sortValue: (row) => (row.playerInfo?.club || '').toLowerCase()
     },
     {
       id: 'ranking',
@@ -70,7 +73,8 @@ export function FinalResultsTable({
         return formatRatingWithType(rating, ratingType, language);
       },
       align: 'left',
-      noWrap: true
+      noWrap: true,
+      sortValue: (row) => getPlayerRatingByAlgorithm(row.playerInfo?.elo, rankingAlgorithm).rating ?? 0
     },
     {
       id: 'gp',

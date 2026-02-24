@@ -39,6 +39,8 @@ export interface TableColumn<T = Record<string, unknown>> {
   headerClassName?: string;
   /** Custom cell CSS classes */
   cellClassName?: string;
+  /** Enable sorting on this column. Extracts a sortable value from the row. */
+  sortValue?: (row: T) => string | number;
 }
 
 export type TableDensity = 'compact' | 'normal' | 'comfortable';
@@ -95,6 +97,8 @@ export interface TableProps<T = Record<string, unknown>> {
    * Default pageSize is 50. Info text shows "1-50 / 3334" unless labels provided.
    */
   pagination?: boolean | PaginationConfig;
+  /** Default sort column ID and direction. If omitted, data renders in original order. */
+  defaultSort?: { columnId: string; direction: 'asc' | 'desc' };
 }
 
 export function Table<T = Record<string, unknown>>({
@@ -118,13 +122,18 @@ export function Table<T = Record<string, unknown>>({
   },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   size = 'medium',
-  pagination
+  pagination,
+  defaultSort
 }: TableProps<T>) {
   // Track if we're on mobile
   const [isMobile, setIsMobile] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Sort state
+  const [sortColumnId, setSortColumnId] = useState<string | null>(defaultSort?.columnId ?? null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(defaultSort?.direction ?? 'asc');
 
   // Parse pagination config
   const paginationConfig = useMemo(() => {
@@ -139,24 +148,55 @@ export function Table<T = Record<string, unknown>>({
     };
   }, [pagination]);
 
-  // Reset to page 1 when data changes
+  // Reset to page 1 when data or sort changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [data]);
+  }, [data, sortColumnId, sortDirection]);
 
-  // Get paginated data
+  // Sort data
+  const sortedData = useMemo(() => {
+    if (!sortColumnId) return data;
+    const column = columns.find(c => c.id === sortColumnId);
+    if (!column?.sortValue) return data;
+
+    return [...data].sort((a, b) => {
+      const aVal = column.sortValue!(a);
+      const bVal = column.sortValue!(b);
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [data, sortColumnId, sortDirection, columns]);
+
+  // Get paginated data (from sorted data)
   const paginatedData = useMemo(() => {
-    if (!paginationConfig) return data;
+    if (!paginationConfig) return sortedData;
     const startIndex = (currentPage - 1) * paginationConfig.pageSize;
-    return data.slice(startIndex, startIndex + paginationConfig.pageSize);
-  }, [data, currentPage, paginationConfig]);
+    return sortedData.slice(startIndex, startIndex + paginationConfig.pageSize);
+  }, [sortedData, currentPage, paginationConfig]);
+
+  // Handle sort header click: asc → desc → unsorted
+  const handleSortClick = (columnId: string) => {
+    if (sortColumnId === columnId) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else {
+        // desc → unsorted
+        setSortColumnId(null);
+        setSortDirection('asc');
+      }
+    } else {
+      setSortColumnId(columnId);
+      setSortDirection('asc');
+    }
+  };
 
   // Format pagination info text
   const getPaginationInfo = () => {
-    if (!paginationConfig || data.length === 0) return null;
+    if (!paginationConfig || sortedData.length === 0) return null;
     const startItem = (currentPage - 1) * paginationConfig.pageSize + 1;
-    const endItem = Math.min(currentPage * paginationConfig.pageSize, data.length);
-    const total = data.length;
+    const endItem = Math.min(currentPage * paginationConfig.pageSize, sortedData.length);
+    const total = sortedData.length;
 
     if (paginationConfig.labels) {
       const { showing, of, itemName } = paginationConfig.labels;
@@ -305,24 +345,42 @@ export function Table<T = Record<string, unknown>>({
         <table className={`w-full ${fontSizeClass} ${lineHeightClass}`}>
           <thead>
             <tr className={border ? "border-b border-gray-200 dark:border-gray-700" : ""}>
-              {columns.map((column) => (
-                <th
-                  key={column.id}
-                  className={`${paddingClass} font-medium text-gray-900 dark:text-gray-200 ${
-                    column.align === 'center'
-                      ? 'text-center'
-                      : column.align === 'right'
-                      ? 'text-right'
-                      : 'text-left'
-                  } ${column.noWrap ? 'whitespace-nowrap' : ''} ${column.headerClassName || ''}`}
-                  style={{
-                    width: column.width,
-                    ...column.headerStyle
-                  }}
-                >
-                  {column.header}
-                </th>
-              ))}
+              {columns.map((column) => {
+                const isSortable = !!column.sortValue;
+                const isActiveSort = sortColumnId === column.id;
+                return (
+                  <th
+                    key={column.id}
+                    className={`${paddingClass} font-medium text-gray-900 dark:text-gray-200 ${
+                      column.align === 'center'
+                        ? 'text-center'
+                        : column.align === 'right'
+                        ? 'text-right'
+                        : 'text-left'
+                    } ${column.noWrap ? 'whitespace-nowrap' : ''} ${column.headerClassName || ''} ${
+                      isSortable ? 'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700/30' : ''
+                    }`}
+                    style={{
+                      width: column.width,
+                      ...column.headerStyle
+                    }}
+                    onClick={isSortable ? () => handleSortClick(column.id) : undefined}
+                  >
+                    {isSortable ? (
+                      <span className="inline-flex items-center gap-1">
+                        {column.header}
+                        {isActiveSort && (
+                          <span className="text-blue-600 dark:text-blue-400">
+                            {sortDirection === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      column.header
+                    )}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -360,11 +418,11 @@ export function Table<T = Record<string, unknown>>({
       </div>
 
       {/* Pagination controls */}
-      {paginationConfig && data.length > paginationConfig.pageSize && (
+      {paginationConfig && sortedData.length > paginationConfig.pageSize && (
         <div className="mt-4">
           <Pagination
             currentPage={currentPage}
-            totalItems={data.length}
+            totalItems={sortedData.length}
             pageSize={paginationConfig.pageSize}
             onPageChange={setCurrentPage}
           />
