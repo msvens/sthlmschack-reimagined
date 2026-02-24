@@ -13,6 +13,8 @@ interface PlayerSearchInputProps {
   fullWidth?: boolean;
   noResultsMessage?: string;
   searchLabel?: string;
+  /** Persistent helper text shown below the input to guide the user */
+  helperText?: string;
 }
 
 export function PlayerSearchInput({
@@ -23,6 +25,7 @@ export function PlayerSearchInput({
   fullWidth = false,
   noResultsMessage = 'No players found',
   searchLabel = 'Search',
+  helperText,
 }: PlayerSearchInputProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PlayerInfoDto[]>([]);
@@ -185,9 +188,11 @@ export function PlayerSearchInput({
       )}
 
       {/* Error / no results message */}
-      {error && !showDropdown && (
+      {error && !showDropdown ? (
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{error}</p>
-      )}
+      ) : helperText && !showDropdown ? (
+        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">{helperText}</p>
+      ) : null}
     </div>
   );
 }

@@ -90,6 +90,7 @@ export default function PlayersPage() {
           placeholder={t.pages.players.search.namePlaceholder}
           label={t.pages.players.search.byName}
           noResultsMessage={t.pages.players.search.nameSearchHint}
+          helperText={t.pages.players.search.nameSearchHelper}
           searchLabel={t.common.actions.search}
           fullWidth
         />

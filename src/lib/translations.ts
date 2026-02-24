@@ -214,6 +214,7 @@ export interface Translations {
         clearButton: string;
         noResults: string;
         nameSearchHint: string;
+        nameSearchHelper: string;
         playerNotFound: string;
         searchPlaceholder: string;
         memberIdPlaceholder: string;
@@ -746,6 +747,7 @@ const translations: Record<Language, Translations> = {
           clearButton: 'Clear',
           noResults: 'No players found. Try a different search term.',
           nameSearchHint: 'No results \u2014 try "first last" (partial names work)',
+          nameSearchHelper: 'Both first and last name required (partial names work, e.g. "Mag Carl")',
           playerNotFound: 'Player not found',
           searchPlaceholder: 'Enter first or last name...',
           memberIdPlaceholder: 'Enter member ID...',
@@ -1276,6 +1278,7 @@ const translations: Record<Language, Translations> = {
           clearButton: 'Rensa',
           noResults: 'Inga spelare hittades. Prova en annan sökterm.',
           nameSearchHint: 'Inga resultat \u2014 prova "förnamn efternamn" (del av namn fungerar)',
+          nameSearchHelper: 'Både för- och efternamn krävs (del av namn fungerar, t.ex. "Mag Carl")',
           playerNotFound: 'Spelare hittades inte',
           searchPlaceholder: 'Ange förnamn eller efternamn...',
           memberIdPlaceholder: 'Ange medlems-ID...',
