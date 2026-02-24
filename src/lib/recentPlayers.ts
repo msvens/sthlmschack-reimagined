@@ -2,6 +2,8 @@
  * Utility for managing recent player searches in localStorage
  */
 
+import { safeGetItem, safeSetItem, safeRemoveItem } from '@/lib/storage';
+
 const STORAGE_KEY = 'recent-players';
 const MAX_RECENT_PLAYERS = 10;
 
@@ -15,16 +17,13 @@ export interface RecentPlayer {
  * Get recent players from localStorage
  */
 export function getRecentPlayers(): RecentPlayer[] {
-  if (typeof window === 'undefined') return [];
-
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = safeGetItem(STORAGE_KEY);
     if (!stored) return [];
 
     const players = JSON.parse(stored);
     return Array.isArray(players) ? players : [];
-  } catch (error) {
-    console.error('Error reading recent players from localStorage:', error);
+  } catch {
     return [];
   }
 }
@@ -34,8 +33,6 @@ export function getRecentPlayers(): RecentPlayer[] {
  * Deduplicates by id and keeps last 10 unique players
  */
 export function addRecentPlayer(player: RecentPlayer): void {
-  if (typeof window === 'undefined') return;
-
   try {
     const recent = getRecentPlayers();
 
@@ -45,9 +42,9 @@ export function addRecentPlayer(player: RecentPlayer): void {
     // Add new player to front
     const updated = [player, ...filtered].slice(0, MAX_RECENT_PLAYERS);
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  } catch (error) {
-    console.error('Error saving recent player to localStorage:', error);
+    safeSetItem(STORAGE_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore — storage unavailable
   }
 }
 
@@ -55,11 +52,5 @@ export function addRecentPlayer(player: RecentPlayer): void {
  * Clear all recent players
  */
 export function clearRecentPlayers(): void {
-  if (typeof window === 'undefined') return;
-
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.error('Error clearing recent players from localStorage:', error);
-  }
+  safeRemoveItem(STORAGE_KEY);
 }

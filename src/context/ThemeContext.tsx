@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { safeGetItem, safeSetItem } from '@/lib/storage';
 
 type Theme = 'light' | 'dark';
 
@@ -14,34 +15,34 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('dark'); // Default to dark
-  
+
   useEffect(() => {
     // Check if user has a saved preference
-    const savedTheme = localStorage.getItem('theme') as Theme;
+    const savedTheme = safeGetItem('theme') as Theme;
     if (savedTheme) {
       setThemeState(savedTheme);
     }
     // If no saved preference, keep dark as default
   }, []);
-  
+
   useEffect(() => {
     // Apply theme to document
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
-    
-    // Save to localStorage
-    localStorage.setItem('theme', theme);
+
+    // Save to localStorage (silently fails if unavailable)
+    safeSetItem('theme', theme);
   }, [theme]);
-  
+
   const toggleTheme = () => {
     setThemeState(prev => prev === 'light' ? 'dark' : 'light');
   };
-  
+
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
   };
-  
+
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
       {children}
