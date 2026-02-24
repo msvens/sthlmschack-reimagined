@@ -61,8 +61,8 @@ function BasicsEnglish() {
           Rating Scale
         </h2>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-          Elo ratings are numbers typically ranging from about 1000 to 2900. Here is a rough
-          guide to what the numbers mean:
+          Elo ratings are numbers typically ranging from about 1000 to 2900. The upper brackets
+          correspond to official FIDE titles:
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -75,31 +75,37 @@ function BasicsEnglish() {
             <tbody className="text-gray-700 dark:text-gray-300">
               <tr className="border-b border-gray-100 dark:border-gray-800">
                 <td className="py-2 pr-4">2500+</td>
-                <td className="py-2">Grandmaster level</td>
+                <td className="py-2">Grandmaster (GM)</td>
               </tr>
               <tr className="border-b border-gray-100 dark:border-gray-800">
-                <td className="py-2 pr-4">2200&ndash;2499</td>
-                <td className="py-2">Master / International Master level</td>
+                <td className="py-2 pr-4">2400&ndash;2499</td>
+                <td className="py-2">International Master (IM)</td>
               </tr>
               <tr className="border-b border-gray-100 dark:border-gray-800">
-                <td className="py-2 pr-4">2000&ndash;2199</td>
-                <td className="py-2">Expert / Candidate Master</td>
+                <td className="py-2 pr-4">2300&ndash;2399</td>
+                <td className="py-2">FIDE Master (FM)</td>
               </tr>
               <tr className="border-b border-gray-100 dark:border-gray-800">
-                <td className="py-2 pr-4">1800&ndash;1999</td>
-                <td className="py-2">Strong club player</td>
+                <td className="py-2 pr-4">2200&ndash;2299</td>
+                <td className="py-2">Candidate Master (CM)</td>
               </tr>
               <tr className="border-b border-gray-100 dark:border-gray-800">
-                <td className="py-2 pr-4">1600&ndash;1799</td>
-                <td className="py-2">Club player</td>
+                <td className="py-2 pr-4">1400&ndash;2199</td>
+                <td className="py-2">Club and tournament players &mdash; a wide range from newcomers to experienced competitors</td>
               </tr>
               <tr>
-                <td className="py-2 pr-4">1400&ndash;1599</td>
-                <td className="py-2">Beginner / casual player</td>
+                <td className="py-2 pr-4">&lt; 1400</td>
+                <td className="py-2">Typically a player who has not yet received an official FIDE rating</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
+          <strong>A note on online ratings.</strong> Chess.com and Lichess use their own rating
+          systems (Glicko/Glicko-2), not the Elo system. These ratings have no direct relationship
+          to FIDE Elo ratings and are generally higher for the same playing strength. There is no
+          reliable conversion between them.
+        </p>
       </section>
 
       <section>
@@ -188,8 +194,8 @@ function BasicsSwedish() {
           Ratingskalan
         </h2>
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-          Elo-ratingar är tal som normalt sträcker sig från cirka 1000 till 2900. Här är en
-          ungefärlig guide till vad siffrorna betyder:
+          Elo-ratingar är tal som normalt sträcker sig från cirka 1000 till 2900. De övre
+          intervallen motsvarar officiella FIDE-titlar:
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -202,31 +208,37 @@ function BasicsSwedish() {
             <tbody className="text-gray-700 dark:text-gray-300">
               <tr className="border-b border-gray-100 dark:border-gray-800">
                 <td className="py-2 pr-4">2500+</td>
-                <td className="py-2">Stormästarnivå</td>
+                <td className="py-2">Stormästare (GM)</td>
               </tr>
               <tr className="border-b border-gray-100 dark:border-gray-800">
-                <td className="py-2 pr-4">2200&ndash;2499</td>
-                <td className="py-2">Mästare / Internationell mästare</td>
+                <td className="py-2 pr-4">2400&ndash;2499</td>
+                <td className="py-2">Internationell mästare (IM)</td>
               </tr>
               <tr className="border-b border-gray-100 dark:border-gray-800">
-                <td className="py-2 pr-4">2000&ndash;2199</td>
-                <td className="py-2">Expert / Kandidatmästare</td>
+                <td className="py-2 pr-4">2300&ndash;2399</td>
+                <td className="py-2">FIDE-mästare (FM)</td>
               </tr>
               <tr className="border-b border-gray-100 dark:border-gray-800">
-                <td className="py-2 pr-4">1800&ndash;1999</td>
-                <td className="py-2">Stark klubbspelare</td>
+                <td className="py-2 pr-4">2200&ndash;2299</td>
+                <td className="py-2">Kandidatmästare (CM)</td>
               </tr>
               <tr className="border-b border-gray-100 dark:border-gray-800">
-                <td className="py-2 pr-4">1600&ndash;1799</td>
-                <td className="py-2">Klubbspelare</td>
+                <td className="py-2 pr-4">1400&ndash;2199</td>
+                <td className="py-2">Klubb- och turneringsspelare &mdash; ett brett spann från nykomlingar till erfarna tävlingsspelare</td>
               </tr>
               <tr>
-                <td className="py-2 pr-4">1400&ndash;1599</td>
-                <td className="py-2">Nybörjare / hobbyspelar</td>
+                <td className="py-2 pr-4">&lt; 1400</td>
+                <td className="py-2">Vanligtvis en spelare som ännu inte fått en officiell FIDE-rating</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
+          <strong>Om onlineratingar.</strong> Chess.com och Lichess använder egna ratingsystem
+          (Glicko/Glicko-2), inte Elo-systemet. Dessa ratingar har ingen direkt koppling till
+          FIDE:s Elo-ratingar och ligger generellt högre vid samma spelstyrka. Det finns ingen
+          tillförlitlig omvandling mellan dem.
+        </p>
       </section>
 
       <section>
