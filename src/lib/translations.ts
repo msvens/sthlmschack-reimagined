@@ -8,6 +8,7 @@ export interface Translations {
       results: string;
       players: string;
       organizations: string;
+      guide: string;
     };
     language: {
       english: string;
@@ -449,6 +450,15 @@ export interface Translations {
         autoHint: string;
       };
     };
+    guide: {
+      navigation: {
+        formats: string;
+      };
+      formats: {
+        title: string;
+        subtitle: string;
+      };
+    };
     organizations: {
       title: string;
       subtitle: string;
@@ -541,6 +551,7 @@ const translations: Record<Language, Translations> = {
         results: 'Results',
         players: 'Players',
         organizations: 'Clubs & Districts',
+        guide: 'Guide',
       },
       language: {
         english: 'English',
@@ -982,6 +993,15 @@ const translations: Record<Language, Translations> = {
           autoHint: 'Uses the SSF player\'s K-factor when available, otherwise estimates from rating',
         },
       },
+      guide: {
+        navigation: {
+          formats: 'Tournament Formats',
+        },
+        formats: {
+          title: 'Tournament Formats',
+          subtitle: 'How chess tournaments are organized',
+        },
+      },
       organizations: {
         title: 'Clubs & Districts',
         subtitle: 'Explore chess clubs and districts in Sweden.',
@@ -1072,6 +1092,7 @@ const translations: Record<Language, Translations> = {
         results: 'Resultat',
         players: 'Spelare',
         organizations: 'Klubbar & Distrikt',
+        guide: 'Guide',
       },
       language: {
         english: 'English',
@@ -1511,6 +1532,15 @@ const translations: Record<Language, Translations> = {
           uncapped: 'Utan gräns',
           performanceRating: 'Prestation',
           autoHint: 'Använder SSF-spelarens K-faktor om tillgänglig, annars uppskattas den utifrån rating',
+        },
+      },
+      guide: {
+        navigation: {
+          formats: 'Turneringsformat',
+        },
+        formats: {
+          title: 'Turneringsformat',
+          subtitle: 'Hur schackturneringar organiseras',
         },
       },
       organizations: {

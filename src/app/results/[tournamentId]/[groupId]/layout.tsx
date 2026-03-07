@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, formatPlayerName, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament, findTournamentGroup } from '@/lib/api';
+import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, formatPlayerName, isWalkoverPlayer, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament, findTournamentGroup } from '@/lib/api';
 import { GroupResultsProvider, GroupResultsContextValue, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -194,6 +194,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   // Helper to get player name from ID (includes FIDE title if available)
   // Pass optional date for historical lookups (team tournaments)
   const getPlayerName = useCallback((playerId: number, date?: number): string => {
+    if (isWalkoverPlayer(playerId)) return 'W.O';
     const player = findPlayer(playerId, date);
     if (!player) return `Player ${playerId}`;
     return formatPlayerName(player.firstName, player.lastName, player.elo?.title);
