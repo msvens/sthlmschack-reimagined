@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, formatMatchResult, normalizeEloLookupDate, parseLocalDate, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
+import { TournamentService, formatMatchResult, normalizeEloLookupDate, parseLocalDate, isWalkoverPlayer, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -619,7 +619,9 @@ export default function GroupResultsPage() {
                                       {
                                         id: 'white',
                                         header: t.pages.tournamentResults.roundByRound.white,
-                                        accessor: (row) => (
+                                        accessor: (row) => isWalkoverPlayer(row.homeId)
+                                          ? <span className="text-gray-500 dark:text-gray-400">{getPlayerName(row.homeId)}</span>
+                                          : (
                                           <Link
                                             href={`/results/${tournamentId}/${groupId}/${row.homeId}`}
                                             color="gray"
@@ -643,13 +645,15 @@ export default function GroupResultsPage() {
                                       {
                                         id: 'black',
                                         header: t.pages.tournamentResults.roundByRound.black,
-                                        accessor: (row) => (
+                                        accessor: (row) => isWalkoverPlayer(row.awayId)
+                                          ? <span className="text-gray-500 dark:text-gray-400">{getPlayerName(row.awayId)}</span>
+                                          : (
                                           <Link
                                             href={`/results/${tournamentId}/${groupId}/${row.awayId}`}
                                             color="gray"
                                           >
                                             {getPlayerName(row.awayId)}
-                                            </Link>
+                                          </Link>
                                         ),
                                         align: 'left'
                                       },
