@@ -9,6 +9,7 @@ import {
   SunIcon,
   MoonIcon,
   AcademicCapIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -76,6 +77,14 @@ export default function NavbarConfig() {
     icon: Cog6ToothIcon,
     label: t.navbar.more,
     items: [
+      {
+        kind: 'link',
+        id: 'guide',
+        href: '/guide',
+        icon: BookOpenIcon,
+        label: t.navbar.navigation.guide,
+      },
+      { kind: 'divider' },
       {
         kind: 'action',
         id: 'theme',
