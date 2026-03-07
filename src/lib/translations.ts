@@ -368,6 +368,8 @@ export interface Translations {
         noResultsAvailable: string;
         groupCancelled: string;
         resultsComing: string;
+        liveResultsNotice: string;
+        liveResultsLink: string;
       };
       registrationTable: {
         title: string;
@@ -911,6 +913,8 @@ const translations: Record<Language, Translations> = {
           noResultsAvailable: 'No results available',
           groupCancelled: 'This group may have been cancelled',
           resultsComing: 'Results coming soon...',
+          liveResultsNotice: 'Results may be temporarily unavailable while rounds are being updated.',
+          liveResultsLink: 'View official results',
         },
         registrationTable: {
           title: 'Registered Players',
@@ -1452,6 +1456,8 @@ const translations: Record<Language, Translations> = {
           noResultsAvailable: 'Inga resultat tillgängliga',
           groupCancelled: 'Denna grupp kan ha ställts in',
           resultsComing: 'Resultat kommer snart...',
+          liveResultsNotice: 'Resultat kan tillfälligt vara otillgängliga medan ronder uppdateras.',
+          liveResultsLink: 'Visa officiella resultat',
         },
         registrationTable: {
           title: 'Anmälda spelare',
