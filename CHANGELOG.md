@@ -4,6 +4,17 @@ All notable changes to msvens chess will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Guide section with tournament formats page (Swiss, Round Robin, Knockout, tiebreaks)
+- Live results notice with link to official results for same-day tournaments
+- Column sorting for tournament lists, final results, and team results tables
+- Player search helper text clarifying name input format
+
+### Fixed
+- Walkover players showing as "Player -100" instead of "W.O" in round results
+- Scoring in Schack4an (3/2/1) and 3-1-0 point system tournaments
+- Missing players no longer silently dropped from tournament detail page
+
 ---
 
 ## [1.0.0] - 2026-02-14
