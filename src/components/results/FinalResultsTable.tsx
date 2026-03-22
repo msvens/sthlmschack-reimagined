@@ -115,14 +115,16 @@ export function FinalResultsTable({
       accessor: (row) => row.points !== undefined ? row.points : '-',
       align: 'center',
       noWrap: true,
-      cellStyle: { fontWeight: 'medium' }
+      cellStyle: { fontWeight: 'medium' },
+      sortValue: (row) => row.points ?? 0
     },
     {
       id: 'qp',
       header: t.pages.tournamentResults.finalResultsTable.qp,
       accessor: (row) => row.secPoints !== undefined ? (Math.round(Number(row.secPoints) * 2) / 2).toFixed(1) : '-',
       align: 'center',
-      noWrap: true
+      noWrap: true,
+      sortValue: (row) => Number(row.secPoints) || 0
     }
   ];
 
