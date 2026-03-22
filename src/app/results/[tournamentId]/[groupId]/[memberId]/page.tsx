@@ -11,7 +11,7 @@ import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { EloRatingChart } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, getResultDisplayString, formatPlayerName, RoundRatedType, PlayerInfoDto, TournamentDto } from '@/lib/api';
+import { TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, getResultDisplayString, getPlayerOutcome, getPlayerPoints, calculatePoints, formatPlayerName, RoundRatedType, PlayerInfoDto, TournamentDto } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults } from '@/context/GroupResultsContext';
@@ -92,15 +92,26 @@ export default function TournamentPlayerDetailPage() {
           tournamentService.getTournament(tournamentId)
         ]);
 
-        if (!playerData) {
-          throw new Error('Failed to fetch player data');
-        }
-
         if (tournamentResponse.status !== 200 || !tournamentResponse.data) {
           throw new Error('Failed to fetch tournament data');
         }
 
-        setPlayer(playerData);
+        // If player not found in API, create a stub so the page still renders.
+        // This can happen when the API has inconsistent data (player exists in
+        // results but not in the player endpoint).
+        setPlayer(playerData ?? {
+          id: memberId,
+          firstName: 'Player',
+          lastName: `${memberId}`,
+          birthdate: '',
+          sex: 0,
+          fideid: 0,
+          country: '',
+          club: '',
+          clubId: 0,
+          elo: { rating: 0, title: '', date: '', k: 0, rapidRating: 0, rapidk: 0, blitzRating: 0, blitzK: 0 },
+          lask: { rating: 0, date: '' },
+        });
         setTournament(tournamentResponse.data);
 
       } catch (err) {
@@ -235,49 +246,45 @@ export default function TournamentPlayerDetailPage() {
             const isWhite = game.whiteId === memberId;
             const opponentId = isWhite ? game.blackId : game.whiteId;
 
-            // Get opponent info using historical date lookup
-            const opponent = getPlayerByDate(opponentId, roundDate);
-            if (opponent) {
-              // Determine result based on game.result and player color
-              let result: 'win' | 'draw' | 'loss';
-              let homeResult: number;
-              let awayResult: number;
+            // Get opponent info using historical date lookup, or create a stub for unknown players
+            const opponent = getPlayerByDate(opponentId, roundDate) ?? {
+              id: opponentId,
+              firstName: `Player`,
+              lastName: `${opponentId}`,
+              birthdate: '',
+              sex: 0,
+              fideid: 0,
+              country: '',
+              club: '',
+              clubId: 0,
+              elo: { rating: 0, title: '', date: '', k: 0, rapidRating: 0, rapidk: 0, blitzRating: 0, blitzK: 0 },
+              lask: { rating: 0, date: '' },
+            } satisfies PlayerInfoDto;
 
-              if (game.result === 0) {
-                // Draw
-                result = 'draw';
-                homeResult = 0.5;
-                awayResult = 0.5;
-              } else if (game.result === 1) {
-                // White wins
-                result = isWhite ? 'win' : 'loss';
-                homeResult = 1;
-                awayResult = 0;
-              } else {
-                // Black wins (result === -1)
-                result = isWhite ? 'loss' : 'win';
-                homeResult = 0;
-                awayResult = 1;
-              }
+            // Determine result using SDK (handles all point systems)
+            const outcome = getPlayerOutcome(game.result, isWhite);
+            const result: 'win' | 'draw' | 'loss' = outcome ?? 'loss';
 
-              // Check for walkover and countability in team games
-              const isWalkover = isWalkoverResultCode(game.result);
-              const isCountable = isCountableResult(game.result);
+            // Calculate points using SDK (handles all point systems)
+            const [whitePoints, blackPoints] = calculatePoints(game.result);
 
-              playerMatches.push({
-                round: roundResult.roundNr,
-                roundDate,
-                opponent,
-                result,
-                color: isWhite ? 'white' : 'black',
-                homeResult,
-                awayResult,
-                isWalkover,
-                isCountable,
-                gameResultCode: game.result,
-                roundRatedType
-              });
-            }
+            // Check for walkover and countability in team games
+            const isWalkover = isWalkoverResultCode(game.result);
+            const isCountable = isCountableResult(game.result);
+
+            playerMatches.push({
+              round: roundResult.roundNr,
+              roundDate,
+              opponent,
+              result,
+              color: isWhite ? 'white' : 'black',
+              homeResult: whitePoints,
+              awayResult: blackPoints,
+              isWalkover,
+              isCountable,
+              gameResultCode: game.result,
+              roundRatedType
+            });
           }
         });
       }
@@ -289,44 +296,56 @@ export default function TournamentPlayerDetailPage() {
         if (roundResult.homeId === memberId || roundResult.awayId === memberId) {
           const isHome = roundResult.homeId === memberId;
           const opponentId = isHome ? roundResult.awayId : roundResult.homeId;
-          const playerResult = isHome ? roundResult.homeResult : roundResult.awayResult;
           const roundDate = parseDateToTimestamp(roundResult.date);
           // Get the rated type for this round
           const roundRatedType = getRoundRatedType(roundResult.roundNr);
 
-          // Get opponent info using historical date lookup
-          const opponent = getPlayerByDate(opponentId, roundDate);
-          if (opponent) {
-            // Determine result
-            let result: 'win' | 'draw' | 'loss';
-            if (playerResult === 1) {
-              result = 'win';
-            } else if (playerResult === 0.5) {
-              result = 'draw';
-            } else {
-              result = 'loss';
-            }
+          // Get opponent info using historical date lookup, or create a stub for unknown players
+          const opponent = getPlayerByDate(opponentId, roundDate) ?? {
+            id: opponentId,
+            firstName: `Player`,
+            lastName: `${opponentId}`,
+            birthdate: '',
+            sex: 0,
+            fideid: 0,
+            country: '',
+            club: '',
+            clubId: 0,
+            elo: { rating: 0, title: '', date: '', k: 0, rapidRating: 0, rapidk: 0, blitzRating: 0, blitzK: 0 },
+            lask: { rating: 0, date: '' },
+          } satisfies PlayerInfoDto;
 
-            // Check games array for walkover and countability - the result code is in games[0].result
-            const gameResultCode = roundResult.games?.[0]?.result;
-            const isWalkover = gameResultCode !== undefined && isWalkoverResultCode(gameResultCode);
-            // Result is countable only if we have a valid result code that's not NOT_SET, POSTPONED, etc.
-            const isCountable = gameResultCode !== undefined && isCountableResult(gameResultCode);
+          // Check games array for walkover and countability - the result code is in games[0].result
+          const gameResultCode = roundResult.games?.[0]?.result;
+          const isWalkover = gameResultCode !== undefined && isWalkoverResultCode(gameResultCode);
+          // Result is countable only if we have a valid result code that's not NOT_SET, POSTPONED, etc.
+          const isCountable = gameResultCode !== undefined && isCountableResult(gameResultCode);
 
-            playerMatches.push({
-              round: roundResult.roundNr,
-              roundDate,
-              opponent,
-              result,
-              color: isHome ? 'white' : 'black',
-              homeResult: roundResult.homeResult,
-              awayResult: roundResult.awayResult,
-              isWalkover,
-              isCountable,
-              gameResultCode,
-              roundRatedType
-            });
+          // Determine result using SDK (handles all point systems: standard, Schack4an, 3-1-0)
+          let result: 'win' | 'draw' | 'loss';
+          if (gameResultCode !== undefined) {
+            const outcome = getPlayerOutcome(gameResultCode, isHome);
+            result = outcome ?? 'loss';
+          } else {
+            // Fallback: compare homeResult vs awayResult
+            const playerScore = isHome ? roundResult.homeResult : roundResult.awayResult;
+            const opponentScore = isHome ? roundResult.awayResult : roundResult.homeResult;
+            result = playerScore > opponentScore ? 'win' : playerScore === opponentScore ? 'draw' : 'loss';
           }
+
+          playerMatches.push({
+            round: roundResult.roundNr,
+            roundDate,
+            opponent,
+            result,
+            color: isHome ? 'white' : 'black',
+            homeResult: roundResult.homeResult,
+            awayResult: roundResult.awayResult,
+            isWalkover,
+            isCountable,
+            gameResultCode,
+            roundRatedType
+          });
         }
       }
     }
@@ -602,9 +621,14 @@ export default function TournamentPlayerDetailPage() {
             const playedMatches = matches.filter(m => !m.isWalkover && m.isCountable);
 
             // Calculate actual score (sum of points) - only from played games
+            // Uses SDK getPlayerPoints for correct scoring in all point systems (standard, Schack4an, 3-1-0)
             const totalScore = playedMatches.reduce((sum, match) => {
-              const score = match.result === 'win' ? 1.0 : match.result === 'draw' ? 0.5 : 0.0;
-              return sum + score;
+              if (match.gameResultCode !== undefined) {
+                const points = getPlayerPoints(match.gameResultCode, match.color === 'white');
+                return sum + (points ?? 0);
+              }
+              // Fallback: use homeResult/awayResult directly
+              return sum + (match.color === 'white' ? match.homeResult : match.awayResult);
             }, 0);
 
             // Group matches by rating type for separate Elo calculations
