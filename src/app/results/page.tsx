@@ -22,11 +22,77 @@ import {
   filterByState,
 } from '@/lib/utils/tournamentFilters';
 
+// Helper: Format date to YYYY-MM-DDTHH:mm:ss
+function formatDateForApi(dateString: string): string {
+  return `${dateString}T00:00:00`;
+}
+
+// Helper: Deduplicate tournaments by ID, keeping the one with the most recent latestUpdated
+function deduplicateTournaments(tournaments: TournamentDto[]): TournamentDto[] {
+  const uniqueTournaments = new Map<number, TournamentDto>();
+
+  tournaments.forEach(tournament => {
+    const existing = uniqueTournaments.get(tournament.id);
+    if (!existing) {
+      uniqueTournaments.set(tournament.id, tournament);
+    } else {
+      const existingDate = existing.latestUpdated ? new Date(existing.latestUpdated).getTime() : 0;
+      const newDate = tournament.latestUpdated ? new Date(tournament.latestUpdated).getTime() : 0;
+      if (newDate > existingDate) {
+        uniqueTournaments.set(tournament.id, tournament);
+      }
+    }
+  });
+
+  return Array.from(uniqueTournaments.values());
+}
+
+// Helper: Deduplicate tournament groups and create tournament objects from text search results
+function deduplicateAndConvertTournaments(groups: GroupSearchAnswerDto[]): TournamentDto[] {
+  const uniqueTournaments = new Map<number, GroupSearchAnswerDto>();
+
+  groups.forEach(group => {
+    if (!uniqueTournaments.has(group.tournamentid)) {
+      uniqueTournaments.set(group.tournamentid, group);
+    }
+  });
+
+  return Array.from(uniqueTournaments.values()).map(group => ({
+    id: group.tournamentid,
+    name: group.tournamentname,
+    start: '',
+    end: '',
+    city: '',
+    arena: '',
+    type: 0,
+    ia: 0,
+    secjudges: '',
+    thinkingTime: '',
+    state: 0,
+    allowForeignPlayers: 0,
+    teamtournamentPlayerListType: 0,
+    ageFilter: 0,
+    nrOfPartLink: '',
+    orgType: 0,
+    orgNumber: 0,
+    ratingRegDate: '',
+    ratingRegDate2: '',
+    fideregged: 0,
+    online: 0,
+    y2cRules: 0,
+    teamNrOfDaysRegged: 0,
+    showPublic: 0,
+    invitationurl: '',
+    latestUpdated: group.latestUpdatedGame || '',
+    secParsedJudges: [],
+    rootClasses: [],
+  } as TournamentDto));
+}
+
 export default function ResultsPage() {
   const { language } = useLanguage();
   const t = getTranslation(language);
 
-  // Helper: Get default date range (10 days back)
   const getDefaultDateRange = () => {
     const now = new Date();
     const tenDaysAgo = new Date();
@@ -55,122 +121,40 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
-  const tournamentService = new TournamentService();
-
-  // Helper: Format date to YYYY-MM-DDTHH:mm:ss
-  const formatDateForApi = (dateString: string): string => {
-    return `${dateString}T00:00:00`;
-  };
-
-  // Helper: Deduplicate tournaments by ID, keeping the one with the most recent latestUpdated
-  const deduplicateTournaments = (tournaments: TournamentDto[]): TournamentDto[] => {
-    const uniqueTournaments = new Map<number, TournamentDto>();
-
-    tournaments.forEach(tournament => {
-      const existing = uniqueTournaments.get(tournament.id);
-      if (!existing) {
-        uniqueTournaments.set(tournament.id, tournament);
-      } else {
-        // Keep the one with the most recent latestUpdated
-        const existingDate = existing.latestUpdated ? new Date(existing.latestUpdated).getTime() : 0;
-        const newDate = tournament.latestUpdated ? new Date(tournament.latestUpdated).getTime() : 0;
-        if (newDate > existingDate) {
-          uniqueTournaments.set(tournament.id, tournament);
-        }
-      }
-    });
-
-    return Array.from(uniqueTournaments.values());
-  };
-
-  // Helper: Deduplicate tournament groups and create tournament objects from text search results
-  // Note: Only used for text search, which returns GroupSearchAnswerDto[]
-  const deduplicateAndConvertTournaments = (groups: GroupSearchAnswerDto[]): TournamentDto[] => {
-    const uniqueTournaments = new Map<number, GroupSearchAnswerDto>();
-
-    // Keep first occurrence of each tournament
-    groups.forEach(group => {
-      if (!uniqueTournaments.has(group.tournamentid)) {
-        uniqueTournaments.set(group.tournamentid, group);
-      }
-    });
-
-    // Convert to TournamentDto with placeholder data for missing fields
-    return Array.from(uniqueTournaments.values()).map(group => ({
-      id: group.tournamentid,
-      name: group.tournamentname,
-      start: '', // Will show as "-" in the table
-      end: '', // Will show as "-" in the table
-      city: '',
-      arena: '',
-      type: 0,
-      ia: 0,
-      secjudges: '',
-      thinkingTime: '',
-      state: 0,
-      allowForeignPlayers: 0,
-      teamtournamentPlayerListType: 0,
-      ageFilter: 0,
-      nrOfPartLink: '',
-      orgType: 0, // Will show as "-" in the table
-      orgNumber: 0, // Will show as "-" in the table
-      ratingRegDate: '',
-      ratingRegDate2: '',
-      fideregged: 0,
-      online: 0,
-      y2cRules: 0,
-      teamNrOfDaysRegged: 0,
-      showPublic: 0,
-      invitationurl: '',
-      latestUpdated: group.latestUpdatedGame || '',
-      secParsedJudges: [],
-      rootClasses: [],
-    } as TournamentDto));
-  };
-
-  // Load default data: tournaments updated in last 10 days
-  const loadDefaultTournaments = async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const now = new Date();
-      const tenDaysAgo = new Date();
-      tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-
-      const startDateStr = formatDateForApi(tenDaysAgo.toISOString().split('T')[0]);
-      const endDateStr = formatDateForApi(now.toISOString().split('T')[0]);
-
-      const response = await tournamentService.searchUpdatedTournaments(
-        startDateStr,
-        endDateStr
-      );
-
-      if (response.data) {
-        // Deduplicate and sort by latestUpdated (descending - most recent first)
-        const dedupedTournaments = deduplicateTournaments(response.data);
-        const sortedTournaments = dedupedTournaments.sort((a, b) => {
-          const dateA = a.latestUpdated ? new Date(a.latestUpdated).getTime() : 0;
-          const dateB = b.latestUpdated ? new Date(b.latestUpdated).getTime() : 0;
-          return dateB - dateA;
-        });
-        setTournaments(sortedTournaments);
-      } else {
-        setError(response.error || 'Failed to load tournaments');
-      }
-    } catch (err) {
-      setError('An error occurred while loading tournaments');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const tournamentService = useMemo(() => new TournamentService(), []);
 
   // Load on mount
   useEffect(() => {
+    const loadDefaultTournaments = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const now = new Date();
+        const tenDaysAgo = new Date();
+        tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+        const startDateStr = formatDateForApi(tenDaysAgo.toISOString().split('T')[0]);
+        const endDateStr = formatDateForApi(now.toISOString().split('T')[0]);
+        const response = await tournamentService.searchUpdatedTournaments(startDateStr, endDateStr);
+        if (response.data) {
+          const dedupedTournaments = deduplicateTournaments(response.data);
+          const sortedTournaments = dedupedTournaments.sort((a, b) => {
+            const dateA = a.latestUpdated ? new Date(a.latestUpdated).getTime() : 0;
+            const dateB = b.latestUpdated ? new Date(b.latestUpdated).getTime() : 0;
+            return dateB - dateA;
+          });
+          setTournaments(sortedTournaments);
+        } else {
+          setError(response.error || 'Failed to load tournaments');
+        }
+      } catch (err) {
+        setError('An error occurred while loading tournaments');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
     loadDefaultTournaments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [tournamentService]);
 
   // Handle date range search
   const handleDateRangeSearch = async () => {

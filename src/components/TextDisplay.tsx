@@ -25,29 +25,27 @@ export function TextDisplay({
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const textRef = useRef<HTMLSpanElement>(null);
 
-  // Track screen size - large screens don't truncate
+  // Track screen size and check text overflow in one effect
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsLargeScreen(window.innerWidth >= 768); // md breakpoint
+    const checkOverflow = () => {
+      const large = window.innerWidth >= 768;
+      setIsLargeScreen(large);
+
+      if (!maxLines || !textRef.current || large) {
+        setNeedsExpansion(false);
+        return;
+      }
+
+      const element = textRef.current;
+      const lineHeight = parseFloat(getComputedStyle(element).lineHeight);
+      const maxHeight = lineHeight * maxLines;
+      setNeedsExpansion(element.scrollHeight > maxHeight + 2);
     };
 
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-
-  // Check if text overflows the collapsed height (only on small screens)
-  useEffect(() => {
-    if (!maxLines || !textRef.current || isLargeScreen) {
-      setNeedsExpansion(false);
-      return;
-    }
-
-    const element = textRef.current;
-    const lineHeight = parseFloat(getComputedStyle(element).lineHeight);
-    const maxHeight = lineHeight * maxLines;
-    setNeedsExpansion(element.scrollHeight > maxHeight + 2);
-  }, [text, maxLines, isLargeScreen]);
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [text, maxLines]);
 
   // Only apply line-clamp on small screens when not expanded
   const shouldTruncate = maxLines && !isExpanded && !isLargeScreen;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, ReactNode, useMemo } from 'react';
+import React, { useState, ReactNode, useMemo } from 'react';
 import { PlayerTournamentList } from './PlayerTournamentList';
 import { OpponentsTab } from './OpponentsTab';
 import { HeadToHeadTab } from './HeadToHeadTab';
@@ -50,12 +50,14 @@ export function PlayerHistory({
     setSelectedTab(tab);
   };
 
-  // Auto-switch to H2H tab when opponent is selected
-  useEffect(() => {
+  // Auto-switch to H2H tab when a new opponent is selected (render-time state adjustment)
+  const [prevOpponentId, setPrevOpponentId] = useState(selectedOpponentId);
+  if (selectedOpponentId !== prevOpponentId) {
+    setPrevOpponentId(selectedOpponentId);
     if (selectedOpponentId && selectedOpponentName) {
       setSelectedTab('h2h');
     }
-  }, [selectedOpponentId, selectedOpponentName]);
+  }
 
   // Filter tournaments by type
   const individualTournaments = useMemo(

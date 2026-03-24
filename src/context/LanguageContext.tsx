@@ -15,13 +15,15 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('sv'); // Default to Swedish
 
+  // Read saved language from localStorage on mount (not lazy initializer to avoid hydration mismatch)
   useEffect(() => {
-    // Check localStorage only once on mount
-    const savedLanguage = safeGetItem('language');
-    if (savedLanguage === 'en' || savedLanguage === 'sv') {
-      setLanguageState(savedLanguage);
-    }
-    // If no valid saved language, Swedish remains the default
+    const loadSavedLanguage = () => {
+      const saved = safeGetItem('language');
+      if (saved === 'en' || saved === 'sv') {
+        setLanguageState(saved);
+      }
+    };
+    loadSavedLanguage();
   }, []);
 
   const setLanguage = (lang: Language) => {

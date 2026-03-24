@@ -549,8 +549,10 @@ export default function EloCalculatorPage() {
   const [topPlayers, setTopPlayers] = useState<FideActivePlayer[]>([]);
   const [topPlayersLoading, setTopPlayersLoading] = useState(false);
 
-  // When eloType changes, re-derive the active rating from stored ratings
-  useEffect(() => {
+  // Re-derive active rating when eloType changes (render-time state adjustment)
+  const [prevEloType, setPrevEloType] = useState(eloType);
+  if (eloType !== prevEloType) {
+    setPrevEloType(eloType);
     for (const [player, setPlayer] of [[player1, setPlayer1], [player2, setPlayer2]] as const) {
       if (player.ratings) {
         const { ratingStr, profileKFactor, usingDefault } = deriveFromRatings(player.ratings, player.kFactors, eloType);
@@ -559,22 +561,24 @@ export default function EloCalculatorPage() {
         }
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eloType]);
+  }
 
   useEffect(() => {
     let cancelled = false;
-    const fideService = new FideService('/api/chesstools');
-    setTopPlayersLoading(true);
-    fideService.getTopActive(10).then((response) => {
-      if (!cancelled && response.status === 200 && response.data) {
-        setTopPlayers(response.data);
-      }
-    }).catch(() => {
-      // silently fail - dropdown will just be empty
-    }).finally(() => {
-      if (!cancelled) setTopPlayersLoading(false);
-    });
+    const fetchTopPlayers = () => {
+      const fideService = new FideService('/api/chesstools');
+      setTopPlayersLoading(true);
+      fideService.getTopActive(10).then((response) => {
+        if (!cancelled && response.status === 200 && response.data) {
+          setTopPlayers(response.data);
+        }
+      }).catch(() => {
+        // silently fail - dropdown will just be empty
+      }).finally(() => {
+        if (!cancelled) setTopPlayersLoading(false);
+      });
+    };
+    fetchTopPlayers();
     return () => { cancelled = true; };
   }, []);
 

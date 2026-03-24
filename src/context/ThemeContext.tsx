@@ -16,13 +16,15 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('dark'); // Default to dark
 
+  // Read saved theme from localStorage on mount (not lazy initializer to avoid hydration mismatch)
   useEffect(() => {
-    // Check if user has a saved preference
-    const savedTheme = safeGetItem('theme') as Theme;
-    if (savedTheme) {
-      setThemeState(savedTheme);
-    }
-    // If no saved preference, keep dark as default
+    const loadSavedTheme = () => {
+      const saved = safeGetItem('theme') as Theme;
+      if (saved) {
+        setThemeState(saved);
+      }
+    };
+    loadSavedTheme();
   }, []);
 
   useEffect(() => {

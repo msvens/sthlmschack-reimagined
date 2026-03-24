@@ -92,8 +92,7 @@ export function RegistrationTable({
   // Wrapper to handle the original TournamentEndResultDto in onRowClick
   const handleRowClick = onRowClick
     ? (row: RegistrationRowData) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { registrationOrder, ...originalResult } = row;
+        const { registrationOrder: _, ...originalResult } = row;
         onRowClick(originalResult as TournamentEndResultDto);
       }
     : undefined;
