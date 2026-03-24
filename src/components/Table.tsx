@@ -120,7 +120,6 @@ export function Table<T = Record<string, unknown>>({
     comfortable: 10,
     normal: 20
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   size = 'medium',
   pagination,
   defaultSort
@@ -148,10 +147,18 @@ export function Table<T = Record<string, unknown>>({
     };
   }, [pagination]);
 
-  // Reset to page 1 when data or sort changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [data, sortColumnId, sortDirection]);
+  // Reset to page 1 when data or sort changes (render-time state adjustment per React docs)
+  const [prevResetDeps, setPrevResetDeps] = useState({ data, sortColumnId, sortDirection });
+  if (
+    prevResetDeps.data !== data ||
+    prevResetDeps.sortColumnId !== sortColumnId ||
+    prevResetDeps.sortDirection !== sortDirection
+  ) {
+    setPrevResetDeps({ data, sortColumnId, sortDirection });
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }
 
   // Sort data
   const sortedData = useMemo(() => {

@@ -34,6 +34,7 @@ export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
   const t = getTranslation(language);
   const { games, gamesLoading, tournamentMap, getPlayerName: getPlayerNameFromContext } = usePlayer();
   const globalCache = useGlobalPlayerCache();
+  const { getOrFetchPlayersByDate } = globalCache;
 
   // Get current player name
   const currentPlayerName = useMemo(() => {
@@ -86,10 +87,9 @@ export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
     }
 
     if (requests.length > 0) {
-      globalCache.getOrFetchPlayersByDate(requests);
+      getOrFetchPlayersByDate(requests);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [memberId, opponentId, groupMeta]);
+  }, [memberId, opponentId, groupMeta, getOrFetchPlayersByDate]);
 
   // Build a playerMap adapter from the global cache for gamesToDisplayFormat
   const playerMapAdapter = useMemo(() => {

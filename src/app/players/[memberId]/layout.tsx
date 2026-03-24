@@ -11,7 +11,9 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
   const params = useParams();
   const memberId = params.memberId ? parseInt(params.memberId as string) : null;
   const globalCache = useGlobalPlayerCache();
+  const { getOrFetchPlayer, getOrFetchPlayers } = globalCache;
   const tournamentCache = useGlobalTournamentCache();
+  const { getOrFetchTournaments } = tournamentCache;
 
   // Current player (fetched first, available immediately)
   const [currentPlayer, setCurrentPlayer] = useState<PlayerInfoDto | null>(null);
@@ -55,7 +57,7 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
         const resultsService = new ResultsService();
 
         // Step 0: Fetch current player info FIRST (needed immediately for page header)
-        const currentPlayerData = await globalCache.getOrFetchPlayer(memberId);
+        const currentPlayerData = await getOrFetchPlayer(memberId);
 
         if (currentPlayerData) {
           setCurrentPlayer(currentPlayerData);
@@ -91,7 +93,7 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
         });
 
         // Step 3: Fetch tournaments FIRST (priority - needed for Individual, Team, and Opponents tabs)
-        const newTournamentMap = await tournamentCache.getOrFetchTournaments(Array.from(groupIds));
+        const newTournamentMap = await getOrFetchTournaments(Array.from(groupIds));
 
         setTournamentMap(newTournamentMap);
 
@@ -169,7 +171,7 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
 
         // Step 5: Fetch opponent player info via global cache
         // Cache handles deduplication — already-cached opponents won't be re-fetched
-        await globalCache.getOrFetchPlayers(Array.from(opponentIds));
+        await getOrFetchPlayers(Array.from(opponentIds));
       } catch (err) {
         console.error('Error fetching games and metadata:', err);
         setGamesError('Failed to load game data');
@@ -179,8 +181,7 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
     };
 
     fetchGamesAndMetadata();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [memberId]);
+  }, [memberId, getOrFetchPlayer, getOrFetchPlayers, getOrFetchTournaments]);
 
   // Helper functions (includes FIDE title if available)
   const getPlayerName = useCallback((playerId: number): string => {
