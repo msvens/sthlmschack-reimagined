@@ -46,7 +46,6 @@ export function OrganizationsProvider({ children }: { children: React.ReactNode 
         setClubDistrictMap(lookups.clubDistrictMap);
         setDistrictMap(lookups.districtMap);
 
-        console.log(`✅ Loaded ${data.stats.districtCount} districts and ${data.stats.clubCount} clubs`);
       } catch (err) {
         console.error('Failed to load organization data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load organization data');
