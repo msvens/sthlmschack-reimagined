@@ -201,12 +201,12 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
     return formatPlayerRating(player.elo, null);
   }, [globalCache]);
 
-  const getTournamentName = useMemo(() => (groupId: number): string => {
+  const getTournamentName = useCallback((groupId: number): string => {
     const tournament = tournamentMap.get(groupId);
     return tournament?.name || `Unknown Tournament (Group ${groupId})`;
   }, [tournamentMap]);
 
-  const getTournamentTimeControl = useMemo(() => (groupId: number): 'standard' | 'rapid' | 'blitz' | 'unrated' => {
+  const getTournamentTimeControl = useCallback((groupId: number): 'standard' | 'rapid' | 'blitz' | 'unrated' => {
     const tournament = tournamentMap.get(groupId);
     if (!tournament) return 'standard';
     const groupResult = findTournamentGroup(tournament, groupId);
