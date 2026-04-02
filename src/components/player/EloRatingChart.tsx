@@ -68,6 +68,7 @@ export function EloRatingChart({
   const [endMonth, setEndMonth] = useState(defaultPeriod.end);
   const [data, setData] = useState<RatingDataPoint[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Determine effective max data points: 0 = responsive, -1 = unlimited, >0 = fixed
   const responsiveMax = useResponsiveDataPoints();
@@ -78,12 +79,14 @@ export function EloRatingChart({
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
         const response = await getPlayerRatingHistory(memberId, startMonth, endMonth, effectiveMax);
         if (response.status === 200 && response.data) {
           setData(response.data);
         }
       } catch (err) {
         console.error('Error fetching rating history:', err);
+        setError('Failed to load rating history');
       } finally {
         setLoading(false);
       }
@@ -153,6 +156,10 @@ export function EloRatingChart({
       {loading ? (
         <div className="flex items-center justify-center text-gray-600 dark:text-gray-400" style={{ height }}>
           Loading...
+        </div>
+      ) : error ? (
+        <div className="py-3 text-sm text-red-500 dark:text-red-400">
+          {error}
         </div>
       ) : !data || data.length === 0 ? (
         <div className="py-3 text-sm text-gray-500 dark:text-gray-400">
