@@ -5,21 +5,28 @@ const SSF_API_BASE = process.env.SSF_API_URL || 'https://member.schack.se/public
 // Transparent proxy: forwards the request path exactly as received,
 // preserving trailing slashes. The SDK controls the exact path per endpoint.
 async function proxy(request: NextRequest) {
-  const originalPath = request.nextUrl.pathname.replace('/api/chess/v1', '');
-  const search = request.nextUrl.search;
-  const target = `${SSF_API_BASE}${originalPath}${search}`;
+  try {
+    const originalPath = request.nextUrl.pathname.replace('/api/chess/v1', '');
+    const search = request.nextUrl.search;
+    const target = `${SSF_API_BASE}${originalPath}${search}`;
 
-  const response = await fetch(target, {
-    method: request.method,
-    headers: { 'Content-Type': 'application/json' },
-    body: request.method !== 'GET' ? await request.text() : undefined,
-  });
+    const response = await fetch(target, {
+      method: request.method,
+      headers: { 'Content-Type': 'application/json' },
+      body: request.method !== 'GET' ? await request.text() : undefined,
+    });
 
-  const data = await response.text();
-  return new Response(data, {
-    status: response.status,
-    headers: { 'Content-Type': response.headers.get('Content-Type') || 'application/json' },
-  });
+    const data = await response.text();
+    return new Response(data, {
+      status: response.status,
+      headers: { 'Content-Type': response.headers.get('Content-Type') || 'application/json' },
+    });
+  } catch {
+    return new Response(JSON.stringify({ error: 'Upstream request failed' }), {
+      status: 502,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }
 
 export const GET = proxy;
