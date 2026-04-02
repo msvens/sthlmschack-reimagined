@@ -34,8 +34,7 @@ export default function SSFRankingPage() {
         } else {
           setRatingData([]);
         }
-      } catch (error) {
-        console.error('Failed to load ratings:', error);
+      } catch {
         setRatingData([]);
       } finally {
         setLoading(false);

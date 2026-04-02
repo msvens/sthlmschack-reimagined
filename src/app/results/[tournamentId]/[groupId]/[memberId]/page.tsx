@@ -116,7 +116,6 @@ export default function TournamentPlayerDetailPage() {
 
       } catch (err) {
         setError('Failed to load tournament player data');
-        console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
       }

@@ -152,7 +152,6 @@ export default function GroupResultsPage() {
 
       } catch (err) {
         setError('Failed to load tournament information');
-        console.error('Error fetching tournament:', err);
       } finally {
         setLoading(false);
       }

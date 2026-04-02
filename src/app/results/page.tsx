@@ -146,9 +146,8 @@ export default function ResultsPage() {
         } else {
           setError(response.error || 'Failed to load tournaments');
         }
-      } catch (err) {
+      } catch {
         setError('An error occurred while loading tournaments');
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -188,9 +187,8 @@ export default function ResultsPage() {
       } else {
         setError(response.error || 'Failed to search tournaments');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred while searching tournaments');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -215,9 +213,8 @@ export default function ResultsPage() {
       } else {
         setError(response.error || 'Failed to search tournaments');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred while searching tournaments');
-      console.error(err);
     } finally {
       setLoading(false);
     }

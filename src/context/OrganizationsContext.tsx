@@ -47,7 +47,6 @@ export function OrganizationsProvider({ children }: { children: React.ReactNode 
         setDistrictMap(lookups.districtMap);
 
       } catch (err) {
-        console.error('Failed to load organization data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load organization data');
       } finally {
         setLoading(false);

@@ -84,8 +84,7 @@ export function EloRatingChart({
         if (response.status === 200 && response.data) {
           setData(response.data);
         }
-      } catch (err) {
-        console.error('Error fetching rating history:', err);
+      } catch {
         setError('Failed to load rating history');
       } finally {
         setLoading(false);

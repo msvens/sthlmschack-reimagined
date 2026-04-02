@@ -36,8 +36,8 @@ export function useLiveUpdates(options: UseLiveUpdatesOptions) {
     try {
       await onRefresh();
       setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Live update refresh failed:', error);
+    } catch {
+      // Refresh failures are silent; the caller's existing data remains displayed
     } finally {
       setIsRefreshing(false);
       refreshInProgress.current = false;

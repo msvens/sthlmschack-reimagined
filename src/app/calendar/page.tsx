@@ -50,8 +50,7 @@ export default function CalendarPage() {
             ? 'Kunde inte ladda turneringar'
             : 'Failed to load tournaments');
         }
-      } catch (err) {
-        console.error('Error fetching tournaments:', err);
+      } catch {
         setError(language === 'sv'
           ? 'Ett fel uppstod vid hämtning av turneringar'
           : 'An error occurred while fetching tournaments');

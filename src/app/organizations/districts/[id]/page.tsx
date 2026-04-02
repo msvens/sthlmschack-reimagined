@@ -46,8 +46,7 @@ export default function DistrictDetailPage() {
         } else {
           setRatingData([]);
         }
-      } catch (error) {
-        console.error('Failed to load ratings:', error);
+      } catch {
         setRatingData([]);
       } finally {
         setLoadingRatings(false);

@@ -173,7 +173,6 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
         // Cache handles deduplication — already-cached opponents won't be re-fetched
         await getOrFetchPlayers(Array.from(opponentIds));
       } catch (err) {
-        console.error('Error fetching games and metadata:', err);
         setGamesError('Failed to load game data');
         setGamesLoading(false);
         setTournamentsLoading(false);

@@ -44,7 +44,6 @@ export default function TournamentRedirectPage() {
         }
       } catch (err) {
         setError('Failed to load tournament');
-        console.error('Error fetching tournament:', err);
         setLoading(false);
       }
     };

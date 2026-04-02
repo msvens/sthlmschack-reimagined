@@ -178,7 +178,6 @@ export default function TeamDetailPage() {
         setTournament(response.data);
       } catch (err) {
         setError('Failed to load tournament information');
-        console.error('Error fetching tournament:', err);
       } finally {
         setLoading(false);
       }

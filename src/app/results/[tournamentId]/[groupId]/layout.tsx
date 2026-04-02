@@ -130,7 +130,6 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
 
     } catch (err) {
       setError('Failed to load results data');
-      console.error('Error fetching results:', err);
       setIndividualResults([]);
       setIndividualRoundResults([]);
       setTeamResults([]);
@@ -145,8 +144,8 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     if (!tournament || !groupId) return;
     try {
       await fetchResults(isTeamTournament(tournament.type), false);
-    } catch (err) {
-      console.error('Error refreshing results:', err);
+    } catch {
+      // Refresh failures are silent; the existing results remain displayed
     }
   }, [tournament, groupId, fetchResults]);
 
