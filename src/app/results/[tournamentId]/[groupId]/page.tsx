@@ -162,7 +162,7 @@ export default function GroupResultsPage() {
   }, [tournamentId]);
 
   // Recursively collect all classes from class hierarchy
-  const getAllClasses = (): TournamentClassDto[] => {
+  const allClasses = useMemo((): TournamentClassDto[] => {
     if (!tournament?.rootClasses) return [];
 
     const classes: TournamentClassDto[] = [];
@@ -183,39 +183,35 @@ export default function GroupResultsPage() {
     });
 
     return classes;
-  };
+  }, [tournament]);
 
   // Find which class contains the current groupId
-  const getSelectedClass = (): TournamentClassDto | null => {
+  const selectedClass = useMemo((): TournamentClassDto | null => {
     if (!groupId) return null;
 
-    const allClasses = getAllClasses();
     return allClasses.find(tournamentClass =>
       tournamentClass.groups?.some(group => group.id === groupId)
     ) || null;
-  };
+  }, [allClasses, groupId]);
 
   // Get the currently selected group
-  const getSelectedGroup = (): TournamentClassGroupDto | null => {
-    const selectedClass = getSelectedClass();
+  const selectedGroup = useMemo((): TournamentClassGroupDto | null => {
     if (!selectedClass) return null;
 
     return selectedClass.groups?.find(group => group.id === groupId) || null;
-  };
+  }, [selectedClass, groupId]);
 
   // Convert classes to SelectableListItem format
-  const getSelectableClasses = (): SelectableListItem[] => {
-    const allClasses = getAllClasses();
+  const selectableClasses = useMemo((): SelectableListItem[] => {
     return allClasses.map(tournamentClass => ({
       id: tournamentClass.classID,
       label: tournamentClass.className || `Class ${tournamentClass.classID}`,
       tooltip: tournamentClass.className
     }));
-  };
+  }, [allClasses]);
 
   // Convert groups to SelectableListItem format (only from selected class)
-  const getSelectableGroups = (): SelectableListItem[] => {
-    const selectedClass = getSelectedClass();
+  const selectableGroups = useMemo((): SelectableListItem[] => {
     if (!selectedClass?.groups) return [];
 
     return selectedClass.groups.map(group => ({
@@ -223,7 +219,7 @@ export default function GroupResultsPage() {
       label: group.name,
       tooltip: group.name
     }));
-  };
+  }, [selectedClass]);
 
   // Don't show loading message - it causes a brief flash on navigation
   // The content will appear once tournament data is loaded
@@ -260,9 +256,6 @@ export default function GroupResultsPage() {
     );
   }
 
-  const selectedGroup = getSelectedGroup();
-  const selectedClass = getSelectedClass();
-  const allClasses = getAllClasses();
   const hasMultipleClasses = allClasses.length > 1;
   const hasMultipleGroups = selectedClass?.groups ? selectedClass.groups.length > 1 : false;
   const isSingleGroup = !hasMultipleClasses && !hasMultipleGroups;
@@ -340,7 +333,7 @@ export default function GroupResultsPage() {
                 {/* Class Selector - only shown if multiple classes - always dropdown */}
                 {hasMultipleClasses && (
                   <SelectableList
-                    items={getSelectableClasses()}
+                    items={selectableClasses}
                     selectedId={selectedClass?.classID || null}
                     onSelect={handleClassSelect}
                     title="Class"
@@ -351,7 +344,7 @@ export default function GroupResultsPage() {
                 {/* Group Selector - only shown if multiple groups - vertical list */}
                 {hasMultipleGroups && (
                   <SelectableList
-                    items={getSelectableGroups()}
+                    items={selectableGroups}
                     selectedId={groupId}
                     onSelect={handleGroupSelect}
                     title={t.pages.tournamentResults.groups}
@@ -368,7 +361,7 @@ export default function GroupResultsPage() {
                 {/* Class Selector - only shown if multiple classes */}
                 {hasMultipleClasses && (
                   <SelectableList
-                    items={getSelectableClasses()}
+                    items={selectableClasses}
                     selectedId={selectedClass?.classID || null}
                     onSelect={handleClassSelect}
                     title="Class"
@@ -381,7 +374,7 @@ export default function GroupResultsPage() {
                 {/* Group Selector - only shown if multiple groups */}
                 {hasMultipleGroups && (
                   <SelectableList
-                    items={getSelectableGroups()}
+                    items={selectableGroups}
                     selectedId={groupId}
                     onSelect={handleGroupSelect}
                     title={t.pages.tournamentResults.groups}
