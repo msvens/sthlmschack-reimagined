@@ -4,16 +4,36 @@ All notable changes to msvens chess will be documented in this file.
 
 ## [Unreleased]
 
+---
+
+## [1.1.0] - 2026-04-13
+
 ### Added
+- Upcoming/registered tournaments shown in player profile Individual tab
+- Elo education pages with interactive rating calculator
+- FIDE integration in Elo calculator (search by FIDE ID via ChessTools API)
 - Guide section with tournament formats page (Swiss, Round Robin, Knockout, tiebreaks)
 - Live results notice with link to official results for same-day tournaments
 - Column sorting for tournament lists, final results, and team results tables
-- Player search helper text clarifying name input format
+- Player name search replaced with single-field combobox
+- Search buttons and narrower layout on players page
+- Persistent helper text for player name search format
+- Safe localStorage wrappers to prevent crashes when storage is blocked
+
+### Changed
+- Upgraded to Next.js 16
+- Redesigned navbar with three-section grid layout and text labels
+- Upgraded SDK to v0.3.0 and replaced API rewrites with transparent route handlers
+- Revised rating scale to use FIDE title brackets
 
 ### Fixed
 - Walkover players showing as "Player -100" instead of "W.O" in round results
 - Scoring in Schack4an (3/2/1) and 3-1-0 point system tournaments
 - Missing players no longer silently dropped from tournament detail page
+- Elo capitalization consistency throughout codebase
+- SearchableSelectableList dropdown spanning full page width
+- Removed debug console.log statements
+- Error handling added to API proxy route handlers and Elo rating chart
 
 ---
 
