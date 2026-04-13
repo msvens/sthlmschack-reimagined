@@ -265,6 +265,7 @@ export interface Translations {
         place: string;
         points: string;
         outcome: string;
+        registered: string;
       };
       tabs: {
         individual: string;
@@ -810,6 +811,7 @@ const translations: Record<Language, Translations> = {
           place: 'Place',
           points: 'Points',
           outcome: 'Outcome',
+          registered: 'Registered',
         },
         tabs: {
           individual: 'Individual',
@@ -1353,6 +1355,7 @@ const translations: Record<Language, Translations> = {
           place: 'Placering',
           points: 'Poäng',
           outcome: 'Utfall',
+          registered: 'Anmäld',
         },
         tabs: {
           individual: 'Individuell',
