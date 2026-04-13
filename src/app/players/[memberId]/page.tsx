@@ -125,7 +125,8 @@ export default function PlayerPage() {
             noTournaments: t.pages.playerDetail.tournamentHistory.noTournaments,
             place: t.pages.playerDetail.tournamentHistory.place,
             points: t.pages.playerDetail.tournamentHistory.points,
-            outcome: t.pages.playerDetail.tournamentHistory.outcome
+            outcome: t.pages.playerDetail.tournamentHistory.outcome,
+            registered: t.pages.playerDetail.tournamentHistory.registered
           }}
           tabLabels={t.pages.playerDetail.tabs}
           language={language}

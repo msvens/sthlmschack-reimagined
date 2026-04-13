@@ -21,6 +21,7 @@ export interface PlayerHistoryProps {
     place: string;
     points: string;
     outcome: string;
+    registered?: string;
   };
   /** Tab labels from translations */
   tabLabels: {
