@@ -64,8 +64,11 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
         }
         setCurrentPlayerLoading(false);
 
-        // Step 1: Fetch all games for the member
-        const gamesResponse = await resultsService.getMemberGames(memberId);
+        // Step 1: Fetch games and tournament results in parallel
+        const [gamesResponse, memberResultsResponse] = await Promise.all([
+          resultsService.getMemberGames(memberId),
+          resultsService.getMemberTournamentResults(memberId),
+        ]);
 
         if (gamesResponse.status !== 200 || !gamesResponse.data) {
           throw new Error('Failed to fetch game data');
@@ -92,8 +95,20 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
           groupIds.add(game.groupiD);
         });
 
-        // Step 3: Fetch tournaments FIRST (priority - needed for Individual, Team, and Opponents tabs)
-        const newTournamentMap = await getOrFetchTournaments(Array.from(groupIds));
+        // Step 3: Identify upcoming tournament group IDs (registered but no games played)
+        const playedGroupIds = new Set(groupIds);
+        const upcomingGroupIds: number[] = [];
+        if (memberResultsResponse.status === 200 && memberResultsResponse.data) {
+          for (const result of memberResultsResponse.data) {
+            if (!playedGroupIds.has(result.groupId)) {
+              upcomingGroupIds.push(result.groupId);
+            }
+          }
+        }
+
+        // Step 3b: Fetch tournaments (including upcoming) - needed for Individual, Team, and Opponents tabs
+        const allGroupIds = [...Array.from(groupIds), ...upcomingGroupIds];
+        const newTournamentMap = await getOrFetchTournaments(allGroupIds);
 
         setTournamentMap(newTournamentMap);
 
@@ -156,6 +171,28 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
             draws: stats.draws,
             losses: stats.losses,
             totalPoints: stats.totalPoints,
+          });
+        }
+
+        // Add upcoming (registered but not yet played) individual tournaments
+        for (const groupId of upcomingGroupIds) {
+          const tournament = newTournamentMap.get(groupId);
+          if (!tournament) continue;
+          if (isTeamTournament(tournament.type)) continue;
+
+          const groupResult = findTournamentGroup(tournament, groupId);
+          participations.push({
+            groupId,
+            tournament,
+            gameCount: 0,
+            groupName: groupResult?.group.name || '',
+            groupStartDate: groupResult?.group.start || tournament.start,
+            groupEndDate: groupResult?.group.end || tournament.end,
+            className: groupResult?.parentClass.className || '',
+            hasMultipleClasses: groupResult?.hasMultipleClasses ?? false,
+            isTeam: false,
+            wins: 0, draws: 0, losses: 0, totalPoints: 0,
+            isUpcoming: true,
           });
         }
 

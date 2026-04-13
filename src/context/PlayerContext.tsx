@@ -22,6 +22,7 @@ export interface TournamentParticipation {
   draws: number;
   losses: number;
   totalPoints: number;  // Sum of points using the tournament's point system
+  isUpcoming?: boolean;  // Registered but no games played yet
 }
 
 export interface PlayerContextValue {

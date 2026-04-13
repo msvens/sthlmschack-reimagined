@@ -27,6 +27,7 @@ export interface PlayerTournamentListProps {
     place: string;
     points: string;
     outcome: string;
+    registered?: string;
   };
   /** Language for date formatting */
   language?: 'sv' | 'en';
@@ -249,13 +250,20 @@ export function PlayerTournamentList({
                 </div>
               </div>
               <div className="text-right ml-4 flex-shrink-0">
-                {/* Total points and outcome (W/D/L) */}
-                <div className={`${classes.fontSize} font-medium text-gray-900 dark:text-gray-200`}>
-                  {t.points}: {tournamentData.totalPoints}
-                </div>
-                <div className={`${classes.metaSize} text-gray-600 dark:text-gray-400`}>
-                  {t.outcome}: {tournamentData.wins}/{tournamentData.draws}/{tournamentData.losses}
-                </div>
+                {tournamentData.isUpcoming ? (
+                  <span className={`${classes.fontSize} font-medium text-blue-600 dark:text-blue-400`}>
+                    {t.registered || 'Registered'}
+                  </span>
+                ) : (
+                  <>
+                    <div className={`${classes.fontSize} font-medium text-gray-900 dark:text-gray-200`}>
+                      {t.points}: {tournamentData.totalPoints}
+                    </div>
+                    <div className={`${classes.metaSize} text-gray-600 dark:text-gray-400`}>
+                      {t.outcome}: {tournamentData.wins}/{tournamentData.draws}/{tournamentData.losses}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </Link>
