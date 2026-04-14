@@ -12,8 +12,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.4)
       '@msvens/schack-se-sdk':
-        specifier: github:msvens/schack-se-sdk#v0.3.0
-        version: https://codeload.github.com/msvens/schack-se-sdk/tar.gz/f87f8381232157065865d75edbc75e3e2fb725d2
+        specifier: github:msvens/schack-se-sdk#v0.4.0
+        version: https://codeload.github.com/msvens/schack-se-sdk/tar.gz/7e457c12d519957eeb5ad1251515b57533919c0f
       next:
         specifier: 16.2.1
         version: 16.2.1(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -540,9 +540,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@msvens/schack-se-sdk@https://codeload.github.com/msvens/schack-se-sdk/tar.gz/f87f8381232157065865d75edbc75e3e2fb725d2':
-    resolution: {tarball: https://codeload.github.com/msvens/schack-se-sdk/tar.gz/f87f8381232157065865d75edbc75e3e2fb725d2}
-    version: 0.3.0
+  '@msvens/schack-se-sdk@https://codeload.github.com/msvens/schack-se-sdk/tar.gz/7e457c12d519957eeb5ad1251515b57533919c0f':
+    resolution: {tarball: https://codeload.github.com/msvens/schack-se-sdk/tar.gz/7e457c12d519957eeb5ad1251515b57533919c0f}
+    version: 0.4.0
 
   '@napi-rs/wasm-runtime@0.2.12':
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
@@ -3111,7 +3111,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@msvens/schack-se-sdk@https://codeload.github.com/msvens/schack-se-sdk/tar.gz/f87f8381232157065865d75edbc75e3e2fb725d2': {}
+  '@msvens/schack-se-sdk@https://codeload.github.com/msvens/schack-se-sdk/tar.gz/7e457c12d519957eeb5ad1251515b57533919c0f': {}
 
   '@napi-rs/wasm-runtime@0.2.12':
     dependencies:
