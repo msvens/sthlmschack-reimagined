@@ -1,9 +1,5 @@
 'use client';
 
-// TODO: Verify rating algorithm implementation against schack.se's actual code
-// Current implementation is based on constant names and educated guesses
-// Waiting for official implementation details from schack.se
-
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
