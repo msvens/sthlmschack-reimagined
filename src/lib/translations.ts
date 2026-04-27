@@ -70,6 +70,10 @@ export interface Translations {
       paragraph1: string;
       paragraph2: string;
     };
+    partners: {
+      collaborationLabel: string;
+      usingLabel: string;
+    };
   };
   common: {
     eloLabels: {
@@ -616,6 +620,10 @@ const translations: Record<Language, Translations> = {
         paragraph1: 'This modern chess portal complements the existing Svenska Schackförbundet website, focusing specifically on tournament discovery and management. We\'re building a user-friendly interface that makes it easy for chess players of all levels to find and participate in chess events across Sweden.',
         paragraph2: 'Whether you\'re a beginner looking for your first tournament or an experienced player tracking results, msvens chess provides the tools you need to stay connected with the chess community.',
       },
+      partners: {
+        collaborationLabel: 'In Collaboration With',
+        usingLabel: 'Using',
+      },
     },
     common: {
       eloLabels: {
@@ -1159,6 +1167,10 @@ const translations: Record<Language, Translations> = {
         title: 'Om msvens schack',
         paragraph1: 'Denna moderna schackportal kompletterar Svenska Schackförbundets webbplats, med fokus specifikt på turneringsupptäckt och hantering. Vi bygger ett användarvänligt gränssnitt som gör det enkelt för schackspelare på alla nivåer att hitta och delta i schackevenemang över hela Sverige.',
         paragraph2: 'Oavsett om du är en nybörjare som letar efter din första turnering eller en erfaren spelare som spårar resultat, ger msvens schack dig verktygen du behöver för att hålla dig uppdaterad med schackgemenskapen.',
+      },
+      partners: {
+        collaborationLabel: 'I samarbete med',
+        usingLabel: 'Använder',
       },
     },
     common: {
