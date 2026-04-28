@@ -20,12 +20,18 @@ const DEFAULT_POLL_INTERVAL = 30000; // 30 seconds
 export function useLiveUpdates(options: UseLiveUpdatesOptions) {
   const { pollInterval = DEFAULT_POLL_INTERVAL, onRefresh } = options;
 
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Use ref to track if a refresh is in progress to avoid overlapping
   const refreshInProgress = useRef(false);
+
+  // Tracks whether the polling effect has run once. On the very first run
+  // we skip the immediate refresh — the consumer's own initial fetch covers it,
+  // and a duplicate fetch would just race itself for the same data. On any
+  // later transition into `enabled` (user toggled off→on), refresh immediately.
+  const hasMountedRef = useRef(false);
 
   const doRefresh = useCallback(async () => {
     if (refreshInProgress.current) return;
@@ -53,15 +59,15 @@ export function useLiveUpdates(options: UseLiveUpdatesOptions) {
   useEffect(() => {
     if (!enabled) return;
 
-    // Do an initial refresh when enabling
-    doRefresh();
+    if (hasMountedRef.current) {
+      doRefresh();
+    }
+    hasMountedRef.current = true;
 
-    // Set up interval for subsequent refreshes
     const intervalId = setInterval(() => {
       doRefresh();
     }, pollInterval);
 
-    // Cleanup on disable or unmount
     return () => {
       clearInterval(intervalId);
     };
