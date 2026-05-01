@@ -814,7 +814,7 @@ const translations: Record<Language, Translations> = {
         tournamentHistory: {
           title: 'Tournament History',
           loading: 'Loading tournaments...',
-          error: 'Failed to load tournament history',
+          error: 'Could not retrieve data',
           noTournaments: 'No tournament history found.',
           place: 'Place',
           points: 'Points',
@@ -1362,7 +1362,7 @@ const translations: Record<Language, Translations> = {
         tournamentHistory: {
           title: 'Turneringshistorik',
           loading: 'Laddar turneringar...',
-          error: 'Misslyckades att ladda turneringshistorik',
+          error: 'Kunde inte hämta data',
           noTournaments: 'Ingen turneringshistorik hittades.',
           place: 'Placering',
           points: 'Poäng',

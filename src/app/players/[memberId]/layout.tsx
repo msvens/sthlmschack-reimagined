@@ -43,6 +43,8 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
   // Fetch game data and batch metadata
   useEffect(() => {
     if (!memberId || isNaN(memberId)) {
+      // Guard for invalid route params — runs once before any data fetch.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setGamesError('Invalid member ID');
       setGamesLoading(false);
       return;
@@ -70,13 +72,19 @@ export default function PlayerLayout({ children }: { children: ReactNode }) {
           resultsService.getMemberTournamentResults(memberId),
         ]);
 
-        if (gamesResponse.status !== 200 || !gamesResponse.data) {
-          throw new Error('Failed to fetch game data');
+        // Soft-fail games: if the upstream API errors (e.g., schack.se NPE on
+        // team-tournament aggregation), set gamesError and continue with an
+        // empty games array. The rest of the layout (tournament metadata,
+        // opponents) still runs; tabs that depend on games render an error
+        // branch instead of disappearing the whole page.
+        let gameData: GameDto[] = [];
+        if (gamesResponse.status === 200 && gamesResponse.data) {
+          gameData = gamesResponse.data;
+        } else {
+          setGamesError('Failed to fetch game data');
         }
-
-        const gameData = gamesResponse.data;
         setGames(gameData);
-        setGamesLoading(false); // Games are ready, can show pie charts now
+        setGamesLoading(false); // Games are ready (or known-empty), can show pie charts now
 
         // Step 2: Extract unique opponent IDs and group IDs
         const opponentIds = new Set<number>();

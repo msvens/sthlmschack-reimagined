@@ -19,6 +19,8 @@ export interface PlayerTournamentListProps {
   tournaments: TournamentParticipation[];
   /** Optional loading state */
   loading?: boolean;
+  /** When set, the games-derived data is unavailable; renders an error branch */
+  error?: string | null;
   /** Translations object */
   t: {
     loading?: string;
@@ -48,6 +50,7 @@ export interface PlayerTournamentListProps {
 export function PlayerTournamentList({
   tournaments,
   loading = false,
+  error = null,
   t,
   language = 'sv',
   density,
@@ -190,6 +193,17 @@ export function PlayerTournamentList({
       <div className="text-center py-8">
         <div className="text-gray-600 dark:text-gray-400">
           {t.loading || 'Loading...'}
+        </div>
+      </div>
+    );
+  }
+
+  // Error state — games-derived data couldn't be fetched
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-600 dark:text-gray-400">
+          {t.error || 'Could not retrieve data'}
         </div>
       </div>
     );

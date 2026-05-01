@@ -113,8 +113,8 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
   if (gamesError) {
     return (
       <div className="text-center py-12">
-        <div className="text-lg text-red-600 dark:text-red-400">
-          {gamesError}
+        <div className="text-gray-600 dark:text-gray-400">
+          {t.pages.playerDetail.tournamentHistory.error}
         </div>
       </div>
     );

@@ -13,6 +13,8 @@ export interface PlayerHistoryProps {
   tournaments: TournamentParticipation[];
   /** Optional loading state for tournaments */
   loading?: boolean;
+  /** When set, the games-derived data is unavailable; tabs render the error branch */
+  error?: string | null;
   /** Translations for tournament list */
   t: {
     loading?: string;
@@ -38,6 +40,7 @@ export interface PlayerHistoryProps {
 export function PlayerHistory({
   tournaments,
   loading = false,
+  error = null,
   t,
   tabLabels,
   language = 'sv',
@@ -126,6 +129,7 @@ export function PlayerHistory({
           <PlayerTournamentList
             tournaments={individualTournaments}
             loading={loading}
+            error={error}
             t={t}
             language={language}
             density="compact"
@@ -137,6 +141,7 @@ export function PlayerHistory({
         <PlayerTournamentList
           tournaments={teamTournaments}
           loading={loading}
+          error={error}
           t={t}
           language={language}
           density="compact"
