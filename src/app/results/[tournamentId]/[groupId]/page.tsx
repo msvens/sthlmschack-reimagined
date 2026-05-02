@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, formatMatchResult, normalizeEloLookupDate, parseLocalDate, isWalkoverPlayer, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
+import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, isWalkoverPlayer, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -688,7 +688,14 @@ export default function GroupResultsPage() {
                                           if (row.homeResult === 0 && row.awayResult === 0) {
                                             return '-';
                                           }
-                                          return formatMatchResult(row.homeResult, row.awayResult, row.homeId, row.awayId);
+                                          // Use the underlying game's result code so walkovers,
+                                          // byes, adjudications, and alternate point systems all
+                                          // render with their proper suffix (e.g. "1 - 0 w.o").
+                                          const gameResultCode = row.games?.[0]?.result;
+                                          if (gameResultCode !== undefined) {
+                                            return getResultDisplayString(gameResultCode);
+                                          }
+                                          return `${row.homeResult} - ${row.awayResult}`;
                                         },
                                         align: 'center',
                                         noWrap: true,
