@@ -6,6 +6,7 @@ import { TextField } from '@/components/TextField';
 import { Button } from '@/components/Button';
 import { Toggle } from '@/components/Toggle';
 import { PlayerSearchInput } from '@/components/PlayerSearchInput';
+import { FidePlayerSearchInput } from '@/components/FidePlayerSearchInput';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import {
@@ -19,6 +20,7 @@ import {
   PlayerInfoDto,
   MemberFIDERatingDTO,
   FideActivePlayer,
+  FidePlayer,
   FidePlayerInfo,
   FideRatingPeriod,
 } from '@/lib/api';
@@ -293,6 +295,55 @@ function PlayerInput({
     }
   };
 
+  const handleFideSearchSelect = async (player: FidePlayer) => {
+    // Show the basic player + classical rating immediately, then enrich
+    // with full rating history (rapid/blitz + birth year) via getPlayerInfo.
+    const fallbackRatings: PlayerRatings = {
+      standard: player.rating || 0,
+      rapid: 0,
+      blitz: 0,
+    };
+    const { ratingStr: fallbackStr, usingDefault: fallbackDefault } = deriveFromRatings(fallbackRatings, null, eloType);
+    const titlePrefix = player.title || player.w_title || player.o_title || player.foa_title;
+    onChange({
+      ...state,
+      selectedPlayerName: titlePrefix ? `${titlePrefix} ${player.name}` : player.name,
+      rating: fallbackStr,
+      profileKFactor: null,
+      usingDefaultRating: fallbackDefault,
+      ratings: fallbackRatings,
+      kFactors: null,
+      birthYear: null,
+    });
+
+    const fideId = parseInt(player.fideid);
+    if (isNaN(fideId)) return;
+    setIsSearching(true);
+
+    try {
+      const response = await fideService.getPlayerInfo(fideId, true);
+      if (response.status === 200 && response.data) {
+        const latest = response.data.history?.[0];
+        const ratings = latest ? getRatingsFromFideHistory(latest) : fallbackRatings;
+        const { ratingStr, usingDefault } = deriveFromRatings(ratings, null, eloType);
+        onChange({
+          ...state,
+          rating: ratingStr,
+          selectedPlayerName: formatFidePlayerInfoName(response.data),
+          profileKFactor: null,
+          usingDefaultRating: usingDefault,
+          ratings,
+          kFactors: null,
+          birthYear: response.data.birth_year ?? null,
+        });
+      }
+    } catch {
+      // Already showing fallback data, nothing to do
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   const handleTopPlayerSelect = async (player: FideActivePlayer) => {
     // Show player name immediately with the rating from the top list (classical only)
     const standardRating = parseInt(player.rating) || 0;
@@ -480,11 +531,22 @@ function PlayerInput({
         </div>
       )}
 
-      {/* FIDE Search - coming soon */}
+      {/* FIDE Search by name */}
       {state.inputMode === 'fideSearch' && (
-        <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-          {calc.fideSearchComingSoon}
-        </p>
+        <div className="space-y-2">
+          <FidePlayerSearchInput
+            onSelect={handleFideSearchSelect}
+            placeholder={t.pages.players.search.namePlaceholder}
+            noResultsMessage={t.pages.players.search.nameSearchHint}
+            searchLabel={calc.search}
+            compact
+          />
+          {state.rating && (
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {calc.rating}: {state.rating}
+            </p>
+          )}
+        </div>
       )}
 
       {/* Top player select */}
