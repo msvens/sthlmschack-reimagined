@@ -115,8 +115,14 @@ export default function GroupResultsPage() {
       if (isNaN(roundDate) || roundDate <= 0) continue;
 
       const lookupDate = normalizeEloLookupDate(roundDate);
-      requests.push({ playerId: game.homeId, date: lookupDate });
-      requests.push({ playerId: game.awayId, date: lookupDate });
+      // Skip placeholder/walkover IDs (-1, -100, etc.) — schack.se rejects
+      // negative IDs with 502s.
+      if (!isWalkoverPlayer(game.homeId)) {
+        requests.push({ playerId: game.homeId, date: lookupDate });
+      }
+      if (!isWalkoverPlayer(game.awayId)) {
+        requests.push({ playerId: game.awayId, date: lookupDate });
+      }
     }
 
     if (requests.length > 0) {
