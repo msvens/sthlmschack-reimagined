@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { TournamentRoundResultDto, GameDto, isWalkoverPlayer, isWalkoverClub, createRoundResultsTeamNameFormatter, normalizeEloLookupDate, calculatePoints, ResultCode } from '@/lib/api';
+import { TournamentRoundResultDto, GameDto, getOpponentKind, createRoundResultsTeamNameFormatter, normalizeEloLookupDate, calculatePoints, ResultCode } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { Link } from '@/components/Link';
@@ -135,6 +135,15 @@ export function TeamDetailMatches({
     [allRoundResults, getClubName]
   );
 
+  // Display label for a team slot (paired team / bye / walkover)
+  const formatTeamOrPlaceholder = (id: number, teamNumber: number): string => {
+    switch (getOpponentKind(id)) {
+      case 'bye': return t.pages.tournamentResults.bye;
+      case 'walkover': return 'W.O';
+      case 'paired': return formatTeamDisplayName(id, teamNumber);
+    }
+  };
+
   const rounds = Object.keys(matchesByRound)
     .map(Number)
     .sort((a, b) => a - b);
@@ -154,7 +163,9 @@ export function TeamDetailMatches({
     const tableNr = game.tableNr ?? 0;
     const whiteIsHome = tableNr % 2 === 1;
 
-    const isWalkover = Math.abs(game.result) === 2 || isWalkoverPlayer(game.whiteId) || isWalkoverPlayer(game.blackId);
+    const whiteKind = getOpponentKind(game.whiteId);
+    const blackKind = getOpponentKind(game.blackId);
+    const isWalkover = Math.abs(game.result) === 2 || whiteKind !== 'paired' || blackKind !== 'paired';
 
     // Assign players based on home/away
     const homePlayerId = whiteIsHome ? game.whiteId : game.blackId;
@@ -163,7 +174,7 @@ export function TeamDetailMatches({
     // Calculate scores using the utility function (handles all result codes including -10 for adjudicated 0-0)
     let homeScore = 0;
     let awayScore = 0;
-    if (game.result != null && !(isWalkoverPlayer(game.whiteId) && isWalkoverPlayer(game.blackId))) {
+    if (game.result != null && !(whiteKind !== 'paired' && blackKind !== 'paired')) {
       const [whitePoints, blackPoints] = calculatePoints(game.result);
       homeScore = whiteIsHome ? whitePoints : blackPoints;
       awayScore = whiteIsHome ? blackPoints : whitePoints;
@@ -171,7 +182,7 @@ export function TeamDetailMatches({
 
     // Get Elos
     const getElo = (playerId: number): string => {
-      if (isWalkoverPlayer(playerId)) return '-';
+      if (getOpponentKind(playerId) !== 'paired') return '-';
       return getPlayerEloByDate(playerId, matchDate);
     };
 
@@ -258,12 +269,12 @@ export function TeamDetailMatches({
 
           // Get team names and scores from perspective of selected team
           const selectedTeamName = isSelectedTeamHome
-            ? (isWalkoverClub(match.homeId) ? 'W.O' : formatTeamDisplayName(match.homeId, match.homeTeamNumber))
-            : (isWalkoverClub(match.awayId) ? 'W.O' : formatTeamDisplayName(match.awayId, match.awayTeamNumber));
+            ? formatTeamOrPlaceholder(match.homeId, match.homeTeamNumber)
+            : formatTeamOrPlaceholder(match.awayId, match.awayTeamNumber);
 
           const opponentTeamName = isSelectedTeamHome
-            ? (isWalkoverClub(match.awayId) ? 'W.O' : formatTeamDisplayName(match.awayId, match.awayTeamNumber))
-            : (isWalkoverClub(match.homeId) ? 'W.O' : formatTeamDisplayName(match.homeId, match.homeTeamNumber));
+            ? formatTeamOrPlaceholder(match.awayId, match.awayTeamNumber)
+            : formatTeamOrPlaceholder(match.homeId, match.homeTeamNumber);
 
           const selectedScore = isSelectedTeamHome ? match.homeScore : match.awayScore;
           const opponentScore = isSelectedTeamHome ? match.awayScore : match.homeScore;
@@ -298,9 +309,9 @@ export function TeamDetailMatches({
               header: selectedTeamName,
               headerClassName: 'max-w-[10ch] sm:max-w-none truncate',
               accessor: (game) => {
-                if (isWalkoverPlayer(game.selectedPlayerId)) {
-                  return <span className="text-gray-500 dark:text-gray-400">W.O</span>;
-                }
+                const kind = getOpponentKind(game.selectedPlayerId);
+                if (kind === 'walkover') return <span className="text-gray-500 dark:text-gray-400">W.O</span>;
+                if (kind === 'bye') return <span className="text-gray-500 dark:text-gray-400">{t.pages.tournamentResults.bye}</span>;
                 return (
                   <Link
                     href={`/results/${tournamentId}/${groupId}/${game.selectedPlayerId}`}
@@ -326,9 +337,9 @@ export function TeamDetailMatches({
               header: opponentTeamName,
               headerClassName: 'max-w-[10ch] sm:max-w-none truncate',
               accessor: (game) => {
-                if (isWalkoverPlayer(game.opponentPlayerId)) {
-                  return <span className="text-gray-500 dark:text-gray-400">W.O</span>;
-                }
+                const kind = getOpponentKind(game.opponentPlayerId);
+                if (kind === 'walkover') return <span className="text-gray-500 dark:text-gray-400">W.O</span>;
+                if (kind === 'bye') return <span className="text-gray-500 dark:text-gray-400">{t.pages.tournamentResults.bye}</span>;
                 return (
                   <Link
                     href={`/results/${tournamentId}/${groupId}/${game.opponentPlayerId}`}

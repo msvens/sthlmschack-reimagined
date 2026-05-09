@@ -2,7 +2,8 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, formatPlayerName, isWalkoverPlayer, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament, findTournamentGroup } from '@/lib/api';
+import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, formatPlayerName, getOpponentKind, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament, findTournamentGroup } from '@/lib/api';
+import { getTranslation } from '@/lib/translations';
 import { GroupResultsProvider, GroupResultsContextValue, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -12,6 +13,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   const params = useParams();
   const { getClubName: getOrgClubName } = useOrganizations();
   const { language } = useLanguage();
+  const t = getTranslation(language);
   const globalCache = useGlobalPlayerCache();
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
@@ -194,11 +196,13 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   // Helper to get player name from ID (includes FIDE title if available)
   // Pass optional date for historical lookups (team tournaments)
   const getPlayerName = useCallback((playerId: number, date?: number): string => {
-    if (isWalkoverPlayer(playerId)) return 'W.O';
+    const kind = getOpponentKind(playerId);
+    if (kind === 'walkover') return 'W.O';
+    if (kind === 'bye') return t.pages.tournamentResults.bye;
     const player = findPlayer(playerId, date);
     if (!player) return `Player ${playerId}`;
     return formatPlayerName(player.firstName, player.lastName, player.elo?.title);
-  }, [findPlayer]);
+  }, [findPlayer, t.pages.tournamentResults.bye]);
 
   // Helper to get player Elo from ID based on group's ranking algorithm
   // Uses strict rating matching (no fallback to other rating types)

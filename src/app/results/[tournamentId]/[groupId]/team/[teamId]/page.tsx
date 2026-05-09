@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, normalizeEloLookupDate, createTeamNameFormatter, isWalkoverPlayer, TournamentDto } from '@/lib/api';
+import { TournamentService, normalizeEloLookupDate, createTeamNameFormatter, getOpponentKind, TournamentDto } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -110,8 +110,8 @@ export default function TeamDetailPage() {
       const lookupDate = !isNaN(matchDate) && matchDate > 0 ? normalizeEloLookupDate(matchDate) : Date.now();
 
       games.forEach(game => {
-        // Skip walkovers
-        if (isWalkoverPlayer(game.whiteId) || isWalkoverPlayer(game.blackId)) {
+        // Skip bye / walkover slots
+        if (getOpponentKind(game.whiteId) !== 'paired' || getOpponentKind(game.blackId) !== 'paired') {
           return;
         }
 

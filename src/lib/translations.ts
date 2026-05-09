@@ -323,6 +323,7 @@ export interface Translations {
       ongoingResults: string;
       statusOngoing: string;
       statusFinished: string;
+      bye: string;
       finalResultsTable: {
         pos: string;
         name: string;
@@ -873,6 +874,7 @@ const translations: Record<Language, Translations> = {
         ongoingResults: 'Results',
         statusOngoing: 'Ongoing',
         statusFinished: 'Finished',
+        bye: 'Bye',
         finalResultsTable: {
           pos: 'Pos',
           name: 'Name',
@@ -1421,6 +1423,7 @@ const translations: Record<Language, Translations> = {
         ongoingResults: 'Resultat',
         statusOngoing: 'Pågående',
         statusFinished: 'Avslutad',
+        bye: 'Frirond',
         finalResultsTable: {
           pos: 'Plac',
           name: 'Namn',

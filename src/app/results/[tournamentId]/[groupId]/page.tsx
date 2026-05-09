@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, isWalkoverPlayer, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
+import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -115,12 +115,11 @@ export default function GroupResultsPage() {
       if (isNaN(roundDate) || roundDate <= 0) continue;
 
       const lookupDate = normalizeEloLookupDate(roundDate);
-      // Skip placeholder/walkover IDs (-1, -100, etc.) — schack.se rejects
-      // negative IDs with 502s.
-      if (!isWalkoverPlayer(game.homeId)) {
+      // Skip bye/walkover slots — schack.se rejects negative IDs with 502s.
+      if (getOpponentKind(game.homeId) === 'paired') {
         requests.push({ playerId: game.homeId, date: lookupDate });
       }
-      if (!isWalkoverPlayer(game.awayId)) {
+      if (getOpponentKind(game.awayId) === 'paired') {
         requests.push({ playerId: game.awayId, date: lookupDate });
       }
     }
@@ -637,7 +636,7 @@ export default function GroupResultsPage() {
                                       {
                                         id: 'white',
                                         header: t.pages.tournamentResults.roundByRound.white,
-                                        accessor: (row) => isWalkoverPlayer(row.homeId)
+                                        accessor: (row) => getOpponentKind(row.homeId) !== 'paired'
                                           ? <span className="text-gray-500 dark:text-gray-400">{getPlayerName(row.homeId)}</span>
                                           : (
                                           <Link
@@ -663,7 +662,7 @@ export default function GroupResultsPage() {
                                       {
                                         id: 'black',
                                         header: t.pages.tournamentResults.roundByRound.black,
-                                        accessor: (row) => isWalkoverPlayer(row.awayId)
+                                        accessor: (row) => getOpponentKind(row.awayId) !== 'paired'
                                           ? <span className="text-gray-500 dark:text-gray-400">{getPlayerName(row.awayId)}</span>
                                           : (
                                           <Link
