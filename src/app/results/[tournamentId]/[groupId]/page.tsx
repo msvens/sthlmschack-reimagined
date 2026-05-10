@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
+import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, TournamentType, isLooseTeamTournament, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -35,6 +35,40 @@ function formatRoundDate(dateStr: string | undefined, locale: string): string {
   if (isNaN(timestamp) || timestamp <= 0) return '';
   const d = new Date(timestamp);
   return d.toLocaleDateString(locale, { day: 'numeric', month: 'numeric', year: '2-digit' });
+}
+
+/**
+ * Notice rendered for tournament formats we can't yet render properly
+ * (Schackfyran team aggregation, loose-team team-name resolution).
+ * Points the user at the official schack.se page for the accurate view.
+ */
+function ExternalResultsNotice({
+  prefix,
+  linkLabel,
+  suffix,
+  url,
+}: {
+  prefix: string;
+  linkLabel: string;
+  suffix: string;
+  url: string;
+}) {
+  return (
+    <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4 mb-6">
+      <p className="text-sm text-gray-700 dark:text-gray-300">
+        {prefix}{' '}
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+        >
+          {linkLabel}
+        </a>
+        {suffix.startsWith('.') || suffix.startsWith(',') ? suffix : ` ${suffix}`}
+      </p>
+    </div>
+  );
 }
 
 export default function GroupResultsPage() {
@@ -288,6 +322,23 @@ export default function GroupResultsPage() {
     return today > parseLocalDate(groupEndDate);
   })();
 
+  // Special-format detection — see docs/tournament-formats-and-team-results.md
+  //
+  // Schackfyran (type 9): pairings are individual but results are aggregated
+  // per school/class. Our app can't compute that aggregation yet, so we
+  // replace the standings UI with a link to schack.se for accurate standings.
+  //
+  // Loose team (teamtournamentPlayerListType === 3, e.g. Skol-SM): structurally
+  // a team tournament, but teams aren't bound to a single club, so the
+  // backend's team-table endpoint returns rows with `club: null` and we can't
+  // resolve team names to display labels. We keep showing the (correct)
+  // fixture data but add a banner pointing at schack.se for proper team names.
+  const isSchackfyran = tournament?.type === TournamentType.SCHACKFYRAN;
+  const isLooseTeam = tournament
+    ? isLooseTeamTournament(tournament.teamtournamentPlayerListType)
+    : false;
+  const externalUrl = `https://resultat.schack.se/ShowTournamentServlet?id=${groupId}`;
+
   // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
     if (result.playerInfo?.id && tournamentId && groupId) {
@@ -390,7 +441,20 @@ export default function GroupResultsPage() {
                 )}
               </div>
 
-              {selectedGroup ? (
+              {selectedGroup && (isSchackfyran || isLooseTeam) ? (
+                /* Both Schackfyran and loose-team tournaments: full replacement
+                 * with a notice pointing at schack.se. Schackfyran has no
+                 * client-side team-aggregation logic yet; loose-team standings
+                 * 500 from the upstream API and team names can't be resolved.
+                 * In both cases the alternative (showing the broken or
+                 * misleading data) is worse than just redirecting. */
+                <ExternalResultsNotice
+                  prefix={(isSchackfyran ? t.pages.tournamentResults.externalNotice.schackfyran : t.pages.tournamentResults.externalNotice.looseTeam).prefix}
+                  linkLabel={(isSchackfyran ? t.pages.tournamentResults.externalNotice.schackfyran : t.pages.tournamentResults.externalNotice.looseTeam).linkLabel}
+                  suffix={(isSchackfyran ? t.pages.tournamentResults.externalNotice.schackfyran : t.pages.tournamentResults.externalNotice.looseTeam).suffix}
+                  url={externalUrl}
+                />
+              ) : selectedGroup ? (
                 <>
                   {/* Main Results Table - only render when results are loaded */}
                   {resultsLoading ? (

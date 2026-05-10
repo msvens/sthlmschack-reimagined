@@ -324,6 +324,10 @@ export interface Translations {
       statusOngoing: string;
       statusFinished: string;
       bye: string;
+      externalNotice: {
+        schackfyran: { prefix: string; linkLabel: string; suffix: string };
+        looseTeam: { prefix: string; linkLabel: string; suffix: string };
+      };
       finalResultsTable: {
         pos: string;
         name: string;
@@ -875,6 +879,18 @@ const translations: Record<Language, Translations> = {
         statusOngoing: 'Ongoing',
         statusFinished: 'Finished',
         bye: 'Bye',
+        externalNotice: {
+          schackfyran: {
+            prefix: 'Schackfyran tournaments score by school/class. We don\'t have that team view yet — see the official standings at',
+            linkLabel: 'resultat.schack.se',
+            suffix: '.',
+          },
+          looseTeam: {
+            prefix: 'Team names aren\'t yet available for this format. See the official results at',
+            linkLabel: 'resultat.schack.se',
+            suffix: 'for the proper team names and standings.',
+          },
+        },
         finalResultsTable: {
           pos: 'Pos',
           name: 'Name',
@@ -1424,6 +1440,18 @@ const translations: Record<Language, Translations> = {
         statusOngoing: 'Pågående',
         statusFinished: 'Avslutad',
         bye: 'Frirond',
+        externalNotice: {
+          schackfyran: {
+            prefix: 'Schackfyran-tävlingar poängsätts per skola/klass. Vi har inte den lagvyn än — se den officiella tabellen på',
+            linkLabel: 'resultat.schack.se',
+            suffix: '.',
+          },
+          looseTeam: {
+            prefix: 'Lagnamn är inte tillgängliga än för detta format. Se de officiella resultaten på',
+            linkLabel: 'resultat.schack.se',
+            suffix: 'för korrekta lagnamn och tabeller.',
+          },
+        },
         finalResultsTable: {
           pos: 'Plac',
           name: 'Namn',
