@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, formatPlayerName, getOpponentKind, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament, findTournamentGroup } from '@/lib/api';
+import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, formatPlayerName, getOpponentKind, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament, isTeamPairing, findTournamentGroup } from '@/lib/api';
 import { getTranslation } from '@/lib/translations';
 import { GroupResultsProvider, GroupResultsContextValue, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
@@ -43,11 +43,29 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   /**
    * Fetch only results data (standings + round results).
    * Used by both initial load and live refresh.
+   *
+   * Tournament-type semantics (see docs/tournament-formats-and-team-results):
+   * - isTeamPairing(type) → team-shaped endpoints (Allsvenskan, Cupen, Yes2Chess).
+   * - isTeamTournament(type) && !isTeamPairing(type) → "individually-paired team
+   *   tournament" (Schackfyran). No team-results endpoint exists upstream; we
+   *   skip fetching entirely and the page surfaces a redirect notice.
+   * - else → individual endpoints.
    */
-  const fetchResults = useCallback(async (isTeam: boolean, isInitialLoad: boolean) => {
+  const fetchResults = useCallback(async (tournamentType: number, isInitialLoad: boolean) => {
+    const isIndividuallyPairedTeam = isTeamTournament(tournamentType) && !isTeamPairing(tournamentType);
+    if (isIndividuallyPairedTeam) {
+      // Nothing to fetch — the page renders the redirect notice instead.
+      setIndividualResults([]);
+      setIndividualRoundResults([]);
+      setTeamResults([]);
+      setTeamRoundResults([]);
+      setLastUpdated(new Date());
+      return;
+    }
+
     const resultsService = new ResultsService();
 
-    if (isTeam) {
+    if (isTeamPairing(tournamentType)) {
       const [teamTableResponse, teamRoundResponse] = await Promise.all([
         resultsService.getTeamTournamentResults(groupId!),
         resultsService.getTeamRoundResults(groupId!)
@@ -127,8 +145,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
         setRoundsMap(newRoundsMap);
       }
 
-      const isTeam = isTeamTournament(tournamentData.type);
-      await fetchResults(isTeam, true);
+      await fetchResults(tournamentData.type, true);
 
     } catch (err) {
       setError('Failed to load results data');
@@ -146,7 +163,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
   const refreshResults = useCallback(async () => {
     if (!tournament || !groupId) return;
     try {
-      await fetchResults(isTeamTournament(tournament.type), false);
+      await fetchResults(tournament.type, false);
     } catch (err) {
       console.error('Error refreshing results:', err);
     }
