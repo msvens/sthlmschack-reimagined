@@ -11,15 +11,25 @@ import { TeamDetailMatches } from '@/components/results/TeamDetailMatches';
 import { Link } from '@/components/Link';
 
 /**
- * Parse teamId string to extract clubId and teamNumber
- * Format: "{clubId}-{teamNumber}" e.g., "12345-1"
+ * Parse teamId string to extract contender and teamNumber.
+ *
+ * URL format: "{contenderId}-{teamNumber}" (e.g. "16322-1", "16322-2", or
+ * "16322--1"). The contenderId is always a positive integer; the teamNumber
+ * can be:
+ *   - Positive (1, 2, …) for clubs running multiple teams in the tournament.
+ *   - `-1` as a sentinel for "no team number" — used by single-team-per-club
+ *     entries and by loose-team tournaments (Skol-SM etc.) where the team
+ *     isn't bound to a numbered roster slot.
+ *
+ * We split on the FIRST '-' (not all of them) so the trailing `-1` reassembles
+ * correctly. `parseInt` handles the leading minus.
  */
 function parseTeamId(teamId: string): { clubId: number; teamNumber: number } | null {
-  const parts = teamId.split('-');
-  if (parts.length !== 2) return null;
+  const dashIndex = teamId.indexOf('-');
+  if (dashIndex < 1) return null;
 
-  const clubId = parseInt(parts[0], 10);
-  const teamNumber = parseInt(parts[1], 10);
+  const clubId = parseInt(teamId.slice(0, dashIndex), 10);
+  const teamNumber = parseInt(teamId.slice(dashIndex + 1), 10);
 
   if (isNaN(clubId) || isNaN(teamNumber)) return null;
 

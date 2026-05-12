@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, TournamentType, isLooseTeamTournament, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
+import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -322,18 +322,29 @@ export default function GroupResultsPage() {
     return today > parseLocalDate(groupEndDate);
   })();
 
-  // Special-format detection — see docs/tournament-formats-and-team-results.md
+  // Special-format detection — see the tournament-formats reference notes.
   //
-  // Schackfyran (type 9): pairings are individual but results are aggregated
-  // per school/class. Our app can't compute that aggregation yet, so we
-  // replace the standings UI with a link to schack.se for accurate standings.
+  // Two distinct cases need to surface a notice, with different reasons,
+  // different copy, and different rendering shapes:
   //
-  // Loose team (teamtournamentPlayerListType === 3, e.g. Skol-SM): structurally
-  // a team tournament, but teams aren't bound to a single club, so the
-  // backend's team-table endpoint returns rows with `club: null` and we can't
-  // resolve team names to display labels. We keep showing the (correct)
-  // fixture data but add a banner pointing at schack.se for proper team names.
-  const isSchackfyran = tournament?.type === TournamentType.SCHACKFYRAN;
+  //   1. Individually-paired team tournament (e.g. Schackfyran, type 9):
+  //      identity-wise a team competition, but pairings are individual. No
+  //      team-standings endpoint exists upstream for this format, so the
+  //      layout skips the fetch entirely and the page renders ONLY the
+  //      notice — full replacement.
+  //
+  //   2. Loose team tournament (teamtournamentPlayerListType === 3, e.g.
+  //      Skol-SM): a team tournament where teams aren't bound to a single
+  //      club, so standings rows come back with `club: null` and our display
+  //      falls through to `Org <contenderId>` placeholders. The data itself
+  //      (scores, board pairings) is correct, so we render it but with a
+  //      banner on top explaining that team names aren't available.
+  // Use the context boolean (populated from isTeamTournament(type) in the
+  // layout) and combine with isTeamPairing from the SDK — true for
+  // tournaments that are identity-wise team but use individual pairings.
+  const isIndividuallyPairedTeam = tournament
+    ? isTeamTournament && !isTeamPairing(tournament.type)
+    : false;
   const isLooseTeam = tournament
     ? isLooseTeamTournament(tournament.teamtournamentPlayerListType)
     : false;
@@ -441,21 +452,29 @@ export default function GroupResultsPage() {
                 )}
               </div>
 
-              {selectedGroup && (isSchackfyran || isLooseTeam) ? (
-                /* Both Schackfyran and loose-team tournaments: full replacement
-                 * with a notice pointing at schack.se. Schackfyran has no
-                 * client-side team-aggregation logic yet; loose-team standings
-                 * 500 from the upstream API and team names can't be resolved.
-                 * In both cases the alternative (showing the broken or
-                 * misleading data) is worse than just redirecting. */
+              {selectedGroup && isIndividuallyPairedTeam ? (
+                /* Individually-paired team tournament (Schackfyran today):
+                 * no team-standings endpoint exists upstream, so the layout
+                 * skips the fetch entirely and we always show this notice. */
                 <ExternalResultsNotice
-                  prefix={(isSchackfyran ? t.pages.tournamentResults.externalNotice.schackfyran : t.pages.tournamentResults.externalNotice.looseTeam).prefix}
-                  linkLabel={(isSchackfyran ? t.pages.tournamentResults.externalNotice.schackfyran : t.pages.tournamentResults.externalNotice.looseTeam).linkLabel}
-                  suffix={(isSchackfyran ? t.pages.tournamentResults.externalNotice.schackfyran : t.pages.tournamentResults.externalNotice.looseTeam).suffix}
+                  prefix={t.pages.tournamentResults.externalNotice.individuallyPairedTeam.prefix}
+                  linkLabel={t.pages.tournamentResults.externalNotice.individuallyPairedTeam.linkLabel}
+                  suffix={t.pages.tournamentResults.externalNotice.individuallyPairedTeam.suffix}
                   url={externalUrl}
                 />
               ) : selectedGroup ? (
                 <>
+                  {/* Loose-team banner above the rendered content. The data
+                   * itself is accurate; only the team labels are degraded
+                   * (placeholder Org IDs). */}
+                  {isLooseTeam && (
+                    <ExternalResultsNotice
+                      prefix={t.pages.tournamentResults.externalNotice.looseTeam.prefix}
+                      linkLabel={t.pages.tournamentResults.externalNotice.looseTeam.linkLabel}
+                      suffix={t.pages.tournamentResults.externalNotice.looseTeam.suffix}
+                      url={externalUrl}
+                    />
+                  )}
                   {/* Main Results Table - only render when results are loaded */}
                   {resultsLoading ? (
                     // Don't show anything while loading - prevents flashing wrong state

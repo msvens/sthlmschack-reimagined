@@ -325,7 +325,7 @@ export interface Translations {
       statusFinished: string;
       bye: string;
       externalNotice: {
-        schackfyran: { prefix: string; linkLabel: string; suffix: string };
+        individuallyPairedTeam: { prefix: string; linkLabel: string; suffix: string };
         looseTeam: { prefix: string; linkLabel: string; suffix: string };
       };
       finalResultsTable: {
@@ -880,15 +880,15 @@ const translations: Record<Language, Translations> = {
         statusFinished: 'Finished',
         bye: 'Bye',
         externalNotice: {
-          schackfyran: {
-            prefix: 'Schackfyran tournaments score by school/class. We don\'t have that team view yet — see the official standings at',
+          individuallyPairedTeam: {
+            prefix: 'This is a team tournament with individual pairings. The team standings aren\'t available from the data source for this format — see the official results at',
             linkLabel: 'resultat.schack.se',
             suffix: '.',
           },
           looseTeam: {
-            prefix: 'Team names aren\'t yet available for this format. See the official results at',
+            prefix: 'Team names aren\'t available yet for this format — they appear as `Org <id>` below. See the official results at',
             linkLabel: 'resultat.schack.se',
-            suffix: 'for the proper team names and standings.',
+            suffix: 'for the proper names.',
           },
         },
         finalResultsTable: {
@@ -1441,15 +1441,15 @@ const translations: Record<Language, Translations> = {
         statusFinished: 'Avslutad',
         bye: 'Frirond',
         externalNotice: {
-          schackfyran: {
-            prefix: 'Schackfyran-tävlingar poängsätts per skola/klass. Vi har inte den lagvyn än — se den officiella tabellen på',
+          individuallyPairedTeam: {
+            prefix: 'Detta är en lagturnering med individuell lottning. Lagtabellen är inte tillgänglig från datakällan för detta format — se de officiella resultaten på',
             linkLabel: 'resultat.schack.se',
             suffix: '.',
           },
           looseTeam: {
-            prefix: 'Lagnamn är inte tillgängliga än för detta format. Se de officiella resultaten på',
+            prefix: 'Lagnamn är inte tillgängliga ännu för detta format — de visas som `Org <id>` nedan. Se de officiella resultaten på',
             linkLabel: 'resultat.schack.se',
-            suffix: 'för korrekta lagnamn och tabeller.',
+            suffix: 'för korrekta namn.',
           },
         },
         finalResultsTable: {
