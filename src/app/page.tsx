@@ -105,7 +105,7 @@ export default function Home() {
               {t.home.partners.collaborationLabel}
             </h3>
             <a
-              href="https://www.schack.se/"
+              href="https://schack.se/"
               target="_blank"
               rel="noopener noreferrer"
               className="block rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"

@@ -626,7 +626,7 @@ const translations: Record<Language, Translations> = {
         paragraph2: 'Whether you\'re a beginner looking for your first tournament or an experienced player tracking results, msvens chess provides the tools you need to stay connected with the chess community.',
       },
       partners: {
-        collaborationLabel: 'In Collaboration With',
+        collaborationLabel: 'Fetching data from',
         usingLabel: 'Using',
       },
     },
@@ -1187,7 +1187,7 @@ const translations: Record<Language, Translations> = {
         paragraph2: 'Oavsett om du är en nybörjare som letar efter din första turnering eller en erfaren spelare som spårar resultat, ger msvens schack dig verktygen du behöver för att hålla dig uppdaterad med schackgemenskapen.',
       },
       partners: {
-        collaborationLabel: 'I samarbete med',
+        collaborationLabel: 'Hämtar data från',
         usingLabel: 'Använder',
       },
     },
