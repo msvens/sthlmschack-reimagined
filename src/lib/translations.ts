@@ -627,7 +627,7 @@ const translations: Record<Language, Translations> = {
       },
       partners: {
         collaborationLabel: 'Fetching data from',
-        usingLabel: 'Using',
+        usingLabel: 'And',
       },
     },
     common: {
@@ -1188,7 +1188,7 @@ const translations: Record<Language, Translations> = {
       },
       partners: {
         collaborationLabel: 'Hämtar data från',
-        usingLabel: 'Använder',
+        usingLabel: 'Och',
       },
     },
     common: {
