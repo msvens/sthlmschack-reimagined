@@ -134,11 +134,23 @@ export default function GroupResultsPage() {
     }, {} as Record<number, TournamentRoundResultDto[]>);
   }, [isTeamTournament, individualRoundResults]);
 
-  // Fetch historical player data when selecting a round in individual tournaments
-  useEffect(() => {
-    if (isTeamTournament || !selectedRound || resultsLoading) return;
+  // Sorted list of round numbers we have data for.
+  const sortedRounds = useMemo(
+    () => Object.keys(resultsByRound).map(Number).sort((a, b) => a - b),
+    [resultsByRound]
+  );
 
-    const roundGames = resultsByRound[selectedRound];
+  // The round currently being viewed. `selectedRound` holds the user's
+  // explicit click (null until they click); otherwise we fall back to the
+  // last available round, so the view defaults to the most recent round
+  // even when it has no results yet — usually what the user is checking on.
+  const activeRound = selectedRound ?? sortedRounds[sortedRounds.length - 1] ?? null;
+
+  // Fetch historical player data for the round currently being viewed.
+  useEffect(() => {
+    if (isTeamTournament || !activeRound || resultsLoading) return;
+
+    const roundGames = resultsByRound[activeRound];
     if (!roundGames || roundGames.length === 0) return;
 
     // Collect all (playerId, lookupDate) pairs for this round
@@ -162,7 +174,7 @@ export default function GroupResultsPage() {
       // Fetch historical data (function will skip already cached entries)
       fetchPlayersByDate(requests);
     }
-  }, [isTeamTournament, selectedRound, resultsByRound, resultsLoading, fetchPlayersByDate]);
+  }, [isTeamTournament, activeRound, resultsByRound, resultsLoading, fetchPlayersByDate]);
 
   useEffect(() => {
     if (!tournamentId || isNaN(tournamentId)) {
@@ -645,35 +657,11 @@ export default function GroupResultsPage() {
                         <>
                           {/* Round Tabs */}
                           {(() => {
-                            const rounds = Object.keys(resultsByRound)
-                              .map(Number)
-                              .sort((a, b) => a - b);
-
-                            // Set default selected round to the last round with any results
-                            if (selectedRound === null && rounds.length > 0) {
-                              // A round is "played" if at least one game has a non-zero result
-                              const isRoundPlayed = (roundNumber: number): boolean => {
-                                const roundResults = resultsByRound[roundNumber] || [];
-                                return roundResults.some(r => r.homeResult !== 0 || r.awayResult !== 0);
-                              };
-
-                              // Find last round with any results (scan backwards)
-                              const lastPlayedRound = [...rounds].reverse().find(r => isRoundPlayed(r));
-
-                              if (lastPlayedRound !== undefined) {
-                                // Show the last round with results
-                                setSelectedRound(lastPlayedRound);
-                              } else {
-                                // No rounds have been played yet - show Round 1
-                                setSelectedRound(rounds[0]);
-                              }
-                            }
-
                             return (
                               <>
                                 {/* Round Tab Navigation */}
                                 <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700">
-                                  {rounds.map(roundNumber => {
+                                  {sortedRounds.map(roundNumber => {
                                     // Primary: actual game date from results (more accurate)
                                     // Fallback: scheduled date from roundsMap (for future rounds or missing data)
                                     const roundDateStr = resultsByRound[roundNumber]?.[0]?.date
@@ -684,7 +672,7 @@ export default function GroupResultsPage() {
                                         key={roundNumber}
                                         onClick={() => setSelectedRound(roundNumber)}
                                         className={`flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
-                                          selectedRound === roundNumber
+                                          activeRound === roundNumber
                                             ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
                                             : 'text-gray-600 dark:text-gray-400'
                                         }`}
@@ -692,7 +680,7 @@ export default function GroupResultsPage() {
                                         <div>{t.pages.tournamentResults.roundByRound.round} {roundNumber}</div>
                                         {roundDate && (
                                           <div className={`text-xs ${
-                                            selectedRound === roundNumber
+                                            activeRound === roundNumber
                                               ? 'text-blue-500 dark:text-blue-300'
                                               : 'text-gray-500 dark:text-gray-500'
                                           }`}>
@@ -706,7 +694,7 @@ export default function GroupResultsPage() {
 
                                 {/* Selected Round Content */}
                                 <div className="p-4 md:p-6">
-                                  {selectedRound && resultsByRound[selectedRound] && (() => {
+                                  {activeRound && resultsByRound[activeRound] && (() => {
                                     // Define columns for round-by-round table
                                     const roundColumns: TableColumn<TournamentRoundResultDto>[] = [
                                       {
@@ -793,7 +781,7 @@ export default function GroupResultsPage() {
 
                                     return (
                                       <Table
-                                        data={resultsByRound[selectedRound]}
+                                        data={resultsByRound[activeRound]}
                                         columns={roundColumns}
                                         getRowKey={(row, index) => `${row.homeId}-${row.awayId}-${index}`}
                                       />

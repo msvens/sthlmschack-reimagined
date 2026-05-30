@@ -153,35 +153,23 @@ export function TeamRoundResults({
     }
   };
 
-  const rounds = Object.keys(matchesByRound)
-    .map(Number)
-    .sort((a, b) => a - b);
+  // Sorted list of round numbers we have data for.
+  const sortedRounds = useMemo(
+    () => Object.keys(matchesByRound).map(Number).sort((a, b) => a - b),
+    [matchesByRound]
+  );
 
-  // Set default selected round to the last round with any results
-  if (selectedRound === null && rounds.length > 0) {
-    // A round is "played" if at least one match has a non-zero score
-    const isRoundPlayed = (roundNumber: number): boolean => {
-      const matches = matchesByRound[roundNumber] || [];
-      return matches.some(m => m.homeScore !== 0 || m.awayScore !== 0);
-    };
-
-    // Find last round with any results (scan backwards)
-    const lastPlayedRound = [...rounds].reverse().find(r => isRoundPlayed(r));
-
-    if (lastPlayedRound !== undefined) {
-      // Show the last round with results
-      setSelectedRound(lastPlayedRound);
-    } else {
-      // No rounds have been played yet - show Round 1
-      setSelectedRound(rounds[0]);
-    }
-  }
+  // The round currently being viewed. `selectedRound` holds the user's
+  // explicit click (null until they click); otherwise we fall back to the
+  // last available round, so the view defaults to the most recent round
+  // even when it has no results yet — usually what the user is checking on.
+  const activeRound = selectedRound ?? sortedRounds[sortedRounds.length - 1] ?? null;
 
   // Fetch historical Elo data when a match is expanded
   useEffect(() => {
-    if (expandedMatchIndex === null || !selectedRound || !fetchPlayersByDate) return;
+    if (expandedMatchIndex === null || !activeRound || !fetchPlayersByDate) return;
 
-    const selectedMatches = matchesByRound[selectedRound] || [];
+    const selectedMatches = matchesByRound[activeRound] || [];
     const match = selectedMatches[expandedMatchIndex];
     if (!match) return;
 
@@ -210,9 +198,9 @@ export function TeamRoundResults({
 
     // Fetch historical player data (fire and forget - cache will update)
     fetchPlayersByDate(requests);
-  }, [expandedMatchIndex, selectedRound, matchesByRound, fetchPlayersByDate]);
+  }, [expandedMatchIndex, activeRound, matchesByRound, fetchPlayersByDate]);
 
-  if (rounds.length === 0) {
+  if (sortedRounds.length === 0) {
     return (
       <div className="p-6 text-center">
         <div className="text-gray-600 dark:text-gray-400">
@@ -222,7 +210,7 @@ export function TeamRoundResults({
     );
   }
 
-  const selectedMatches = selectedRound ? matchesByRound[selectedRound] : [];
+  const selectedMatches = activeRound ? matchesByRound[activeRound] : [];
 
   // Toggle match expansion
   const handleMatchClick = (index: number) => {
@@ -326,7 +314,7 @@ export function TeamRoundResults({
 
       {/* Round Tab Navigation */}
       <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700">
-        {rounds.map(roundNumber => {
+        {sortedRounds.map(roundNumber => {
           // Get round date from first match in round
           // TODO: Add roundsMap fallback for unplayed rounds (like individual tournaments in page.tsx)
           const firstMatch = matchesByRound[roundNumber]?.[0];
@@ -340,7 +328,7 @@ export function TeamRoundResults({
                 setExpandedMatchIndex(null); // Collapse when changing rounds
               }}
               className={`flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
-                selectedRound === roundNumber
+                activeRound === roundNumber
                   ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
                   : 'text-gray-600 dark:text-gray-400'
               }`}
@@ -348,7 +336,7 @@ export function TeamRoundResults({
               <div>{t.pages.tournamentResults.roundByRound.round} {roundNumber}</div>
               {roundDate && (
                 <div className={`text-xs ${
-                  selectedRound === roundNumber
+                  activeRound === roundNumber
                     ? 'text-blue-500 dark:text-blue-300'
                     : 'text-gray-500 dark:text-gray-500'
                 }`}>
