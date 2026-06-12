@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { PageLayout } from "@/components/layout/PageLayout";
 import { PageTitle } from "@/components/PageTitle";
 import { TournamentList } from "@/components/TournamentList";
+import { CalendarView } from "@/components/calendar/CalendarView";
+import { getSavedTab, setSavedTab, type CalendarTab } from "@/components/calendar/calendarPrefs";
 import { DistrictFilter, DistrictCount } from "@/components/DistrictFilter";
 import { TournamentCategoryFilter, TournamentTypeFilter, TournamentStateFilter } from "@/components/filters";
 import { useOrganizations } from "@/context/OrganizationsContext";
@@ -24,6 +26,22 @@ export default function CalendarPage() {
   const { language } = useLanguage();
   const t = getTranslation(language);
   const { getDistrictIdForOrganizer } = useOrganizations();
+
+  const [activeTab, setActiveTab] = useState<CalendarTab>('calendar');
+
+  // Restore the last-used tab on mount (default render stays SSR-safe).
+  useEffect(() => {
+    const restore = () => {
+      const saved = getSavedTab();
+      if (saved) setActiveTab(saved);
+    };
+    restore();
+  }, []);
+
+  const selectTab = (tab: CalendarTab) => {
+    setActiveTab(tab);
+    setSavedTab(tab);
+  };
 
   const [allTournaments, setAllTournaments] = useState<TournamentDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,12 +200,38 @@ export default function CalendarPage() {
         />
       </div>
 
-      <TournamentList
-        tournaments={filteredTournaments}
-        loading={loading}
-        error={error || undefined}
-        language={language}
-      />
+      {/* View tabs: Calendar / List */}
+      <div className="mb-4 flex border-b border-gray-200 dark:border-gray-700">
+        {(['calendar', 'list'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => selectTab(tab)}
+            className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === tab
+                ? 'border-b-2 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            {t.pages.calendar.tabs[tab]}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'list' ? (
+        <TournamentList
+          tournaments={filteredTournaments}
+          loading={loading}
+          error={error || undefined}
+          language={language}
+        />
+      ) : (
+        <CalendarView
+          tournaments={filteredTournaments}
+          language={language}
+          loading={loading}
+          error={error || undefined}
+        />
+      )}
     </PageLayout>
   );
 }
