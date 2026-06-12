@@ -177,6 +177,31 @@ export interface Translations {
         loading: string;
         noTournaments: string;
       };
+      tabs: {
+        list: string;
+        calendar: string;
+      };
+      views: {
+        week: string;
+        month: string;
+      };
+      nav: {
+        today: string;
+        prev: string;
+        next: string;
+        earliest: string;
+        latest: string;
+      };
+      moreEvents: string;
+      longerEvent: string;
+      continues: string;
+      dayDetails: {
+        organizer: string;
+        city: string;
+        type: string;
+        dateRange: string;
+        viewResults: string;
+      };
     };
     results: {
       title: string;
@@ -731,6 +756,31 @@ const translations: Record<Language, Translations> = {
           lastUpdated: 'Updated',
           loading: 'Loading tournaments...',
           noTournaments: 'No upcoming tournaments found',
+        },
+        tabs: {
+          list: 'List',
+          calendar: 'Calendar',
+        },
+        views: {
+          week: 'Week',
+          month: 'Month',
+        },
+        nav: {
+          today: 'Today',
+          prev: 'Previous',
+          next: 'Next',
+          earliest: 'First event',
+          latest: 'Last event',
+        },
+        moreEvents: '+{count} more',
+        longerEvent: 'Longer event',
+        continues: 'continues',
+        dayDetails: {
+          organizer: 'Organizer',
+          city: 'City',
+          type: 'Type',
+          dateRange: 'Dates',
+          viewResults: 'View results',
         },
       },
       results: {
@@ -1292,6 +1342,31 @@ const translations: Record<Language, Translations> = {
           lastUpdated: 'Uppdaterad',
           loading: 'Laddar turneringar...',
           noTournaments: 'Inga kommande turneringar hittades',
+        },
+        tabs: {
+          list: 'Lista',
+          calendar: 'Kalender',
+        },
+        views: {
+          week: 'Vecka',
+          month: 'Månad',
+        },
+        nav: {
+          today: 'Idag',
+          prev: 'Föregående',
+          next: 'Nästa',
+          earliest: 'Första evenemanget',
+          latest: 'Sista evenemanget',
+        },
+        moreEvents: '+{count} fler',
+        longerEvent: 'Längre evenemang',
+        continues: 'fortsätter',
+        dayDetails: {
+          organizer: 'Arrangör',
+          city: 'Ort',
+          type: 'Typ',
+          dateRange: 'Datum',
+          viewResults: 'Visa resultat',
         },
       },
       results: {
