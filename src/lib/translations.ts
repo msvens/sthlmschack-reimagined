@@ -185,6 +185,7 @@ export interface Translations {
         week: string;
         month: string;
       };
+      colors: string;
       nav: {
         today: string;
         prev: string;
@@ -765,6 +766,7 @@ const translations: Record<Language, Translations> = {
           week: 'Week',
           month: 'Month',
         },
+        colors: 'Colors',
         nav: {
           today: 'Today',
           prev: 'Previous',
@@ -1351,6 +1353,7 @@ const translations: Record<Language, Translations> = {
           week: 'Vecka',
           month: 'Månad',
         },
+        colors: 'Färger',
         nav: {
           today: 'Idag',
           prev: 'Föregående',

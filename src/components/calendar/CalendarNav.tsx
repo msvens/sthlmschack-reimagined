@@ -2,12 +2,15 @@
 
 import { type Language } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
+import { CalendarLegend } from './CalendarLegend';
 
 interface CalendarNavProps {
   title: string;
   language: Language;
   view: 'week' | 'month';
   onViewChange: (view: 'week' | 'month') => void;
+  /** Tournament type values present in the data, for the colour key. */
+  legendTypes: number[];
   canGoPrev: boolean;
   canGoNext: boolean;
   onPrev: () => void;
@@ -25,6 +28,7 @@ export function CalendarNav({
   language,
   view,
   onViewChange,
+  legendTypes,
   canGoPrev,
   canGoNext,
   onPrev,
@@ -67,16 +71,19 @@ export function CalendarNav({
         {title}
       </h2>
 
-      {/* View selector */}
-      <select
-        value={view}
-        onChange={(e) => onViewChange(e.target.value as 'week' | 'month')}
-        aria-label={views.month}
-        className="shrink-0 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-      >
-        <option value="week">{views.week}</option>
-        <option value="month">{views.month}</option>
-      </select>
+      {/* Colour key + view selector */}
+      <div className="flex shrink-0 items-center gap-1.5">
+        <CalendarLegend types={legendTypes} language={language} />
+        <select
+          value={view}
+          onChange={(e) => onViewChange(e.target.value as 'week' | 'month')}
+          aria-label={views.month}
+          className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+        >
+          <option value="week">{views.week}</option>
+          <option value="month">{views.month}</option>
+        </select>
+      </div>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   getEventDateBounds,
   toDayNumber,
 } from '@/lib/utils/calendarLayout';
+import { getAllTournamentTypes } from '@/lib/utils/tournamentFilters';
 import { CalendarNav } from './CalendarNav';
 import { MonthView } from './MonthView';
 import { WeekView } from './WeekView';
@@ -62,6 +63,13 @@ export function CalendarView({ tournaments, language, loading, error }: Calendar
 
   const todayDayNumber = useMemo(() => toDayNumber(new Date()), []);
   const bounds = useMemo(() => getEventDateBounds(tournaments), [tournaments]);
+
+  // Tournament types present in the current data, in canonical order — drives
+  // the colour key so it only lists colours actually on screen.
+  const legendTypes = useMemo(() => {
+    const present = new Set(tournaments.map((tt) => tt.type));
+    return getAllTournamentTypes().filter((type) => present.has(type));
+  }, [tournaments]);
 
   // Mon–Sun short labels derived from a known Monday (2024-01-01).
   const weekdayLabels = useMemo(() => {
@@ -115,6 +123,7 @@ export function CalendarView({ tournaments, language, loading, error }: Calendar
         language={language}
         view={view}
         onViewChange={changeView}
+        legendTypes={legendTypes}
         canGoPrev={canGoPrev}
         canGoNext={canGoNext}
         onPrev={goPrev}
