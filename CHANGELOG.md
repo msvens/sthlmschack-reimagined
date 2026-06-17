@@ -6,6 +6,13 @@ All notable changes to msvens chess will be documented in this file.
 
 ---
 
+## [1.2.1] - 2026-06-17
+
+### Fixed
+- Map coordinates now refresh reliably during server deploys (the data-pull script runs the geocoders via the local tsx binary instead of requiring pnpm on PATH)
+
+---
+
 ## [1.2.0] - 2026-06-17
 
 ### Added

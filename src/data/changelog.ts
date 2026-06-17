@@ -19,6 +19,18 @@ export const changelog: ChangelogEntry[] = [
     "sections": []
   },
   {
+    "version": "1.2.1",
+    "date": "2026-06-17",
+    "sections": [
+      {
+        "type": "Fixed",
+        "items": [
+          "Map coordinates now refresh reliably during server deploys (the data-pull script runs the geocoders via the local tsx binary instead of requiring pnpm on PATH)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.0",
     "date": "2026-06-17",
     "sections": [
