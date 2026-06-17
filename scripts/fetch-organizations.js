@@ -7,6 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const API_BASE = 'https://member.schack.se/public/api/v1';
 
@@ -129,6 +130,19 @@ async function main() {
   console.log(`               ${formatBytes(prettySize)} (pretty)`);
   console.log(`Fetch speed:   ${Math.round(totalClubs / (totalTime / 1000))} clubs/sec`);
   console.log('='.repeat(60));
+
+  // Step 7: Refresh map coordinates from the freshly pulled data. Both geocoders
+  // are incremental (keyed by city / club id), so this is fast after the first
+  // run — only genuinely new cities/clubs hit the network.
+  console.log('\n🗺️  Refreshing map coordinates from the new data...');
+  try {
+    execSync('pnpm geocode:build && pnpm geocode:clubs', {
+      stdio: 'inherit',
+      cwd: path.join(__dirname, '..'),
+    });
+  } catch (err) {
+    console.warn('   ⚠️  Geocoding step failed (data files were still saved):', err.message);
+  }
 
   console.log('\n✨ Done! Check the public/data/ directory for JSON files.\n');
 }

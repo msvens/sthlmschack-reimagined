@@ -14,6 +14,8 @@
     "translations:check": "tsx scripts/check-translations.ts",
     "generate:changelog": "tsx scripts/generate-changelog.ts",
     "geocode:build": "tsx scripts/build-geocodes.ts",
+    "geocode:clubs": "tsx scripts/geocode-clubs.ts",
+    "data:clubs": "node scripts/fetch-organizations.js",
     "predev": "pnpm generate:changelog",
     "prebuild": "pnpm generate:changelog",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"

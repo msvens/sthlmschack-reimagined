@@ -26,22 +26,7 @@ import { getTranslation } from '@/lib/translations';
 import { getTournamentTypeKey } from '@/lib/utils/tournamentFilters';
 import { getTypeSwatchClasses } from './calendarColors';
 import { type GeoPoint } from '@/lib/geo/geocodeLoader';
-
-/** The one place that decides how the basemap looks. CARTO raster, keyless. */
-const TILE_SOURCES = {
-  light: {
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  },
-  dark: {
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  },
-} as const;
-
-const SWEDEN_CENTER: [number, number] = [62.5, 16.5];
+import { TILE_SOURCES, SWEDEN_CENTER } from '@/lib/geo/mapTiles';
 
 export interface MapMarker {
   tournament: TournamentDto;

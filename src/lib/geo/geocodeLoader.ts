@@ -20,7 +20,7 @@
  * can be deleted without touching organization data.
  */
 import { useEffect, useState } from 'react';
-import type { TournamentDto } from '@/lib/api';
+import type { TournamentDto, ClubDTO } from '@/lib/api';
 
 export interface GeoPoint {
   lat: number;
@@ -31,6 +31,12 @@ export interface GeoPoint {
 export interface GeocodeData {
   generatedAt: string;
   cities: Record<string, GeoPoint>;
+}
+
+/** Street-level club coordinates, keyed by club id (`scripts/geocode-clubs.ts`). */
+export interface ClubGeocodeData {
+  generatedAt: string;
+  clubs: Record<string, GeoPoint>;
 }
 
 /** Normalize a city name to a lookup key (lowercase, collapsed whitespace). */
@@ -56,34 +62,45 @@ export function resolveTournamentLocation(
   return resolveCity(data, tournament.city) ?? resolveCity(data, fallbackCity);
 }
 
-async function loadGeocodeData(): Promise<GeocodeData> {
-  const response = await fetch('/data/geocodes.json');
-  if (!response.ok) {
-    throw new Error(`Failed to load geocodes: ${response.status}`);
-  }
-  return response.json();
+/**
+ * Resolve a club's map location: its street-level coordinate if we geocoded it,
+ * else its city centre, else null (unmapped). `cityData` is the GeoNames city
+ * table used for the fallback.
+ */
+export function resolveClubLocation(
+  clubData: ClubGeocodeData,
+  cityData: GeocodeData | null,
+  club: ClubDTO,
+): GeoPoint | null {
+  const street = clubData.clubs[String(club.id)];
+  if (street) return street;
+  return cityData ? resolveCity(cityData, club.city) : null;
 }
 
-interface UseGeocodesResult {
-  data: GeocodeData | null;
+interface Resource<T> {
+  data: T | null;
   loading: boolean;
   error: string | null;
 }
 
-/** Fetch the geocode table once on mount. Client-only (used by the map view). */
-export function useGeocodes(): UseGeocodesResult {
-  const [data, setData] = useState<GeocodeData | null>(null);
+/** Fetch a static JSON resource once on mount. Client-only. */
+function useJsonResource<T>(url: string): Resource<T> {
+  const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    loadGeocodeData()
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
+        return res.json();
+      })
       .then((d) => {
-        if (!cancelled) setData(d);
+        if (!cancelled) setData(d as T);
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load geocodes');
+        if (!cancelled) setError(err instanceof Error ? err.message : `Failed to load ${url}`);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -91,7 +108,17 @@ export function useGeocodes(): UseGeocodesResult {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [url]);
 
   return { data, loading, error };
+}
+
+/** Fetch the GeoNames city table once on mount (used by both maps). */
+export function useGeocodes(): Resource<GeocodeData> {
+  return useJsonResource<GeocodeData>('/data/geocodes.json');
+}
+
+/** Fetch the street-level club coordinate table once on mount (club map). */
+export function useClubGeocodes(): Resource<ClubGeocodeData> {
+  return useJsonResource<ClubGeocodeData>('/data/club-geocodes.json');
 }
