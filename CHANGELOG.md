@@ -6,6 +6,27 @@ All notable changes to msvens chess will be documented in this file.
 
 ---
 
+## [1.2.0] - 2026-06-17
+
+### Added
+- Map view on the calendar showing upcoming tournaments by city (clustered, light/dark)
+- Clubs & Districts page redesigned with tabs (Clubs, Club Map, Districts, SSF Ranking)
+- Club map plotting active clubs by address, with an option to hide school clubs
+- Week and month calendar views, with an on-demand colour key
+- FIDE player search by name in the Elo calculator
+
+### Changed
+- Schackfyran and team-league tournaments now link to official results on schack.se
+- Round results distinguish byes from walkovers
+- Landing page shows partner logos and an updated data-source label
+- Live results updates now default to on
+
+### Fixed
+- Player profile no longer fails when game data is unavailable
+- Removed outdated "results may be unavailable" notices
+
+---
+
 ## [1.1.0] - 2026-04-13
 
 ### Added
