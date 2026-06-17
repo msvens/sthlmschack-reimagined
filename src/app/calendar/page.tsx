@@ -5,6 +5,7 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { PageTitle } from "@/components/PageTitle";
 import { TournamentList } from "@/components/TournamentList";
 import { CalendarView } from "@/components/calendar/CalendarView";
+import { MapView } from "@/components/calendar/MapView";
 import { getSavedTab, setSavedTab, type CalendarTab } from "@/components/calendar/calendarPrefs";
 import { DistrictFilter, DistrictCount } from "@/components/DistrictFilter";
 import { TournamentCategoryFilter, TournamentTypeFilter, TournamentStateFilter } from "@/components/filters";
@@ -200,9 +201,9 @@ export default function CalendarPage() {
         />
       </div>
 
-      {/* View tabs: Calendar / List */}
+      {/* View tabs: Calendar / List / Map */}
       <div className="mb-4 flex border-b border-gray-200 dark:border-gray-700">
-        {(['calendar', 'list'] as const).map((tab) => (
+        {(['calendar', 'list', 'map'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => selectTab(tab)}
@@ -223,6 +224,13 @@ export default function CalendarPage() {
           loading={loading}
           error={error || undefined}
           language={language}
+        />
+      ) : activeTab === 'map' ? (
+        <MapView
+          tournaments={filteredTournaments}
+          language={language}
+          loading={loading}
+          error={error || undefined}
         />
       ) : (
         <CalendarView

@@ -10,7 +10,7 @@ const TAB_KEY = 'calendar-active-tab';
 const VIEW_KEY = 'calendar-view-mode';
 const ANCHOR_KEY = 'calendar-anchor';
 
-export type CalendarTab = 'calendar' | 'list';
+export type CalendarTab = 'calendar' | 'list' | 'map';
 export type CalendarViewMode = 'week' | 'month';
 
 function read(key: string): string | null {
@@ -33,7 +33,7 @@ function write(key: string, value: string): void {
 
 export function getSavedTab(): CalendarTab | null {
   const v = read(TAB_KEY);
-  return v === 'calendar' || v === 'list' ? v : null;
+  return v === 'calendar' || v === 'list' || v === 'map' ? v : null;
 }
 
 export function setSavedTab(tab: CalendarTab): void {

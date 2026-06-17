@@ -180,10 +180,19 @@ export interface Translations {
       tabs: {
         list: string;
         calendar: string;
+        map: string;
       };
       views: {
         week: string;
         month: string;
+      };
+      map: {
+        loading: string;
+        empty: string;
+        unmapped: string;
+        unmappedHint: string;
+        cityNote: string;
+        attribution: string;
       };
       colors: string;
       nav: {
@@ -761,10 +770,19 @@ const translations: Record<Language, Translations> = {
         tabs: {
           list: 'List',
           calendar: 'Calendar',
+          map: 'Map',
         },
         views: {
           week: 'Week',
           month: 'Month',
+        },
+        map: {
+          loading: 'Loading map…',
+          empty: 'No tournaments to show on the map.',
+          unmapped: 'Not on the map ({count})',
+          unmappedHint: 'Location unknown — these could not be placed on the map.',
+          cityNote: 'Markers show each tournament’s city, not the exact venue.',
+          attribution: 'City coordinates: GeoNames (CC BY 4.0)',
         },
         colors: 'Colors',
         nav: {
@@ -1348,10 +1366,19 @@ const translations: Record<Language, Translations> = {
         tabs: {
           list: 'Lista',
           calendar: 'Kalender',
+          map: 'Karta',
         },
         views: {
           week: 'Vecka',
           month: 'Månad',
+        },
+        map: {
+          loading: 'Laddar karta…',
+          empty: 'Inga turneringar att visa på kartan.',
+          unmapped: 'Inte på kartan ({count})',
+          unmappedHint: 'Okänd plats — dessa kunde inte placeras på kartan.',
+          cityNote: 'Markörerna visar varje turnerings ort, inte exakt spellokal.',
+          attribution: 'Ortskoordinater: GeoNames (CC BY 4.0)',
         },
         colors: 'Färger',
         nav: {
