@@ -180,10 +180,19 @@ export interface Translations {
       tabs: {
         list: string;
         calendar: string;
+        map: string;
       };
       views: {
         week: string;
         month: string;
+      };
+      map: {
+        loading: string;
+        empty: string;
+        unmapped: string;
+        unmappedHint: string;
+        cityNote: string;
+        attribution: string;
       };
       colors: string;
       nav: {
@@ -513,6 +522,7 @@ export interface Translations {
       email: string;
       website: string;
       schoolClub: string;
+      includeSchoolClubs: string;
       yes: string;
       no: string;
       loading: string;
@@ -570,6 +580,20 @@ export interface Translations {
         districts: string;
         clubs: string;
         searchClubs: string;
+      };
+      tabs: {
+        clubs: string;
+        map: string;
+        districts: string;
+        ssf: string;
+      };
+      map: {
+        loading: string;
+        empty: string;
+        unmapped: string;
+        unmappedHint: string;
+        streetNote: string;
+        attribution: string;
       };
       pagination: {
         showing: string;
@@ -761,10 +785,19 @@ const translations: Record<Language, Translations> = {
         tabs: {
           list: 'List',
           calendar: 'Calendar',
+          map: 'Map',
         },
         views: {
           week: 'Week',
           month: 'Month',
+        },
+        map: {
+          loading: 'Loading map…',
+          empty: 'No tournaments to show on the map.',
+          unmapped: 'Not on the map ({count})',
+          unmappedHint: 'Location unknown — these could not be placed on the map.',
+          cityNote: 'Markers show each tournament’s city, not the exact venue.',
+          attribution: 'City coordinates: GeoNames (CC BY 4.0)',
         },
         colors: 'Colors',
         nav: {
@@ -1102,6 +1135,7 @@ const translations: Record<Language, Translations> = {
         email: 'Email',
         website: 'Website',
         schoolClub: 'School Club',
+        includeSchoolClubs: 'Include school clubs',
         yes: 'Yes',
         no: 'No',
         loading: 'Loading...',
@@ -1159,6 +1193,20 @@ const translations: Record<Language, Translations> = {
           districts: 'Districts',
           clubs: 'Clubs',
           searchClubs: 'Search Clubs',
+        },
+        tabs: {
+          clubs: 'Clubs',
+          map: 'Club Map',
+          districts: 'Districts',
+          ssf: 'SSF Ranking',
+        },
+        map: {
+          loading: 'Loading map…',
+          empty: 'No clubs to show on the map.',
+          unmapped: 'Not on the map ({count})',
+          unmappedHint: 'No address or city we could place — these aren’t on the map.',
+          streetNote: 'Markers show each club’s street address where known, otherwise its city.',
+          attribution: 'Coordinates: GeoNames + OpenStreetMap / Nominatim',
         },
         pagination: {
           showing: 'Showing',
@@ -1348,10 +1396,19 @@ const translations: Record<Language, Translations> = {
         tabs: {
           list: 'Lista',
           calendar: 'Kalender',
+          map: 'Karta',
         },
         views: {
           week: 'Vecka',
           month: 'Månad',
+        },
+        map: {
+          loading: 'Laddar karta…',
+          empty: 'Inga turneringar att visa på kartan.',
+          unmapped: 'Inte på kartan ({count})',
+          unmappedHint: 'Okänd plats — dessa kunde inte placeras på kartan.',
+          cityNote: 'Markörerna visar varje turnerings ort, inte exakt spellokal.',
+          attribution: 'Ortskoordinater: GeoNames (CC BY 4.0)',
         },
         colors: 'Färger',
         nav: {
@@ -1689,6 +1746,7 @@ const translations: Record<Language, Translations> = {
         email: 'E-post',
         website: 'Webbplats',
         schoolClub: 'Skolklubb',
+        includeSchoolClubs: 'Visa skolklubbar',
         yes: 'Ja',
         no: 'Nej',
         loading: 'Laddar...',
@@ -1746,6 +1804,20 @@ const translations: Record<Language, Translations> = {
           districts: 'Distrikt',
           clubs: 'Klubbar',
           searchClubs: 'Sök klubbar',
+        },
+        tabs: {
+          clubs: 'Klubbar',
+          map: 'Klubbkarta',
+          districts: 'Distrikt',
+          ssf: 'SSF Ranking',
+        },
+        map: {
+          loading: 'Laddar karta…',
+          empty: 'Inga klubbar att visa på kartan.',
+          unmapped: 'Inte på kartan ({count})',
+          unmappedHint: 'Ingen adress eller ort kunde placeras — dessa visas inte på kartan.',
+          streetNote: 'Markörerna visar varje klubbs gatuadress där den är känd, annars orten.',
+          attribution: 'Koordinater: GeoNames + OpenStreetMap / Nominatim',
         },
         pagination: {
           showing: 'Visar',
