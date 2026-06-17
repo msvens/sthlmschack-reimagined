@@ -136,9 +136,14 @@ async function main() {
   // run — only genuinely new cities/clubs hit the network.
   console.log('\n🗺️  Refreshing map coordinates from the new data...');
   try {
-    execSync('pnpm geocode:build && pnpm geocode:clubs', {
+    const root = path.join(__dirname, '..');
+    // Invoke the local tsx binary directly rather than `pnpm`, so this works
+    // under restricted deploy shells (e.g. `sudo -u www-data`) that may not have
+    // pnpm on PATH. tsx is a devDependency already present for the build.
+    const tsx = path.join(root, 'node_modules', '.bin', 'tsx');
+    execSync(`"${tsx}" scripts/build-geocodes.ts && "${tsx}" scripts/geocode-clubs.ts`, {
       stdio: 'inherit',
-      cwd: path.join(__dirname, '..'),
+      cwd: root,
     });
   } catch (err) {
     console.warn('   ⚠️  Geocoding step failed (data files were still saved):', err.message);
