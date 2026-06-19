@@ -7,6 +7,7 @@ import {
   filterByCategory,
   filterByType,
   filterByState,
+  getTournamentStatus,
   getAllTournamentTypes,
   getTournamentTypeKey,
 } from '@/lib/utils/tournamentFilters';
@@ -91,21 +92,70 @@ describe('countByType', () => {
 });
 
 // ---------------------------------------------------------------------------
-// countByState
+// getTournamentStatus  (date-first; state is only a weak hint)
+// ---------------------------------------------------------------------------
+describe('getTournamentStatus', () => {
+  const now = new Date('2025-06-15T12:00:00');
+
+  it('finished when past the end date', () => {
+    expect(getTournamentStatus({ start: '2025-06-01', end: '2025-06-10' }, now)).toBe('finished');
+  });
+
+  it('upcoming when before the start date', () => {
+    expect(getTournamentStatus({ start: '2025-07-01', end: '2025-07-02' }, now)).toBe('upcoming');
+  });
+
+  it('ongoing when inside the date window', () => {
+    expect(getTournamentStatus({ start: '2025-06-01', end: '2025-06-30' }, now)).toBe('ongoing');
+  });
+
+  it('THE BUG: stale state=registration on a past event is still finished', () => {
+    expect(
+      getTournamentStatus({ start: '2025-01-01', end: '2025-01-02', state: TournamentState.REGISTRATION }, now),
+    ).toBe('finished');
+  });
+
+  it('honours an explicit registration state inside the window (no results yet)', () => {
+    expect(
+      getTournamentStatus({ start: '2025-06-01', end: '2025-06-30', state: TournamentState.REGISTRATION }, now),
+    ).toBe('upcoming');
+  });
+
+  it('round results prove it started: ongoing while in window, finished once past end', () => {
+    expect(getTournamentStatus({ end: '2025-06-30', hasRoundResults: true }, now)).toBe('ongoing');
+    expect(getTournamentStatus({ end: '2025-06-01', hasRoundResults: true }, now)).toBe('finished');
+  });
+
+  it('treats the last day (today === end) as ongoing, not finished', () => {
+    expect(getTournamentStatus({ start: '2025-06-01', end: '2025-06-15' }, now)).toBe('ongoing');
+  });
+
+  it('falls back to raw state when no dates are present', () => {
+    expect(getTournamentStatus({ state: TournamentState.STARTED }, now)).toBe('ongoing');
+    expect(getTournamentStatus({ state: TournamentState.FINISHED }, now)).toBe('finished');
+  });
+
+  it('unknown when neither dates nor a usable state are available (e.g. text-search stub)', () => {
+    expect(getTournamentStatus({ start: '', end: '', state: 0 }, now)).toBe('unknown');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// countByState  (now derives status from dates: registration=upcoming, started=ongoing)
 // ---------------------------------------------------------------------------
 describe('countByState', () => {
-  it('counts all three states', () => {
+  it('buckets by derived status, ignoring the stale state field', () => {
     const tournaments = [
-      makeTournament({ state: TournamentState.REGISTRATION }),
-      makeTournament({ state: TournamentState.STARTED }),
-      makeTournament({ state: TournamentState.STARTED }),
-      makeTournament({ state: TournamentState.FINISHED }),
+      makeTournament({ start: '2099-01-01', end: '2099-01-02', state: TournamentState.REGISTRATION }), // upcoming
+      makeTournament({ start: '2000-01-01', end: '2099-01-02', state: TournamentState.STARTED }), // ongoing
+      makeTournament({ start: '2000-01-01', end: '2000-01-02', state: TournamentState.REGISTRATION }), // stale → finished
+      makeTournament({ start: '2000-01-01', end: '2000-01-02', state: TournamentState.FINISHED }), // finished
     ];
     expect(countByState(tournaments)).toEqual({
       all: 4,
       registration: 1,
-      started: 2,
-      finished: 1,
+      started: 1,
+      finished: 2,
     });
   });
 });
@@ -160,18 +210,22 @@ describe('filterByType', () => {
 // ---------------------------------------------------------------------------
 describe('filterByState', () => {
   const tournaments = [
-    makeTournament({ id: 1, state: TournamentState.REGISTRATION }),
-    makeTournament({ id: 2, state: TournamentState.FINISHED }),
+    makeTournament({ id: 1, start: '2000-01-01', end: '2000-01-02', state: TournamentState.REGISTRATION }), // stale → finished
+    makeTournament({ id: 2, start: '2000-01-01', end: '2099-01-02', state: TournamentState.STARTED }), // ongoing
+    makeTournament({ id: 3, start: '2099-01-01', end: '2099-01-02', state: TournamentState.REGISTRATION }), // upcoming
   ];
 
   it('null returns all', () => {
-    expect(filterByState(tournaments, null)).toHaveLength(2);
+    expect(filterByState(tournaments, null)).toHaveLength(3);
   });
 
-  it('specific state filters correctly', () => {
-    const result = filterByState(tournaments, TournamentState.FINISHED);
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe(2);
+  it('FINISHED matches date-finished events, including a stale registration state', () => {
+    expect(filterByState(tournaments, TournamentState.FINISHED).map(t => t.id)).toEqual([1]);
+  });
+
+  it('STARTED matches ongoing, REGISTRATION matches upcoming', () => {
+    expect(filterByState(tournaments, TournamentState.STARTED).map(t => t.id)).toEqual([2]);
+    expect(filterByState(tournaments, TournamentState.REGISTRATION).map(t => t.id)).toEqual([3]);
   });
 });
 
