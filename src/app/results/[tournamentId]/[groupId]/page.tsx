@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TournamentState, TeamTournamentEndResultDto } from '@/lib/api';
+import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto } from '@/lib/api';
+import { getTournamentStatus } from '@/lib/utils/tournamentFilters';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -314,25 +315,22 @@ export default function GroupResultsPage() {
   // Determine tournament/group state for display
   // These are only used when resultsLoading is false (guarded in JSX)
   //
-  // hasRoundResults: If there are round results, games have been played regardless of API state
+  // hasRoundResults: round results existing proves games have been played,
+  // regardless of the (unreliable) API state.
   const hasRoundResults = isTeamTournament
     ? teamRoundResults.length > 0
     : individualRoundResults.length > 0;
 
-  // isNotStarted: Show registration view only if state is REGISTRATION AND no games played
-  const isNotStarted = !hasRoundResults && (
-    tournamentState === TournamentState.REGISTRATION
-    || (groupStartDate && tournamentState === null && new Date() < parseLocalDate(groupStartDate))
-  );
-
-  // isFinished: Today's date (local midnight) is strictly after the group end date
-  // Uses parseLocalDate to avoid UTC midnight issues with date-only strings
-  // TODO: Revisit whether tournamentState should also factor in here
-  const isFinished = groupEndDate && (() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today > parseLocalDate(groupEndDate);
-  })();
+  // Derive status from the same shared helper the results/calendar lists use,
+  // fed this group's dates + the round-results signal (see tournamentFilters.ts).
+  const status = getTournamentStatus({
+    start: groupStartDate,
+    end: groupEndDate,
+    state: tournamentState,
+    hasRoundResults,
+  });
+  const isNotStarted = status === 'upcoming';
+  const isFinished = status === 'finished';
 
   // Special-format detection — see the tournament-formats reference notes.
   //
