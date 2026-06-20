@@ -217,6 +217,7 @@ export interface Translations {
       title: string;
       subtitle: string;
       placeholder: string;
+      wideRangeLoading: string;
       filters: {
         dateRange: {
           title: string;
@@ -821,6 +822,7 @@ const translations: Record<Language, Translations> = {
       results: {
         title: 'Tournament Results',
         subtitle: 'Check the latest results and standings.',
+        wideRangeLoading: 'A wide date range can take longer to process…',
         placeholder: 'Tournament results coming soon. This page will display comprehensive results, standings, and player statistics from completed tournaments.',
         filters: {
           dateRange: {
@@ -1432,6 +1434,7 @@ const translations: Record<Language, Translations> = {
       results: {
         title: 'Turneringsresultat',
         subtitle: 'Kolla de senaste resultaten och placeringarna.',
+        wideRangeLoading: 'Ett brett datumintervall kan ta längre tid att bearbeta…',
         placeholder: 'Turneringsresultat kommer snart. Denna sida kommer att visa omfattande resultat, placeringar och spelarstatistik från avslutade turneringar.',
         filters: {
           dateRange: {

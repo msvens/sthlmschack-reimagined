@@ -369,6 +369,7 @@ export default function ResultsPage() {
         error={error}
         language={language}
         showUpdatedColumn={true}
+        loadingMessage={t.pages.results.wideRangeLoading}
       />
     </PageLayout>
   );

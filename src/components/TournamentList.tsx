@@ -13,6 +13,8 @@ interface TournamentListProps {
   error?: string;
   language: 'sv' | 'en';
   showUpdatedColumn?: boolean;
+  /** Optional override for the loading text (defaults to "Loading tournaments…"). */
+  loadingMessage?: string;
 }
 
 export function TournamentList({
@@ -21,6 +23,7 @@ export function TournamentList({
   error,
   language,
   showUpdatedColumn = false,
+  loadingMessage,
 }: TournamentListProps) {
   const { getOrganizerName } = useOrganizations();
   const t = getTranslation(language);
@@ -124,7 +127,7 @@ export function TournamentList({
   if (loading) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        {t.pages.calendar.tournamentList.loading}
+        {loadingMessage ?? t.pages.calendar.tournamentList.loading}
       </div>
     );
   }
