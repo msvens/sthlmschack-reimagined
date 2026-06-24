@@ -99,7 +99,9 @@ export function HeadToHeadTab({ opponentId, language }: HeadToHeadTabProps) {
   // Derive loading state: true if either player isn't in the cache yet
   const playersLoading = useMemo(() => {
     if (!memberId) return false;
-    return !globalCache.getPlayer(memberId) || !globalCache.getPlayer(opponentId);
+    // 'missing' (API confirmed no record) counts as resolved → show "unknown".
+    return globalCache.getPlayerStatus(memberId) === 'unfetched'
+      || globalCache.getPlayerStatus(opponentId) === 'unfetched';
   }, [memberId, opponentId, globalCache]);
 
   // Convert to display format
