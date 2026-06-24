@@ -11,7 +11,10 @@ async function proxy(request: NextRequest) {
     const target = `${CHESSTOOLS_BASE}${originalPath}${search}`;
 
     const response = await fetch(target);
-    const data = await response.text();
+    // 204/304 are null-body statuses — passing a body to them throws (becoming a
+    // spurious 502); pass null instead.
+    const nullBody = response.status === 204 || response.status === 304;
+    const data = nullBody ? null : await response.text();
 
     return new Response(data, {
       status: response.status,

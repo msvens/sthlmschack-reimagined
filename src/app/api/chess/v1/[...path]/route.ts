@@ -16,7 +16,11 @@ async function proxy(request: NextRequest) {
       body: request.method !== 'GET' ? await request.text() : undefined,
     });
 
-    const data = await response.text();
+    // 204/304 are null-body statuses — constructing a Response with a body for
+    // them throws, so pass null. (The SSF API returns 204 for "no data", e.g. a
+    // player with no rating at a given date; without this it became a spurious 502.)
+    const nullBody = response.status === 204 || response.status === 304;
+    const data = nullBody ? null : await response.text();
     return new Response(data, {
       status: response.status,
       headers: { 'Content-Type': response.headers.get('Content-Type') || 'application/json' },
