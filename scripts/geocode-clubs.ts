@@ -122,6 +122,10 @@ function save(data: ClubGeocodeData) {
 }
 
 async function main() {
+  if (!fs.existsSync(CLUBS_FILE)) {
+    console.error(`\n  ✖ Missing ${path.relative(ROOT, CLUBS_FILE)} — run \`pnpm data:clubs\` first.\n`);
+    process.exit(1);
+  }
   const districts = JSON.parse(fs.readFileSync(CLUBS_FILE, 'utf-8')) as { clubs: Club[] }[];
   const active = districts.flatMap((d) => d.clubs).filter(isActiveRatingClub);
   const out = loadExisting();

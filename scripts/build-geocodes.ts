@@ -78,6 +78,10 @@ function buildIndex(txtPath: string) {
 }
 
 async function main() {
+  if (!fs.existsSync(CLUBS_FILE)) {
+    console.error(`\n  ✖ Missing ${path.relative(ROOT, CLUBS_FILE)} — run \`pnpm data:clubs\` first.\n`);
+    process.exit(1);
+  }
   const txtPath = await downloadGeonames();
   const { all, admin } = buildIndex(txtPath);
 
