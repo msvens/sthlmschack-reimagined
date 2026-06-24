@@ -3,12 +3,20 @@
  *
  * Status note: the API `state` field is unreliable — organizers routinely never
  * flip it from "registration" once an event has happened, so old finished
- * tournaments still report state=1. We therefore derive status from DATES
- * (`getTournamentStatus`) and treat `state` only as a weak hint. The detail
- * view uses the same helper, so list and detail agree.
+ * tournaments still report state=1. Status is therefore derived from DATES via
+ * the SDK's `getTournamentStatus` (treats `state` only as a weak hint); the
+ * count/filter helpers below just bucket that per-tournament status for the
+ * filter UI. The detail view calls the same SDK helper, so list and detail agree.
  */
 
-import { TournamentDto, TournamentType, TournamentState, isTeamTournament, parseLocalDate } from '@/lib/api';
+import {
+  TournamentDto,
+  TournamentType,
+  TournamentState,
+  isTeamTournament,
+  getTournamentStatus,
+  type TournamentStatus,
+} from '@/lib/api';
 
 // =============================================================================
 // Types
@@ -30,58 +38,6 @@ export interface StateCounts {
 }
 
 export type TypeCounts = Record<number | 'all', number>;
-
-/** Derived tournament status (from dates, not the unreliable API `state`). */
-export type TournamentStatus = 'upcoming' | 'ongoing' | 'finished' | 'unknown';
-
-export interface TournamentStatusInput {
-  /** YYYY-MM-DD start date (tournament- or group-level). */
-  start?: string | null;
-  /** YYYY-MM-DD end date (tournament- or group-level). */
-  end?: string | null;
-  /** Raw API state — used only as a weak hint when dates can't decide. */
-  state?: number | null;
-  /** True if any round results exist — proves the event has started. */
-  hasRoundResults?: boolean;
-}
-
-/**
- * Derive a tournament's status, trusting DATES over the API `state` field.
- *
- * Order matters: a past end date wins over `state` (that's what fixes the
- * stale-"registration" bug). Round results, when known, prove the event has
- * started. `state` is consulted only inside the date window or when no dates
- * are available at all (e.g. text-search stubs → `unknown`).
- */
-export function getTournamentStatus(t: TournamentStatusInput, now: Date = new Date()): TournamentStatus {
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
-  const todayMs = today.getTime();
-
-  const toMs = (d?: string | null): number | null => {
-    if (!d) return null;
-    const parsed = parseLocalDate(d).getTime();
-    return Number.isNaN(parsed) ? null : parsed;
-  };
-  const startMs = toMs(t.start);
-  const endMs = toMs(t.end);
-
-  // Results exist → it has started; finished only once past the end date.
-  if (t.hasRoundResults) {
-    return endMs !== null && todayMs > endMs ? 'finished' : 'ongoing';
-  }
-  // Past the end date → finished, regardless of the (unreliable) state field.
-  if (endMs !== null && todayMs > endMs) return 'finished';
-  // Before the start date → upcoming.
-  if (startMs !== null && todayMs < startMs) return 'upcoming';
-  // Inside the date window: honour an explicit registration state if present.
-  if (t.state === TournamentState.REGISTRATION) return 'upcoming';
-  if (startMs !== null || endMs !== null) return 'ongoing';
-  // No dates at all: fall back to the raw state, else unknown.
-  if (t.state === TournamentState.STARTED) return 'ongoing';
-  if (t.state === TournamentState.FINISHED) return 'finished';
-  return 'unknown';
-}
 
 // =============================================================================
 // Count Functions

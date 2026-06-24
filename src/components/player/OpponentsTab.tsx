@@ -79,7 +79,9 @@ export function OpponentsTab({ language }: OpponentsTabProps) {
     if (!memberId) return false;
     return filteredGames.some(game => {
       const opponentId = game.whiteId === memberId ? game.blackId : game.whiteId;
-      return opponentId > 0 && !globalCache.getPlayer(opponentId);
+      // 'missing' (API confirmed no record) counts as resolved → show "unknown",
+      // not a perpetual "retrieving".
+      return opponentId > 0 && globalCache.getPlayerStatus(opponentId) === 'unfetched';
     });
   }, [filteredGames, memberId, globalCache]);
 

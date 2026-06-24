@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import { TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, RoundDto } from '@/lib/api';
+import { TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, RoundDto } from '@/lib/api';
 
 /**
  * Request for fetching a player's info at a specific historical date
@@ -31,6 +31,8 @@ export interface GroupResultsContextValue {
   groupEndDate: string | null;
   rankingAlgorithm: number | null;
   tournamentState: number | null;
+  /** Raw group DTO for SDK status derivation (getTournamentStatus). */
+  group: TournamentClassGroupDto | null;
   loading: boolean;
   error: string | null;
 

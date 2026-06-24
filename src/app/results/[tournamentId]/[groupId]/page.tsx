@@ -3,8 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto } from '@/lib/api';
-import { getTournamentStatus } from '@/lib/utils/tournamentFilters';
+import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, getTournamentStatus } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -89,7 +88,7 @@ export default function GroupResultsPage() {
     rankingAlgorithm,
     groupStartDate,
     groupEndDate,
-    tournamentState,
+    group,
     loading: resultsLoading,
     error: resultsError,
     getPlayerName,
@@ -315,20 +314,16 @@ export default function GroupResultsPage() {
   // Determine tournament/group state for display
   // These are only used when resultsLoading is false (guarded in JSX)
   //
-  // hasRoundResults: round results existing proves games have been played,
-  // regardless of the (unreliable) API state.
-  const hasRoundResults = isTeamTournament
-    ? teamRoundResults.length > 0
-    : individualRoundResults.length > 0;
-
-  // Derive status from the same shared helper the results/calendar lists use,
-  // fed this group's dates + the round-results signal (see tournamentFilters.ts).
-  const status = getTournamentStatus({
-    start: groupStartDate,
-    end: groupEndDate,
-    state: tournamentState,
-    hasRoundResults,
-  });
+  // Derive status via the SDK helper (the same one the results/calendar lists
+  // use). Group dates take precedence over the tournament's; `tournament`
+  // supplies the (weak) state hint; a non-empty roundResults array proves the
+  // event has started — so a stale "registration" state can't mislabel it.
+  const roundResultsForStatus = isTeamTournament ? teamRoundResults : individualRoundResults;
+  const status = group
+    ? getTournamentStatus({ group, tournament: tournament ?? undefined, roundResults: roundResultsForStatus })
+    : tournament
+      ? getTournamentStatus({ tournament, roundResults: roundResultsForStatus })
+      : 'unknown';
   const isNotStarted = status === 'upcoming';
   const isFinished = status === 'finished';
 

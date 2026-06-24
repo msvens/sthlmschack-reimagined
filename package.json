@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@msvens/schack-se-sdk": "github:msvens/schack-se-sdk#v0.6.1",
+    "@msvens/schack-se-sdk": "github:msvens/schack-se-sdk#v0.7.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "next": "16.2.1",
