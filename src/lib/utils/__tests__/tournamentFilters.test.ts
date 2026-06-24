@@ -7,7 +7,6 @@ import {
   filterByCategory,
   filterByType,
   filterByState,
-  getTournamentStatus,
   getAllTournamentTypes,
   getTournamentTypeKey,
 } from '@/lib/utils/tournamentFilters';
@@ -91,57 +90,14 @@ describe('countByType', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// getTournamentStatus  (date-first; state is only a weak hint)
-// ---------------------------------------------------------------------------
-describe('getTournamentStatus', () => {
-  const now = new Date('2025-06-15T12:00:00');
-
-  it('finished when past the end date', () => {
-    expect(getTournamentStatus({ start: '2025-06-01', end: '2025-06-10' }, now)).toBe('finished');
-  });
-
-  it('upcoming when before the start date', () => {
-    expect(getTournamentStatus({ start: '2025-07-01', end: '2025-07-02' }, now)).toBe('upcoming');
-  });
-
-  it('ongoing when inside the date window', () => {
-    expect(getTournamentStatus({ start: '2025-06-01', end: '2025-06-30' }, now)).toBe('ongoing');
-  });
-
-  it('THE BUG: stale state=registration on a past event is still finished', () => {
-    expect(
-      getTournamentStatus({ start: '2025-01-01', end: '2025-01-02', state: TournamentState.REGISTRATION }, now),
-    ).toBe('finished');
-  });
-
-  it('honours an explicit registration state inside the window (no results yet)', () => {
-    expect(
-      getTournamentStatus({ start: '2025-06-01', end: '2025-06-30', state: TournamentState.REGISTRATION }, now),
-    ).toBe('upcoming');
-  });
-
-  it('round results prove it started: ongoing while in window, finished once past end', () => {
-    expect(getTournamentStatus({ end: '2025-06-30', hasRoundResults: true }, now)).toBe('ongoing');
-    expect(getTournamentStatus({ end: '2025-06-01', hasRoundResults: true }, now)).toBe('finished');
-  });
-
-  it('treats the last day (today === end) as ongoing, not finished', () => {
-    expect(getTournamentStatus({ start: '2025-06-01', end: '2025-06-15' }, now)).toBe('ongoing');
-  });
-
-  it('falls back to raw state when no dates are present', () => {
-    expect(getTournamentStatus({ state: TournamentState.STARTED }, now)).toBe('ongoing');
-    expect(getTournamentStatus({ state: TournamentState.FINISHED }, now)).toBe('finished');
-  });
-
-  it('unknown when neither dates nor a usable state are available (e.g. text-search stub)', () => {
-    expect(getTournamentStatus({ start: '', end: '', state: 0 }, now)).toBe('unknown');
-  });
-});
+// Note: the date-derived status logic itself now lives in the SDK
+// (`getTournamentStatus`) and is tested there. The countByState/filterByState
+// tests below remain as the app-level guard that our bucketing/mapping still
+// derives correctly through the SDK (and that the original stale-state bug
+// stays fixed end-to-end).
 
 // ---------------------------------------------------------------------------
-// countByState  (now derives status from dates: registration=upcoming, started=ongoing)
+// countByState  (derives status via the SDK: registration=upcoming, started=ongoing)
 // ---------------------------------------------------------------------------
 describe('countByState', () => {
   it('buckets by derived status, ignoring the stale state field', () => {

@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, formatPlayerName, getOpponentKind, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, RoundDto, isTeamTournament, isTeamPairing, findTournamentGroup } from '@/lib/api';
+import { ResultsService, TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, formatPlayerName, getOpponentKind, TournamentEndResultDto, TournamentRoundResultDto, PlayerInfoDto, TeamTournamentEndResultDto, TournamentDto, TournamentClassGroupDto, RoundDto, isTeamTournament, isTeamPairing, findTournamentGroup } from '@/lib/api';
 import { getTranslation } from '@/lib/translations';
 import { GroupResultsProvider, GroupResultsContextValue, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { useOrganizations } from '@/context/OrganizationsContext';
@@ -20,6 +20,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
 
   // Tournament metadata
   const [tournament, setTournament] = useState<TournamentDto | null>(null);
+  const [group, setGroup] = useState<TournamentClassGroupDto | null>(null);
   const [thinkingTime, setThinkingTime] = useState<string | null>(null);
   const [groupName, setGroupName] = useState<string | null>(null);
   const [groupStartDate, setGroupStartDate] = useState<string | null>(null);
@@ -132,6 +133,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
       // Find the group metadata to get name, dates, and ranking algorithm
       const groupResult = findTournamentGroup(tournamentData, groupId);
       if (groupResult) {
+        setGroup(groupResult.group);
         setGroupName(groupResult.group.name);
         setGroupStartDate(groupResult.group.start);
         setGroupEndDate(groupResult.group.end);
@@ -321,6 +323,7 @@ export default function GroupResultsLayout({ children }: { children: ReactNode }
     groupEndDate,
     rankingAlgorithm,
     tournamentState: tournament?.state ?? null,
+    group,
     loading,
     error,
     getPlayerName,
