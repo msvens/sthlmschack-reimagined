@@ -33,10 +33,14 @@ export interface GeocodeData {
   cities: Record<string, GeoPoint>;
 }
 
-/** Street-level club coordinates, keyed by club id (`scripts/geocode-clubs.ts`). */
+/**
+ * Street-level club coordinates, keyed by club id (`scripts/geocode-clubs.ts`).
+ * A `null` entry is a negative-cache marker (address didn't resolve) — resolved
+ * the same as "no entry": fall back to the club's city.
+ */
 export interface ClubGeocodeData {
   generatedAt: string;
-  clubs: Record<string, GeoPoint>;
+  clubs: Record<string, GeoPoint | null>;
 }
 
 /** Normalize a city name to a lookup key (lowercase, collapsed whitespace). */
