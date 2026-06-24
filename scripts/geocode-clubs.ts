@@ -9,17 +9,20 @@
  *
  * Clubs are placed at their street address so they spread across a city instead
  * of stacking on one city-centre point. A club with no usable street, or whose
- * address doesn't resolve, is left out here — the map falls back to the club's
- * city at runtime (via geocodes.json), then to "not on the map".
+ * address doesn't resolve, falls back to its city at runtime (via geocodes.json),
+ * then to "not on the map".
  *
  * Honors Nominatim's usage policy: <=1 request/second, descriptive User-Agent,
  * sequential. INCREMENTAL — reuses any existing club-geocodes.json and only
- * fetches clubs it doesn't already have, so re-running (e.g. after a club-data
- * refresh) is cheap. See `pnpm data:refresh`.
+ * queries clubs it hasn't ATTEMPTED yet. Both resolved addresses and definitive
+ * no-matches are recorded (the latter as a null negative-cache entry), so a club
+ * that can't be geocoded isn't re-queried on every run/deploy. Transient
+ * HTTP/network failures are NOT cached, so they retry next run.
  *
  * Usage:
  *   pnpm geocode:clubs
- *   GEOCODE_LIMIT=40 pnpm geocode:clubs   # cap NEW lookups (quick test run)
+ *   GEOCODE_LIMIT=40 pnpm geocode:clubs       # cap NEW lookups (quick test run)
+ *   GEOCODE_RETRY_FAILED=1 pnpm geocode:clubs # re-attempt past no-matches
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -33,6 +36,7 @@ const EMAIL = process.env.GEOCODE_EMAIL || 'msvens@gmail.com';
 const USER_AGENT = `sthlmschack-reimagined club geocoder (${EMAIL})`;
 const RATE_MS = 1100; // >= 1s between requests per Nominatim policy
 const LIMIT = process.env.GEOCODE_LIMIT ? Number(process.env.GEOCODE_LIMIT) : Infinity;
+const RETRY_FAILED = process.env.GEOCODE_RETRY_FAILED === '1';
 
 interface Membership {
   year: number;
@@ -53,7 +57,9 @@ interface GeoPoint {
 }
 interface ClubGeocodeData {
   generatedAt: string;
-  clubs: Record<string, GeoPoint>;
+  // GeoPoint = resolved address; null = NEGATIVE cache (address didn't resolve —
+  // recorded so we don't retry it every run; runtime falls back to city).
+  clubs: Record<string, GeoPoint | null>;
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -67,7 +73,13 @@ function isActiveRatingClub(c: Club): boolean {
   return recent.active === 1;
 }
 
-async function nominatim(params: Record<string, string>): Promise<GeoPoint | null> {
+/**
+ * Geocode one address. Returns:
+ *  - GeoPoint  → resolved
+ *  - null      → DEFINITIVE no match (empty result) → safe to negative-cache
+ *  - undefined → TRANSIENT failure (HTTP/network) → don't cache; retry next run
+ */
+async function nominatim(params: Record<string, string>): Promise<GeoPoint | null | undefined> {
   const qs = new URLSearchParams({ format: 'json', limit: '1', email: EMAIL, country: 'Sweden', ...params });
   const url = `${NOMINATIM}?${qs}`;
   // Retry transient network failures (e.g. EHOSTUNREACH) so one blip in a long
@@ -77,20 +89,20 @@ async function nominatim(params: Record<string, string>): Promise<GeoPoint | nul
       const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
       if (!res.ok) {
         console.warn(`  ! HTTP ${res.status} for ${JSON.stringify(params)}`);
-        return null;
+        return undefined; // transient (e.g. 429/5xx) — don't negative-cache
       }
       const json = (await res.json()) as Array<{ lat: string; lon: string }>;
-      if (!json.length) return null;
+      if (!json.length) return null; // definitive no match
       return { lat: round(+json[0].lat), lng: round(+json[0].lon) };
     } catch (err) {
       if (attempt === 4) {
         console.warn(`  ! network error (skipping, retry later): ${(err as Error).message}`);
-        return null;
+        return undefined; // transient — don't negative-cache
       }
       await sleep(2000 * attempt);
     }
   }
-  return null;
+  return undefined;
 }
 
 function loadExisting(): ClubGeocodeData {
@@ -114,20 +126,34 @@ async function main() {
   const active = districts.flatMap((d) => d.clubs).filter(isActiveRatingClub);
   const out = loadExisting();
 
-  const geocodable = active.filter((c) => c.street?.trim() && c.city?.trim() && !out.clubs[String(c.id)]);
+  // A club is "attempted" once it has any recorded entry — a resolved point OR a
+  // null negative-cache marker. We skip attempted clubs so failures aren't
+  // re-queried on every run. GEOCODE_RETRY_FAILED=1 re-attempts the null ones
+  // (e.g. after an address is fixed upstream).
+  const isAttempted = (id: number): boolean => {
+    const key = String(id);
+    if (!(key in out.clubs)) return false;
+    if (RETRY_FAILED && out.clubs[key] === null) return false;
+    return true;
+  };
+
+  const geocodable = active.filter((c) => c.street?.trim() && c.city?.trim() && !isAttempted(c.id));
   const todo = geocodable.slice(0, LIMIT);
   const noStreet = active.filter((c) => !c.street?.trim() || !c.city?.trim()).length;
   console.log(
     `${active.length} active+rating clubs — ${noStreet} lack a usable street (city fallback at runtime).`,
   );
   console.log(
-    `${geocodable.length} with address & uncached` +
+    `${geocodable.length} with address & unattempted` +
+      (RETRY_FAILED ? ' (retrying past failures)' : '') +
       (Number.isFinite(LIMIT) ? ` — geocoding ${todo.length} (GEOCODE_LIMIT)` : '') +
       '.',
   );
 
   let n = 0;
-  let failed = 0;
+  let resolved = 0;
+  let negativeCached = 0;
+  let transient = 0;
   for (const club of todo) {
     n++;
     const point = await nominatim({
@@ -137,21 +163,29 @@ async function main() {
     });
     if (point) {
       out.clubs[String(club.id)] = point;
+      resolved++;
       console.log(`  [${n}/${todo.length}] ${club.name} → ${point.lat}, ${point.lng}`);
+    } else if (point === null) {
+      // Definitive no-match → negative-cache so we don't retry it next run.
+      out.clubs[String(club.id)] = null;
+      negativeCached++;
+      console.log(`  [${n}/${todo.length}] ${club.name} → (no match; cached, falls back to city)`);
     } else {
-      failed++;
-      console.log(`  [${n}/${todo.length}] ${club.name} → (no match; will fall back to city)`);
+      // Transient failure → leave unrecorded so it retries next run.
+      transient++;
+      console.log(`  [${n}/${todo.length}] ${club.name} → (transient error; will retry next run)`);
     }
     if (n % 10 === 0) save(out); // checkpoint
     await sleep(RATE_MS);
   }
   save(out);
 
+  const entries = Object.values(out.clubs);
   const remaining = geocodable.length - todo.length;
   console.log('\nDone.');
-  console.log(`  clubs geocoded (address-level): ${Object.keys(out.clubs).length}`);
-  console.log(`  failed this run (no address match): ${failed}`);
-  if (remaining > 0) console.log(`  ${remaining} clubs still uncached — re-run to continue.`);
+  console.log(`  this run: ${resolved} resolved, ${negativeCached} no-match (cached), ${transient} transient (will retry).`);
+  console.log(`  totals: ${entries.filter(Boolean).length} address-level, ${entries.filter((e) => e === null).length} city-fallback.`);
+  if (remaining > 0) console.log(`  ${remaining} clubs still unattempted — re-run to continue.`);
   console.log(`  → ${OUT_FILE}`);
 }
 
