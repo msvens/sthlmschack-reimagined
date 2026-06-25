@@ -400,6 +400,29 @@ export interface Translations {
         noResults: string;
         round: string;
       };
+      print: {
+        standings: string;
+        rank: string;
+        name: string;
+        points: string;
+        tiebreak: string;
+        team: string;
+        matchPoints: string;
+        boardPoints: string;
+        home: string;
+        away: string;
+        noPairings: string;
+        noStandings: string;
+        printSaveAsPdf: string;
+        allGroups: string;
+        printThisGroup: string;
+        backToTournament: string;
+        fontSize: string;
+        small: string;
+        medium: string;
+        large: string;
+        autoFit: string;
+      };
       teamRoundResults: {
         board: string;
         homeTeam: string;
@@ -1014,6 +1037,29 @@ const translations: Record<Language, Translations> = {
           noResults: 'No round results available for this group',
           round: 'Round',
         },
+        print: {
+          standings: 'Standings',
+          rank: '#',
+          name: 'Name',
+          points: 'Points',
+          tiebreak: 'TB',
+          team: 'Team',
+          matchPoints: 'MP',
+          boardPoints: 'BP',
+          home: 'Home',
+          away: 'Away',
+          noPairings: 'No pairings for this round',
+          noStandings: 'No standings available',
+          printSaveAsPdf: 'Print / Save as PDF',
+          allGroups: 'All groups',
+          printThisGroup: 'Print',
+          backToTournament: '← Back to tournament',
+          fontSize: 'Font',
+          small: 'Small',
+          medium: 'Medium',
+          large: 'Large',
+          autoFit: 'Auto-fit',
+        },
         teamRoundResults: {
           board: 'Board',
           homeTeam: 'Home',
@@ -1625,6 +1671,29 @@ const translations: Record<Language, Translations> = {
           result: 'Resultat',
           noResults: 'Inga rondresultat tillgängliga för denna grupp',
           round: 'Rond',
+        },
+        print: {
+          standings: 'Ställning',
+          rank: '#',
+          name: 'Namn',
+          points: 'Poäng',
+          tiebreak: 'Särsk',
+          team: 'Lag',
+          matchPoints: 'MP',
+          boardPoints: 'BP',
+          home: 'Hemma',
+          away: 'Borta',
+          noPairings: 'Inga partier för denna rond',
+          noStandings: 'Ingen ställning tillgänglig',
+          printSaveAsPdf: 'Skriv ut / spara som PDF',
+          allGroups: 'Alla grupper',
+          printThisGroup: 'Skriv ut',
+          backToTournament: '← Tillbaka till turneringen',
+          fontSize: 'Text',
+          small: 'Liten',
+          medium: 'Mellan',
+          large: 'Stor',
+          autoFit: 'Autoanpassa',
         },
         teamRoundResults: {
           board: 'Bräde',
