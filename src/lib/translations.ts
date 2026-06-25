@@ -414,9 +414,10 @@ export interface Translations {
         noPairings: string;
         noStandings: string;
         printSaveAsPdf: string;
+        printAction: string;
         allGroups: string;
         printThisGroup: string;
-        backToTournament: string;
+        back: string;
         fontSize: string;
         small: string;
         medium: string;
@@ -1051,10 +1052,11 @@ const translations: Record<Language, Translations> = {
           noPairings: 'No pairings for this round',
           noStandings: 'No standings available',
           printSaveAsPdf: 'Print / Save as PDF',
+          printAction: 'Print',
           allGroups: 'All groups',
           printThisGroup: 'Print',
-          backToTournament: '← Back to tournament',
-          fontSize: 'Font',
+          back: '← Back',
+          fontSize: 'Font size',
           small: 'Small',
           medium: 'Medium',
           large: 'Large',
@@ -1686,10 +1688,11 @@ const translations: Record<Language, Translations> = {
           noPairings: 'Inga partier för denna rond',
           noStandings: 'Ingen ställning tillgänglig',
           printSaveAsPdf: 'Skriv ut / spara som PDF',
+          printAction: 'Skriv ut',
           allGroups: 'Alla grupper',
           printThisGroup: 'Skriv ut',
-          backToTournament: '← Tillbaka till turneringen',
-          fontSize: 'Text',
+          back: '← Tillbaka',
+          fontSize: 'Textstorlek',
           small: 'Liten',
           medium: 'Mellan',
           large: 'Stor',

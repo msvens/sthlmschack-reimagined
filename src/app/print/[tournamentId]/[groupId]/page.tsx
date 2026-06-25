@@ -1,24 +1,21 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
-import { loadPrintData, type PrintData } from '@/components/results/print/printData';
-import { PrintToolbar } from '@/components/results/print/PrintToolbar';
-import { PrintableTournament } from '@/components/results/print/PrintableTournament';
-import type { FontMode } from '@/components/results/print/printStyle';
+import { loadPrintData, buildGroupNav, type PrintData } from '@/components/print/printData';
+import { PrintToolbar } from '@/components/print/PrintToolbar';
+import { PrintableTournament } from '@/components/print/PrintableTournament';
+import type { FontMode } from '@/components/print/printStyle';
 
-export default function TournamentPrintPage() {
+export default function GroupPrintPage() {
   const params = useParams();
-  const search = useSearchParams();
   const { language } = useLanguage();
   const t = getTranslation(language);
 
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
-  const groupParam = search.get('group');
-  const urlGroupId = groupParam ? parseInt(groupParam) : undefined;
-  const roundParam = search.get('round');
+  const groupId = params.groupId ? parseInt(params.groupId as string) : null;
 
   const [data, setData] = useState<PrintData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,16 +23,14 @@ export default function TournamentPrintPage() {
   const [round, setRound] = useState<number | null>(null);
   const [fontMode, setFontMode] = useState<FontMode>('medium');
   const [auto, setAuto] = useState(true);
-  // Opened from a single group → default to just that group; the toolbar's
-  // "all groups" toggle switches to the whole tournament (re-fetches).
-  const [allGroups, setAllGroups] = useState(urlGroupId == null);
-  const effectiveGroupId = allGroups ? undefined : urlGroupId;
+  // Default to just this group; the toolbar's "all groups" toggle re-fetches all.
+  const [allGroups, setAllGroups] = useState(false);
+  const effectiveGroupId = allGroups ? undefined : groupId ?? undefined;
 
-  // Fetch print data on mount / when target changes.
   useEffect(() => {
     let cancelled = false;
     const run = () => {
-      if (tournamentId == null || Number.isNaN(tournamentId)) {
+      if (tournamentId == null || Number.isNaN(tournamentId) || groupId == null || Number.isNaN(groupId)) {
         setError(t.pages.tournamentResults.error);
         setLoading(false);
         return;
@@ -57,33 +52,32 @@ export default function TournamentPrintPage() {
     return () => {
       cancelled = true;
     };
-  }, [tournamentId, effectiveGroupId, t.pages.tournamentResults.error]);
+  }, [tournamentId, groupId, effectiveGroupId, t.pages.tournamentResults.error]);
 
-  // Distinct rounds present across the target group(s).
+  // Distinct rounds present across the target group(s); default to the latest.
   const rounds = useMemo(() => {
     if (!data) return [];
     return [...new Set(data.groups.flatMap((g) => g.rounds))].sort((a, b) => a - b);
   }, [data]);
 
-  // Initial round: ?round= if valid, else the latest present.
+  const nav = useMemo(
+    () => (data && groupId != null ? buildGroupNav(data.tournament, groupId) : null),
+    [data, groupId],
+  );
+
   useEffect(() => {
     if (rounds.length === 0) return;
-    const pick = () => {
-      const fromParam = roundParam ? Number(roundParam) : NaN;
-      setRound(rounds.includes(fromParam) ? fromParam : rounds[rounds.length - 1]);
-    };
+    const pick = () => setRound(rounds[rounds.length - 1]);
     pick();
-  }, [rounds, roundParam]);
+  }, [rounds]);
 
   return (
     <div className="px-4 pb-10 pt-20 print:p-0">
       {loading && (
         <div className="text-center text-gray-600 dark:text-gray-400">{t.pages.tournamentResults.loading}</div>
       )}
-      {error && !loading && (
-        <div className="text-center text-red-600 dark:text-red-400">{error}</div>
-      )}
-      {data && !loading && round != null && (
+      {error && !loading && <div className="text-center text-red-600 dark:text-red-400">{error}</div>}
+      {data && !loading && round != null && groupId != null && nav && (
         <>
           <PrintToolbar
             rounds={rounds}
@@ -95,16 +89,13 @@ export default function TournamentPrintPage() {
             onAutoChange={setAuto}
             allGroups={allGroups}
             onAllGroupsChange={setAllGroups}
-            multipleGroups={data.totalGroups > 1}
+            classOptions={nav.classOptions}
+            currentClassId={nav.currentClassId}
+            groupOptions={nav.groupOptions}
+            groupId={groupId}
             tournamentId={tournamentId as number}
-            groupId={urlGroupId}
           />
-          <PrintableTournament
-            data={data}
-            round={round}
-            fontMode={fontMode}
-            auto={auto}
-          />
+          <PrintableTournament data={data} round={round} fontMode={fontMode} auto={auto} />
         </>
       )}
     </div>

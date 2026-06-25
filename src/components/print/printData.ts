@@ -41,8 +41,6 @@ export interface PrintGroupData {
 export interface PrintData {
   tournament: TournamentDto;
   groups: PrintGroupData[];
-  /** Total groups in the whole tournament (drives whether "all groups" is offered). */
-  totalGroups: number;
 }
 
 /** Flatten the class tree (root classes + nested subClasses), preserving order. */
@@ -54,6 +52,39 @@ function flattenClasses(tournament: TournamentDto): TournamentClassDto[] {
   };
   tournament.rootClasses?.forEach(walk);
   return out;
+}
+
+/** First group in document order — used to redirect `/print/[tournamentId]`. */
+export function firstGroupId(tournament: TournamentDto): number | undefined {
+  for (const c of flattenClasses(tournament)) {
+    if (c.groups?.[0]) return c.groups[0].id;
+  }
+  return undefined;
+}
+
+export interface PrintGroupNav {
+  /** Classes that contain groups (for the class dropdown). */
+  classOptions: { id: number; label: string; firstGroupId: number }[];
+  /** The class the current group belongs to. */
+  currentClassId: number | null;
+  /** Groups within the current class (for the group dropdown). */
+  groupOptions: { id: number; label: string }[];
+}
+
+/**
+ * Cascading class → group navigation for the print toolbar, mirroring the
+ * results page: pick a class (jumps to its first group), then a group within it.
+ */
+export function buildGroupNav(tournament: TournamentDto, groupId: number): PrintGroupNav {
+  const classes = flattenClasses(tournament).filter((c) => (c.groups?.length ?? 0) > 0);
+  const classOptions = classes.map((c) => ({
+    id: c.classID,
+    label: c.className || `Class ${c.classID}`,
+    firstGroupId: c.groups![0].id,
+  }));
+  const current = classes.find((c) => c.groups!.some((g) => g.id === groupId)) ?? null;
+  const groupOptions = (current?.groups ?? []).map((g) => ({ id: g.id, label: g.name }));
+  return { classOptions, currentClassId: current?.classID ?? null, groupOptions };
 }
 
 function distinctRounds(rows: TournamentRoundResultDto[]): number[] {
@@ -147,6 +178,5 @@ export async function loadPrintData(tournamentId: number, groupId?: number): Pro
     }),
   );
 
-  const totalGroups = allClasses.reduce((n, c) => n + (c.groups?.length ?? 0), 0);
-  return { tournament, groups, totalGroups };
+  return { tournament, groups };
 }
