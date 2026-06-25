@@ -229,7 +229,7 @@ export function SelectableList({
 
           {/* Expanded items list - absolutely positioned overlay */}
           {isOpen && (
-            <div className={`absolute z-50 left-0 right-0 top-full rounded-b-lg border border-t-0 shadow-lg overflow-hidden ${listBg} border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-200`}>
+            <div className={`absolute z-50 left-0 top-full min-w-full w-max max-w-[min(24rem,calc(100vw-1.5rem))] rounded-b-lg border border-t-0 shadow-lg overflow-hidden ${listBg} border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-200`}>
               <div className="max-h-80 overflow-y-auto">
                 {items.map((item) => (
                   <button
@@ -242,7 +242,7 @@ export function SelectableList({
                     }`}
                     title={item.tooltip}
                   >
-                    <div className={fontSize}>{item.label}</div>
+                    <div className={`${fontSize} whitespace-nowrap`}>{item.label}</div>
                     {item.subtitle && (
                       <div className={`${subtitleSize} opacity-70 mt-0.5`}>{item.subtitle}</div>
                     )}

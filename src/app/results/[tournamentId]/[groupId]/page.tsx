@@ -395,6 +395,18 @@ export default function GroupResultsPage() {
               <span>{tournament.start} - {tournament.end}</span>
               {tournament.city && <span>{tournament.city}</span>}
             </div>
+            {/* Print entry point — opens the print view (this group) in a new tab.
+                Switching group / all groups live in the print toolbar. */}
+            <div className="mt-3 text-sm">
+              <a
+                href={`/print/${tournamentId}/${groupId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline dark:text-blue-400"
+              >
+                {t.pages.tournamentResults.print.printThisGroup}
+              </a>
+            </div>
           </div>
 
           {/* Responsive Flex Layout */}

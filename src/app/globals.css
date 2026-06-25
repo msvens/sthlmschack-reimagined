@@ -15,3 +15,76 @@ body {
     text-wrap: balance;
   }
 }
+
+/* --- Print: A4 tournament sheets (pairing lists + standings) --- */
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+/* On screen, render the document as stacked A4 pages (white cards on the page
+   background) so page breaks are visible — a print-preview feel. */
+@media screen {
+  /* Gray canvas so the white pages (and the gaps between them) stand out in
+     both light and dark mode. */
+  .print-document {
+    background: #d1d5db;
+    padding: 12mm 0;
+  }
+  .print-page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto 10mm;
+    padding: 14mm;
+    background: #fff;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  }
+  .print-page:last-child {
+    margin-bottom: 0;
+  }
+
+  /* The A4 page is 210mm (~793px) wide — wider than a phone. Scale the whole
+     document down so it fits the screen (preview only; print uses real A4). */
+  @media (max-width: 820px) {
+    .print-document {
+      zoom: 0.62;
+    }
+  }
+  @media (max-width: 480px) {
+    .print-document {
+      zoom: 0.44;
+    }
+  }
+}
+
+@media print {
+  /* Drop app chrome and force a clean white document regardless of theme. */
+  nav,
+  footer {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Each page on its own sheet (the first shares page 1 with the header). The
+     screen-only card sizing/shadow above doesn't apply here, so @page controls
+     the real paper margin. */
+  .print-page {
+    break-before: page;
+    page-break-before: always;
+  }
+  .print-page:first-child {
+    break-before: auto;
+    page-break-before: avoid;
+  }
+
+  /* Keep rows intact and repeat table headers across page breaks. */
+  thead {
+    display: table-header-group;
+  }
+  tr {
+    break-inside: avoid;
+  }
+}
