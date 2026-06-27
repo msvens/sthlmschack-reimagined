@@ -2,23 +2,22 @@
 
 import { PageLayout } from '@/components/layout/PageLayout';
 import { Card } from '@/components/Card';
+import { Badge, BadgeColor } from '@/components/Badge';
 import { changelog, ChangelogEntry, ChangelogSection } from '@/data/changelog';
 
 function SectionBadge({ type }: { type: string }) {
-  const colors: Record<string, string> = {
-    Added: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    Changed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-    Fixed: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-    Removed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-    Infrastructure: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+  const colors: Record<string, BadgeColor> = {
+    Added: 'green',
+    Changed: 'blue',
+    Fixed: 'yellow',
+    Removed: 'red',
+    Infrastructure: 'purple',
   };
 
-  const colorClass = colors[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400';
-
   return (
-    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${colorClass}`}>
+    <Badge color={colors[type] || 'gray'} shape="rounded">
       {type}
-    </span>
+    </Badge>
   );
 }
 

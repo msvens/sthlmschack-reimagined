@@ -3,16 +3,21 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, getTournamentStatus } from '@/lib/api';
+import { TournamentService, ResultsService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, getTiebreakSystemName, createTeamNameFormatter, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, RoundStandings, RoundStandingRow, getTournamentStatus } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
 import { FinalResultsTable } from '@/components/results/FinalResultsTable';
 import { TeamFinalResultsTable } from '@/components/results/TeamFinalResultsTable';
 import { RegistrationTable } from '@/components/results/RegistrationTable';
+import { RoundStandingsTable } from '@/components/results/RoundStandingsTable';
+import { TeamRoundStandingsTable } from '@/components/results/TeamRoundStandingsTable';
+import { RoundStepper } from '@/components/results/RoundStepper';
 import { TeamRoundResults } from '@/components/results/TeamRoundResults';
 import { LiveUpdatesToggle } from '@/components/results/LiveUpdatesToggle';
 import { SelectableList, SelectableListItem } from '@/components/SelectableList';
+import { Toggle } from '@/components/Toggle';
+import { Badge } from '@/components/Badge';
 import { Link } from '@/components/Link';
 import { Table, TableColumn } from '@/components/Table';
 import { useLiveUpdates } from '@/hooks';
@@ -86,6 +91,7 @@ export default function GroupResultsPage() {
     teamRoundResults,
     thinkingTime,
     rankingAlgorithm,
+    playerMap,
     groupStartDate,
     groupEndDate,
     group,
@@ -118,6 +124,15 @@ export default function GroupResultsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRound, setSelectedRound] = useState<number | null>(null);
+
+  // Opt-in round-by-round standings playback (never the default — official
+  // standings always show otherwise). Snapshots are fetched lazily the first
+  // time the toggle is enabled, so they cost nothing for the common case.
+  const [playbackEnabled, setPlaybackEnabled] = useState(false);
+  // Tagged with the groupId the snapshots belong to, so switching group refetches.
+  const [roundStandings, setRoundStandings] = useState<{ groupId: number; byRound: Map<number, RoundStandings> } | null>(null);
+  const [playbackLoading, setPlaybackLoading] = useState(false);
+  const [playbackError, setPlaybackError] = useState(false);
 
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
@@ -175,6 +190,42 @@ export default function GroupResultsPage() {
       fetchPlayersByDate(requests);
     }
   }, [isTeamTournament, activeRound, resultsByRound, resultsLoading, fetchPlayersByDate]);
+
+  // Lazily fetch round-by-round standings when playback is enabled (once per
+  // group). NOTE: `playbackLoading` must NOT be a dependency — toggling it would
+  // re-run the effect and its cleanup would cancel the in-flight request, leaving
+  // the loading flag stuck on forever.
+  useEffect(() => {
+    if (!playbackEnabled || groupId == null || roundStandings?.groupId === groupId) return;
+
+    let cancelled = false;
+    const run = () => {
+      setPlaybackLoading(true);
+      setPlaybackError(false);
+      new ResultsService()
+        .getRoundStandings(groupId)
+        .then((resp) => {
+          if (cancelled) return;
+          if (resp.status === 200 && resp.data) {
+            const byRound = new Map<number, RoundStandings>();
+            resp.data.forEach((snapshot) => byRound.set(snapshot.round, snapshot));
+            setRoundStandings({ groupId, byRound });
+          } else {
+            setPlaybackError(true);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setPlaybackError(true);
+        })
+        .finally(() => {
+          if (!cancelled) setPlaybackLoading(false);
+        });
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [playbackEnabled, groupId, roundStandings]);
 
   useEffect(() => {
     if (!tournamentId || isNaN(tournamentId)) {
@@ -272,6 +323,14 @@ export default function GroupResultsPage() {
     }));
   }, [selectedClass]);
 
+  // Team-name formatter for the team playback snapshot, built from the official
+  // team standings so multi-team Roman numerals match the final table. (Declared
+  // before the early returns to keep hook order stable.)
+  const formatTeamName = useMemo(
+    () => createTeamNameFormatter(teamResults, getClubName),
+    [teamResults, getClubName]
+  );
+
   // Don't show loading message - it causes a brief flash on navigation
   // The content will appear once tournament data is loaded
   if (loading) {
@@ -355,6 +414,32 @@ export default function GroupResultsPage() {
     : false;
   const externalUrl = `https://resultat.schack.se/ShowTournamentServlet?id=${groupId}`;
 
+  // Round-by-round standings playback eligibility. Restricted to FINISHED events
+  // on purpose: during an ongoing event the live-updates toggle occupies this
+  // same spot, and a playback toggle beside it (live-now vs. scrub-history) is
+  // confusing — gating to finished means the two never coexist. Also excludes the
+  // degraded formats (individually-paired team, loose team) which hide standings.
+  const hasStandings = isTeamTournament ? teamResults.length > 0 : groupResults.length > 0;
+  const playbackEligible =
+    isFinished &&
+    !isIndividuallyPairedTeam &&
+    !isLooseTeam &&
+    hasStandings &&
+    sortedRounds.length >= 2;
+
+  // The estimated snapshot for the round currently being viewed (playback on).
+  const activeSnapshot =
+    playbackEnabled && roundStandings?.groupId === groupId && activeRound != null
+      ? roundStandings.byRound.get(activeRound) ?? null
+      : null;
+  const showPlayback = playbackEligible && playbackEnabled;
+  const tiebreakName = group ? getTiebreakSystemName(group.tiebreakSystem) : '';
+  // Explicit caveat copy — shown both as the "estimated" badge tooltip and as a
+  // visible note under the snapshot table.
+  const playbackNote = isTeamTournament
+    ? t.pages.tournamentResults.standingsPlayback.noteTeam
+    : t.pages.tournamentResults.standingsPlayback.noteIndividual.replace('{system}', tiebreakName);
+
   // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
     if (result.playerInfo?.id && tournamentId && groupId) {
@@ -367,6 +452,25 @@ export default function GroupResultsPage() {
     if (result.contenderId && tournamentId && groupId) {
       router.push(`/results/${tournamentId}/${groupId}/team/${result.contenderId}-${result.teamNumber}`);
     }
+  };
+
+  // Row clicks in the playback snapshot tables (rows carry only contenderId).
+  const handleSnapshotPlayerClick = (row: RoundStandingRow) => {
+    if (row.contenderId && tournamentId && groupId) {
+      router.push(`/results/${tournamentId}/${groupId}/${row.contenderId}`);
+    }
+  };
+  const handleSnapshotTeamClick = (row: RoundStandingRow) => {
+    if (row.contenderId && tournamentId && groupId) {
+      router.push(`/results/${tournamentId}/${groupId}/team/${row.contenderId}-${row.teamNumber}`);
+    }
+  };
+
+  // Enabling playback starts from round 1 so the user scrubs forward through the
+  // event (the shared round state otherwise defaults to the latest round).
+  const handlePlaybackToggle = (checked: boolean) => {
+    setPlaybackEnabled(checked);
+    if (checked && sortedRounds.length > 0) setSelectedRound(sortedRounds[0]);
   };
 
   // Handle class selection - navigate to first group in that class
@@ -502,11 +606,21 @@ export default function GroupResultsPage() {
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
-                            {isNotStarted
-                              ? t.pages.tournamentResults.registrationTable.title
-                              : isFinished
-                                ? t.pages.tournamentResults.finalResults
-                                : t.pages.tournamentResults.ongoingResults}{!isSingleGroup && ` - ${selectedGroup.name}`}
+                            {showPlayback
+                              ? t.pages.tournamentResults.standingsPlayback.titleTemplate.replace(
+                                  '{round}',
+                                  String(activeRound ?? sortedRounds[sortedRounds.length - 1])
+                                )
+                              : isNotStarted
+                                ? t.pages.tournamentResults.registrationTable.title
+                                : isFinished
+                                  ? t.pages.tournamentResults.finalResults
+                                  : t.pages.tournamentResults.ongoingResults}{!isSingleGroup && ` - ${selectedGroup.name}`}
+                            {showPlayback && (
+                              <Badge color="amber" tooltip={playbackNote} className="ml-2">
+                                {t.pages.tournamentResults.standingsPlayback.estimatedBadge}
+                              </Badge>
+                            )}
                           </h3>
                           {isNotStarted && groupStartDate && (
                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -519,16 +633,25 @@ export default function GroupResultsPage() {
                             </p>
                           )}
                         </div>
-                        {/* Live controls: only show for non-finished tournaments */}
-                        {!isFinished && (
-                          <div className="sm:flex-shrink-0">
-                            <LiveUpdatesToggle
-                              enabled={liveState.enabled}
-                              onToggle={setLiveEnabled}
-                              lastUpdated={liveState.lastUpdated || lastUpdated}
-                              isRefreshing={liveState.isRefreshing}
-                              onManualRefresh={manualRefresh}
-                            />
+                        {/* Right-side controls: live updates (non-finished) + standings playback (opt-in) */}
+                        {(!isFinished || playbackEligible) && (
+                          <div className="sm:flex-shrink-0 flex flex-col items-start sm:items-end gap-2">
+                            {!isFinished && (
+                              <LiveUpdatesToggle
+                                enabled={liveState.enabled}
+                                onToggle={setLiveEnabled}
+                                lastUpdated={liveState.lastUpdated || lastUpdated}
+                                isRefreshing={liveState.isRefreshing}
+                                onManualRefresh={manualRefresh}
+                              />
+                            )}
+                            {playbackEligible && (
+                              <Toggle
+                                checked={playbackEnabled}
+                                onChange={handlePlaybackToggle}
+                                label={t.pages.tournamentResults.standingsPlayback.toggleLabel}
+                              />
+                            )}
                           </div>
                         )}
                       </div>
@@ -593,35 +716,78 @@ export default function GroupResultsPage() {
                       // While loading, don't show any table - just wait
                       // This prevents flashing wrong content before we know the tournament state
                       null
-                    ) : isTeamTournament ? (
-                      (teamResults.length > 0 || resultsError) && (
-                        <TeamFinalResultsTable
-                          results={teamResults}
-                          getClubName={getClubName}
-                          loading={false}
-                          error={resultsError || undefined}
-                          onRowClick={handleTeamClick}
+                    ) : showPlayback && !playbackError ? (
+                      // Opt-in playback: estimated standings as of the selected round.
+                      <div>
+                        <RoundStepper
+                          rounds={sortedRounds}
+                          value={activeRound ?? sortedRounds[sortedRounds.length - 1]}
+                          onChange={setSelectedRound}
+                          labelPrefix={t.pages.tournamentResults.roundByRound.round}
+                          prevLabel={t.pages.tournamentResults.standingsPlayback.prevRound}
+                          nextLabel={t.pages.tournamentResults.standingsPlayback.nextRound}
+                          className="mb-4"
                         />
-                      )
-                    ) : isNotStarted ? (
-                      // Always show RegistrationTable for non-started tournaments
-                      <RegistrationTable
-                        results={groupResults}
-                        rankingAlgorithm={rankingAlgorithm}
-                        loading={false}
-                        error={resultsError || undefined}
-                        onRowClick={handlePlayerClick}
-                      />
+                        {playbackLoading && !activeSnapshot ? (
+                          <div className="p-8 text-center text-gray-600 dark:text-gray-400">
+                            {t.pages.tournamentResults.loading}
+                          </div>
+                        ) : isTeamTournament ? (
+                          <TeamRoundStandingsTable
+                            rows={activeSnapshot?.rows ?? []}
+                            formatTeamName={formatTeamName}
+                            onRowClick={handleSnapshotTeamClick}
+                          />
+                        ) : (
+                          <RoundStandingsTable
+                            rows={activeSnapshot?.rows ?? []}
+                            playerMap={playerMap}
+                            rankingAlgorithm={rankingAlgorithm}
+                            onRowClick={handleSnapshotPlayerClick}
+                          />
+                        )}
+                        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                          {playbackNote}
+                        </p>
+                      </div>
                     ) : (
-                      (groupResults.length > 0 || resultsError) && (
-                        <FinalResultsTable
-                          results={groupResults}
-                          rankingAlgorithm={rankingAlgorithm}
-                          loading={false}
-                          error={resultsError || undefined}
-                          onRowClick={handlePlayerClick}
-                        />
-                      )
+                      <>
+                        {playbackEnabled && playbackError && (
+                          <p className="mb-3 text-xs text-amber-600 dark:text-amber-400">
+                            {t.pages.tournamentResults.standingsPlayback.loadError}
+                          </p>
+                        )}
+                        {isTeamTournament ? (
+                          (teamResults.length > 0 || resultsError) && (
+                            <TeamFinalResultsTable
+                              results={teamResults}
+                              getClubName={getClubName}
+                              loading={false}
+                              error={resultsError || undefined}
+                              onRowClick={handleTeamClick}
+                            />
+                          )
+                        ) : isNotStarted ? (
+                          // Always show RegistrationTable for non-started tournaments
+                          <RegistrationTable
+                            results={groupResults}
+                            rankingAlgorithm={rankingAlgorithm}
+                            loading={false}
+                            error={resultsError || undefined}
+                            onRowClick={handlePlayerClick}
+                          />
+                        ) : (
+                          (groupResults.length > 0 || resultsError) && (
+                            <FinalResultsTable
+                              results={groupResults}
+                              rankingAlgorithm={rankingAlgorithm}
+                              loading={false}
+                              error={resultsError || undefined}
+                              onRowClick={handlePlayerClick}
+                            />
+                          )
+                        )}
+                      </>
                     )}
                   </div>
                   )}

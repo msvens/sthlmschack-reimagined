@@ -400,6 +400,17 @@ export interface Translations {
         noResults: string;
         round: string;
       };
+      standingsPlayback: {
+        toggleLabel: string;
+        titleTemplate: string;
+        estimatedBadge: string;
+        qpHeader: string;
+        noteIndividual: string;
+        noteTeam: string;
+        loadError: string;
+        prevRound: string;
+        nextRound: string;
+      };
       print: {
         standings: string;
         rank: string;
@@ -1038,6 +1049,18 @@ const translations: Record<Language, Translations> = {
           noResults: 'No round results available for this group',
           round: 'Round',
         },
+        standingsPlayback: {
+          toggleLabel: 'Round-by-round standings',
+          titleTemplate: 'Standings after round {round}',
+          estimatedBadge: 'estimated',
+          qpHeader: 'QP≈',
+          noteIndividual:
+            'Estimated standings — points are exact, but the secondary score (QP) uses plain Buchholz/Sonneborn-Berger, so the order of tied players may differ from the official {system} tie-break.',
+          noteTeam: 'Estimated standings as of this round, reconstructed from the round results.',
+          loadError: 'Could not load round-by-round standings.',
+          prevRound: 'Previous round',
+          nextRound: 'Next round',
+        },
         print: {
           standings: 'Standings',
           rank: '#',
@@ -1673,6 +1696,18 @@ const translations: Record<Language, Translations> = {
           result: 'Resultat',
           noResults: 'Inga rondresultat tillgängliga för denna grupp',
           round: 'Rond',
+        },
+        standingsPlayback: {
+          toggleLabel: 'Ställning per rond',
+          titleTemplate: 'Ställning efter rond {round}',
+          estimatedBadge: 'uppskattad',
+          qpHeader: 'KP≈',
+          noteIndividual:
+            'Uppskattad ställning – poängen är exakta, men sekundärpoängen (KP) använder enkel Buchholz/Sonneborn-Berger, så ordningen mellan poänglika spelare kan avvika från det officiella särskiljningssystemet {system}.',
+          noteTeam: 'Uppskattad ställning efter denna rond, rekonstruerad från rondresultaten.',
+          loadError: 'Det gick inte att ladda ställning per rond.',
+          prevRound: 'Föregående rond',
+          nextRound: 'Nästa rond',
         },
         print: {
           standings: 'Ställning',
