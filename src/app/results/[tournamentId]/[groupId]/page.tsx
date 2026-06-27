@@ -466,6 +466,13 @@ export default function GroupResultsPage() {
     }
   };
 
+  // Enabling playback starts from round 1 so the user scrubs forward through the
+  // event (the shared round state otherwise defaults to the latest round).
+  const handlePlaybackToggle = (checked: boolean) => {
+    setPlaybackEnabled(checked);
+    if (checked && sortedRounds.length > 0) setSelectedRound(sortedRounds[0]);
+  };
+
   // Handle class selection - navigate to first group in that class
   const handleClassSelect = (id: string | number) => {
     const selectedClass = allClasses.find(c => c.classID === id);
@@ -641,7 +648,7 @@ export default function GroupResultsPage() {
                             {playbackEligible && (
                               <Toggle
                                 checked={playbackEnabled}
-                                onChange={setPlaybackEnabled}
+                                onChange={handlePlaybackToggle}
                                 label={t.pages.tournamentResults.standingsPlayback.toggleLabel}
                               />
                             )}
