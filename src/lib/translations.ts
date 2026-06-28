@@ -405,8 +405,10 @@ export interface Translations {
         titleTemplate: string;
         estimatedBadge: string;
         qpHeader: string;
-        noteIndividual: string;
-        noteTeam: string;
+        /** Shown when secondaryBasis === 'reproduced' (SSF method, pending confirmation). */
+        noteReproduced: string;
+        /** Shown when secondaryBasis === 'indicative' (rough generic stand-in). */
+        noteIndicative: string;
         loadError: string;
         prevRound: string;
         nextRound: string;
@@ -1054,9 +1056,10 @@ const translations: Record<Language, Translations> = {
           titleTemplate: 'Standings after round {round}',
           estimatedBadge: 'estimated',
           qpHeader: 'QP≈',
-          noteIndividual:
-            'Estimated standings — points are exact, but the secondary score (QP) uses plain Buchholz/Sonneborn-Berger, so the order of tied players may differ from the official {system} tie-break.',
-          noteTeam: 'Estimated standings as of this round, reconstructed from the round results.',
+          noteReproduced:
+            'Points are exact. The secondary score (QP) reproduces SSF’s official {system} method and matches the official result closely, though the very deepest ties may differ slightly.',
+          noteIndicative:
+            'Points are exact. The secondary score (QP) is a rough Buchholz/Sonneborn-Berger estimate, so among players on equal points the order may differ from the official {system}.',
           loadError: 'Could not load round-by-round standings.',
           prevRound: 'Previous round',
           nextRound: 'Next round',
@@ -1702,9 +1705,10 @@ const translations: Record<Language, Translations> = {
           titleTemplate: 'Ställning efter rond {round}',
           estimatedBadge: 'uppskattad',
           qpHeader: 'KP≈',
-          noteIndividual:
-            'Uppskattad ställning – poängen är exakta, men sekundärpoängen (KP) använder enkel Buchholz/Sonneborn-Berger, så ordningen mellan poänglika spelare kan avvika från det officiella särskiljningssystemet {system}.',
-          noteTeam: 'Uppskattad ställning efter denna rond, rekonstruerad från rondresultaten.',
+          noteReproduced:
+            'Poängen är exakta. Sekundärpoängen (KP) återskapar SSF:s officiella {system}-metod och stämmer mycket nära det officiella resultatet, men de allra djupaste delningarna kan avvika något.',
+          noteIndicative:
+            'Poängen är exakta. Sekundärpoängen (KP) är en grov uppskattning (Buchholz/Sonneborn-Berger), så bland spelare med lika poäng kan ordningen avvika från det officiella ({system}).',
           loadError: 'Det gick inte att ladda ställning per rond.',
           prevRound: 'Föregående rond',
           nextRound: 'Nästa rond',
