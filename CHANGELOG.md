@@ -6,6 +6,24 @@ All notable changes to msvens chess will be documented in this file.
 
 ---
 
+## [1.3.0] - 2026-06-28
+
+### Added
+- Round-by-round standings playback on a finished tournament's results page — an opt-in toggle lets you scrub through the rounds and watch the standings evolve, for both individual and team events
+- Print / save-as-PDF view for a tournament group's round pairings and standings, laid out for A4
+
+### Changed
+- Tournament status (upcoming / ongoing / finished) is now derived from the tournament's dates and round data instead of the unreliable status field, so listings and results are labelled correctly
+- The club map now places more clubs at their exact street address
+- The results search notes when a wide date range may take longer to load
+
+### Fixed
+- Clubs whose address can't be geocoded now fall back to their city instead of being dropped from the map
+- Data that came back as an empty response from the federation no longer fails to load (proxy now handles 204/304 correctly)
+- Players with no rating record now show "unknown" instead of a stuck "retrieving" state
+
+---
+
 ## [1.2.1] - 2026-06-17
 
 ### Fixed
