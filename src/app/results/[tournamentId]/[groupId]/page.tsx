@@ -149,11 +149,14 @@ export default function GroupResultsPage() {
     }, {} as Record<number, TournamentRoundResultDto[]>);
   }, [isTeamTournament, individualRoundResults]);
 
-  // Sorted list of round numbers we have data for.
-  const sortedRounds = useMemo(
-    () => Object.keys(resultsByRound).map(Number).sort((a, b) => a - b),
-    [resultsByRound]
-  );
+  // Sorted list of round numbers we have data for. Derived from the active
+  // result set per type — team round data lives in teamRoundResults, not in
+  // resultsByRound (which is individual-only), so deriving solely from the
+  // latter left sortedRounds empty for team events and disabled their playback.
+  const sortedRounds = useMemo(() => {
+    const rows = isTeamTournament ? teamRoundResults : individualRoundResults;
+    return [...new Set(rows.map((r) => r.roundNr || 1))].sort((a, b) => a - b);
+  }, [isTeamTournament, teamRoundResults, individualRoundResults]);
 
   // The round currently being viewed. `selectedRound` holds the user's
   // explicit click (null until they click); otherwise we fall back to the
@@ -433,12 +436,17 @@ export default function GroupResultsPage() {
       ? roundStandings.byRound.get(activeRound) ?? null
       : null;
   const showPlayback = playbackEligible && playbackEnabled;
+  // Estimation framing is driven ENTIRELY by the SDK's per-snapshot flags — no
+  // team/individual or tie-break logic here. `estimated === false` (team-exact or
+  // a confirmed official basis) → no badge/note; otherwise the wording is chosen
+  // from `secondaryBasis`. `tiebreakName` is only a display label for the note.
   const tiebreakName = group ? getTiebreakSystemName(group.tiebreakSystem) : '';
-  // Explicit caveat copy — shown both as the "estimated" badge tooltip and as a
-  // visible note under the snapshot table.
-  const playbackNote = isTeamTournament
-    ? t.pages.tournamentResults.standingsPlayback.noteTeam
-    : t.pages.tournamentResults.standingsPlayback.noteIndividual.replace('{system}', tiebreakName);
+  const playbackNote = (() => {
+    if (!activeSnapshot?.estimated) return null;
+    const pb = t.pages.tournamentResults.standingsPlayback;
+    const base = activeSnapshot.secondaryBasis === 'indicative' ? pb.noteIndicative : pb.noteReproduced;
+    return base.replace('{system}', tiebreakName);
+  })();
 
   // Handle row click in final results table - navigate to player detail page
   const handlePlayerClick = (result: TournamentEndResultDto) => {
@@ -616,7 +624,7 @@ export default function GroupResultsPage() {
                                 : isFinished
                                   ? t.pages.tournamentResults.finalResults
                                   : t.pages.tournamentResults.ongoingResults}{!isSingleGroup && ` - ${selectedGroup.name}`}
-                            {showPlayback && (
+                            {showPlayback && playbackNote && (
                               <Badge color="amber" tooltip={playbackNote} className="ml-2">
                                 {t.pages.tournamentResults.standingsPlayback.estimatedBadge}
                               </Badge>
@@ -746,9 +754,11 @@ export default function GroupResultsPage() {
                             onRowClick={handleSnapshotPlayerClick}
                           />
                         )}
-                        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                          {playbackNote}
-                        </p>
+                        {playbackNote && (
+                          <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                            {playbackNote}
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <>
