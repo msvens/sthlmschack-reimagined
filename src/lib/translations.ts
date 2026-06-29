@@ -404,8 +404,11 @@ export interface Translations {
         toggleLabel: string;
         titleTemplate: string;
         estimatedBadge: string;
+        /** Green badge label for a round whose ordering is verified against the official result. */
+        verifiedBadge: string;
+        verifiedNote: string;
         qpHeader: string;
-        /** Shown when secondaryBasis === 'reproduced' (SSF method, pending confirmation). */
+        /** Shown when secondaryBasis === 'reproduced' (reverse-engineered official method). */
         noteReproduced: string;
         /** Shown when secondaryBasis === 'indicative' (rough generic stand-in). */
         noteIndicative: string;
@@ -1055,11 +1058,13 @@ const translations: Record<Language, Translations> = {
           toggleLabel: 'Round-by-round standings',
           titleTemplate: 'Standings after round {round}',
           estimatedBadge: 'estimated',
+          verifiedBadge: 'verified',
+          verifiedNote: 'The final standings match the official result.',
           qpHeader: 'QP≈',
           noteReproduced:
-            'Points are exact. The secondary score (QP) reproduces SSF’s official {system} method and matches the official result closely, though the very deepest ties may differ slightly.',
+            'The points are exact. The secondary tie-break ordering reproduces the official method and matches it closely, though the very deepest ties may differ slightly.',
           noteIndicative:
-            'Points are exact. The secondary score (QP) is a rough Buchholz/Sonneborn-Berger estimate, so among players on equal points the order may differ from the official {system}.',
+            'The points are exact. The secondary tie-break ordering is an estimate, so contenders level on points may be ordered differently from the official result.',
           loadError: 'Could not load round-by-round standings.',
           prevRound: 'Previous round',
           nextRound: 'Next round',
@@ -1704,11 +1709,13 @@ const translations: Record<Language, Translations> = {
           toggleLabel: 'Ställning per rond',
           titleTemplate: 'Ställning efter rond {round}',
           estimatedBadge: 'uppskattad',
+          verifiedBadge: 'verifierad',
+          verifiedNote: 'Slutställningen stämmer med det officiella resultatet.',
           qpHeader: 'KP≈',
           noteReproduced:
-            'Poängen är exakta. Sekundärpoängen (KP) återskapar SSF:s officiella {system}-metod och stämmer mycket nära det officiella resultatet, men de allra djupaste delningarna kan avvika något.',
+            'Poängen är exakta. Den sekundära särskiljningsordningen återskapar den officiella metoden och stämmer mycket nära, men de allra djupaste delningarna kan avvika något.',
           noteIndicative:
-            'Poängen är exakta. Sekundärpoängen (KP) är en grov uppskattning (Buchholz/Sonneborn-Berger), så bland spelare med lika poäng kan ordningen avvika från det officiella ({system}).',
+            'Poängen är exakta. Den sekundära särskiljningsordningen är en uppskattning, så deltagare med lika poäng kan placeras i annan ordning än i det officiella resultatet.',
           loadError: 'Det gick inte att ladda ställning per rond.',
           prevRound: 'Föregående rond',
           nextRound: 'Nästa rond',

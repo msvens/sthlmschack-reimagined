@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, ResultsService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, getTiebreakSystemName, createTeamNameFormatter, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, RoundStandings, RoundStandingRow, getTournamentStatus } from '@/lib/api';
+import { TournamentService, ResultsService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, createTeamNameFormatter, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, RoundStandings, RoundStandingRow, getTournamentStatus } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -420,13 +420,15 @@ export default function GroupResultsPage() {
   // Round-by-round standings playback eligibility. Restricted to FINISHED events
   // on purpose: during an ongoing event the live-updates toggle occupies this
   // same spot, and a playback toggle beside it (live-now vs. scrub-history) is
-  // confusing — gating to finished means the two never coexist. Also excludes the
-  // degraded formats (individually-paired team, loose team) which hide standings.
+  // confusing — gating to finished means the two never coexist. Only the
+  // individually-paired team format (Schackfyran) is excluded, because the layout
+  // skips its standings fetch entirely, so there's no data to replay. Loose-team
+  // events ARE allowed: their data is correct, only the team labels degrade to
+  // `Org <id>` — exactly as the official table shows them, with the banner above.
   const hasStandings = isTeamTournament ? teamResults.length > 0 : groupResults.length > 0;
   const playbackEligible =
     isFinished &&
     !isIndividuallyPairedTeam &&
-    !isLooseTeam &&
     hasStandings &&
     sortedRounds.length >= 2;
 
@@ -436,16 +438,24 @@ export default function GroupResultsPage() {
       ? roundStandings.byRound.get(activeRound) ?? null
       : null;
   const showPlayback = playbackEligible && playbackEnabled;
-  // Estimation framing is driven ENTIRELY by the SDK's per-snapshot flags — no
-  // team/individual or tie-break logic here. `estimated === false` (team-exact or
-  // a confirmed official basis) → no badge/note; otherwise the wording is chosen
-  // from `secondaryBasis`. `tiebreakName` is only a display label for the note.
-  const tiebreakName = group ? getTiebreakSystemName(group.tiebreakSystem) : '';
-  const playbackNote = (() => {
-    if (!activeSnapshot?.estimated) return null;
+  // Status badge for the viewed round, driven ENTIRELY by the SDK's per-snapshot
+  // flags — no team/individual or tie-break logic, and copy is contender-neutral
+  // (team can be estimated too). estimated → amber "uppskattad"; verified → green
+  // "verifierad"; exact/official → no badge. The explanation lives in the badge's
+  // hover tooltip (no separate note under the table). Keeping a badge present
+  // (amber→green) across an estimated→verified group avoids the box vanishing on
+  // the final round, which read as if something were missing.
+  const playbackStatus = (() => {
+    if (!activeSnapshot) return null;
     const pb = t.pages.tournamentResults.standingsPlayback;
-    const base = activeSnapshot.secondaryBasis === 'indicative' ? pb.noteIndicative : pb.noteReproduced;
-    return base.replace('{system}', tiebreakName);
+    if (activeSnapshot.estimated) {
+      const tooltip = activeSnapshot.secondaryBasis === 'indicative' ? pb.noteIndicative : pb.noteReproduced;
+      return { color: 'amber' as const, label: pb.estimatedBadge, tooltip };
+    }
+    if (activeSnapshot.secondaryBasis === 'verified') {
+      return { color: 'green' as const, label: pb.verifiedBadge, tooltip: pb.verifiedNote };
+    }
+    return null;
   })();
 
   // Handle row click in final results table - navigate to player detail page
@@ -624,9 +634,9 @@ export default function GroupResultsPage() {
                                 : isFinished
                                   ? t.pages.tournamentResults.finalResults
                                   : t.pages.tournamentResults.ongoingResults}{!isSingleGroup && ` - ${selectedGroup.name}`}
-                            {showPlayback && playbackNote && (
-                              <Badge color="amber" tooltip={playbackNote} className="ml-2">
-                                {t.pages.tournamentResults.standingsPlayback.estimatedBadge}
+                            {showPlayback && playbackStatus && (
+                              <Badge color={playbackStatus.color} tooltip={playbackStatus.tooltip} className="ml-2">
+                                {playbackStatus.label}
                               </Badge>
                             )}
                           </h3>
@@ -753,11 +763,6 @@ export default function GroupResultsPage() {
                             rankingAlgorithm={rankingAlgorithm}
                             onRowClick={handleSnapshotPlayerClick}
                           />
-                        )}
-                        {playbackNote && (
-                          <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                            {playbackNote}
-                          </p>
                         )}
                       </div>
                     ) : (
