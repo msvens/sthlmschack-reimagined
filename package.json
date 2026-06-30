@@ -16,6 +16,7 @@
     "geocode:build": "tsx scripts/build-geocodes.ts",
     "geocode:clubs": "tsx scripts/geocode-clubs.ts",
     "data:clubs": "node scripts/fetch-organizations.js",
+    "release": "bash scripts/release.sh",
     "predev": "node scripts/check-data.js && pnpm generate:changelog",
     "prebuild": "pnpm generate:changelog",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
