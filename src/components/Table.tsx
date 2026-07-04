@@ -21,12 +21,14 @@ export interface PaginationConfig {
 export interface TableColumn<T = Record<string, unknown>> {
   /** Unique identifier for the column */
   id: string;
-  /** Display header text */
-  header: string;
+  /** Display header content */
+  header: React.ReactNode;
   /** Field key in the data object, or accessor function */
   accessor: keyof T | ((row: T) => React.ReactNode);
   /** Column alignment */
   align?: 'left' | 'center' | 'right';
+  /** Pin this column to the left/right edge while the table scrolls horizontally. */
+  sticky?: 'left' | 'right';
   /** Whether content should not wrap */
   noWrap?: boolean;
   /** Custom cell width */
@@ -80,6 +82,10 @@ export interface TableProps<T = Record<string, unknown>> {
   getRowKey?: (row: T, index: number) => string | number;
   /** Optional row click handler */
   onRowClick?: (row: T, index: number) => void;
+  /** Extra className(s) applied to a row (e.g. a highlight). */
+  rowClassName?: (row: T, index: number) => string;
+  /** When it returns true for a row, draws a thicker bottom divider after it. */
+  rowDivider?: (row: T, index: number) => boolean;
   /**
    * Table density - controls padding and font size.
    * If not provided, auto-density is enabled (compact on mobile, row-count based on desktop)
@@ -115,6 +121,8 @@ export function Table<T = Record<string, unknown>>({
   style,
   getRowKey,
   onRowClick,
+  rowClassName,
+  rowDivider,
   density,
   densityThresholds = {
     comfortable: 10,
@@ -366,6 +374,12 @@ export function Table<T = Record<string, unknown>>({
                         : 'text-left'
                     } ${column.noWrap ? 'whitespace-nowrap' : ''} ${column.headerClassName || ''} ${
                       isSortable ? 'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700/30' : ''
+                    } ${
+                      column.sticky
+                        ? `sticky ${column.sticky}-0 z-20 bg-white dark:bg-dark-bg ${
+                            column.sticky === 'right' ? 'border-l' : 'border-r'
+                          } border-gray-200 dark:border-gray-700`
+                        : ''
                     }`}
                     style={{
                       width: column.width,
@@ -394,11 +408,17 @@ export function Table<T = Record<string, unknown>>({
             {paginatedData.map((row, index) => (
             <tr
               key={getKey(row, index)}
-              className={`${border ? 'border-b border-gray-200 dark:border-gray-700' : ''} ${
+              className={`group ${
+                border
+                  ? rowDivider?.(row, index)
+                    ? 'border-b-2 border-gray-400 dark:border-gray-500'
+                    : 'border-b border-gray-200 dark:border-gray-700'
+                  : ''
+              } ${
                 hover ? 'hover:bg-gray-100 dark:hover:bg-gray-700/30 transition-colors' : ''
               } ${onRowClick ? 'cursor-pointer' : ''} ${
                 striped && index % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/30' : ''
-              }`}
+              } ${rowClassName?.(row, index) ?? ''}`}
               onClick={onRowClick ? () => onRowClick(row, index) : undefined}
             >
               {columns.map((column) => (
@@ -410,7 +430,19 @@ export function Table<T = Record<string, unknown>>({
                       : column.align === 'right'
                       ? 'text-right'
                       : 'text-left'
-                  } ${column.noWrap ? 'whitespace-nowrap' : ''} ${column.cellClassName || ''}`}
+                  } ${column.noWrap ? 'whitespace-nowrap' : ''} ${column.cellClassName || ''} ${
+                    column.sticky
+                      ? `sticky ${column.sticky}-0 z-10 ${
+                          striped && index % 2 === 1
+                            ? 'bg-gray-50 dark:bg-gray-800/30'
+                            : 'bg-white dark:bg-dark-bg'
+                        } ${
+                          hover ? 'group-hover:bg-gray-100 dark:group-hover:bg-gray-700/30' : ''
+                        } ${
+                          column.sticky === 'right' ? 'border-l' : 'border-r'
+                        } border-gray-200 dark:border-gray-700`
+                      : ''
+                  }`}
                   style={{
                     ...column.cellStyle
                   }}
