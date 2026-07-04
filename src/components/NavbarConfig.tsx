@@ -10,6 +10,7 @@ import {
   MoonIcon,
   AcademicCapIcon,
   BookOpenIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -77,6 +78,13 @@ export default function NavbarConfig() {
     icon: Cog6ToothIcon,
     label: t.navbar.more,
     items: [
+      {
+        kind: 'link',
+        id: 'junior',
+        href: '/junior',
+        icon: UserGroupIcon,
+        label: t.navbar.navigation.junior,
+      },
       {
         kind: 'link',
         id: 'guide',

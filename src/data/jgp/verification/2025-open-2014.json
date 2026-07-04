@@ -1,0 +1,731 @@
+{
+  "newAge": [
+    {
+      "memberId": 727750,
+      "name": "Umair Islam",
+      "birthYear": 2015,
+      "playClassYear": 2014
+    }
+  ],
+  "newClub": [
+    {
+      "memberId": 669826,
+      "name": "Ece Yigit",
+      "apiClub": "Eskilstuna SK",
+      "apiClubId": 38593,
+      "pdfClub": "Farsta SK"
+    }
+  ],
+  "unresolved": [
+    {
+      "rank": 30,
+      "name": "Shreyas Sunil Kaklij",
+      "born": 2014,
+      "club": "SK Gambit Tullinge",
+      "total": 9
+    }
+  ],
+  "standings": [
+    {
+      "rank": 1,
+      "name": "Umair Islam",
+      "born": 2015,
+      "club": "Trojanska Hästen",
+      "total": 223,
+      "memberId": 727750,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 2,
+      "name": "Bruce Sun Åslund",
+      "born": 2014,
+      "club": "Wasa SK",
+      "total": 165,
+      "memberId": 612929,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 3,
+      "name": "Eric Hjälte",
+      "born": 2014,
+      "club": "SS 4 Springare",
+      "total": 144,
+      "memberId": 628652,
+      "apiClub": "SS 4 Springare",
+      "apiClubId": 38469,
+      "inStockholm": true
+    },
+    {
+      "rank": 4,
+      "name": "Sara Ostafiev",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 114.5,
+      "memberId": 594316,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 5,
+      "name": "Kilian Alvarez",
+      "born": 2014,
+      "club": "SK Rockaden Sthlm",
+      "total": 111.5,
+      "memberId": 641770,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 6,
+      "name": "Alex Chen",
+      "born": 2014,
+      "club": "Tyresö SK",
+      "total": 108,
+      "memberId": 667457,
+      "apiClub": "Tyresö SK",
+      "apiClubId": 38447,
+      "inStockholm": true
+    },
+    {
+      "rank": 7,
+      "name": "Rivan Ghosh",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 104,
+      "memberId": 664401,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 8,
+      "name": "Olle Svensson",
+      "born": 2014,
+      "club": "SK Rockaden Sthlm",
+      "total": 100,
+      "memberId": 642062,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 9,
+      "name": "Ece Yigit",
+      "born": 2014,
+      "club": "Farsta SK",
+      "total": 97,
+      "memberId": 669826,
+      "apiClub": "Eskilstuna SK",
+      "apiClubId": 38593,
+      "inStockholm": false
+    },
+    {
+      "rank": 10,
+      "name": "Shanvika Bendi",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 96.5,
+      "memberId": 710472,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 11,
+      "name": "Jiarui Wang",
+      "born": 2014,
+      "club": "Wasa SK",
+      "total": 92.5,
+      "memberId": 715818,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 12,
+      "name": "Elvira Öhrn",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 92.5,
+      "memberId": 614447,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 13,
+      "name": "Rafaela Davelius",
+      "born": 2014,
+      "club": "SK Rockaden Sthlm",
+      "total": 89,
+      "memberId": 641832,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 14,
+      "name": "Akshaj Tiwari",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 86,
+      "memberId": 653668,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 15,
+      "name": "Aldo Orlic",
+      "born": 2014,
+      "club": "SK Rockaden Sthlm",
+      "total": 70.5,
+      "memberId": 672904,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 16,
+      "name": "Emilian Perriard",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 60,
+      "memberId": 679495,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 17,
+      "name": "Haojun Zhang",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 57.5,
+      "memberId": 667330,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 18,
+      "name": "Arthur Rydberg",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 46.5,
+      "memberId": 719435,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 19,
+      "name": "Máximo Quiroga Gustavsson",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 36,
+      "memberId": 635452,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 20,
+      "name": "Olle Gjertsen",
+      "born": 2014,
+      "club": "SK Rockaden Sthlm",
+      "total": 29,
+      "memberId": 673018,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 21,
+      "name": "Nils Bodin",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 27,
+      "memberId": 691326,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 22,
+      "name": "Kelvin Kaiyang Hu",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 23,
+      "memberId": 594686,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 23,
+      "name": "Vincent Wang",
+      "born": 2014,
+      "club": "Wasa SK",
+      "total": 18,
+      "memberId": 717005,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 24,
+      "name": "Sean O’Mahony",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 14.5,
+      "memberId": 707155,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 25,
+      "name": "Tristan Jakoby",
+      "born": 2014,
+      "club": "Tyresö SK",
+      "total": 14.5,
+      "memberId": 730433,
+      "apiClub": "Tyresö SK",
+      "apiClubId": 38447,
+      "inStockholm": true
+    },
+    {
+      "rank": 26,
+      "name": "Hjalmar Almström",
+      "born": 2014,
+      "club": "Tyresö SK",
+      "total": 12,
+      "memberId": 690064,
+      "apiClub": "Tyresö SK",
+      "apiClubId": 38447,
+      "inStockholm": true
+    },
+    {
+      "rank": 27,
+      "name": "Chenrui Zou",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 12,
+      "memberId": 614229,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 28,
+      "name": "Leo Högberg",
+      "born": 2014,
+      "club": "Farsta SK",
+      "total": 11,
+      "memberId": 720445,
+      "apiClub": "Farsta SK",
+      "apiClubId": 38453,
+      "inStockholm": true
+    },
+    {
+      "rank": 29,
+      "name": "Albert Jensen",
+      "born": 2014,
+      "club": "Kosmos SK",
+      "total": 11,
+      "memberId": 736876,
+      "apiClub": "Kosmos SK",
+      "apiClubId": 42508,
+      "inStockholm": true
+    },
+    {
+      "rank": 30,
+      "name": "Shreyas Sunil Kaklij",
+      "born": 2014,
+      "club": "SK Gambit Tullinge",
+      "total": 9,
+      "memberId": null
+    },
+    {
+      "rank": 31,
+      "name": "Ossian Jansson",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 8,
+      "memberId": 746767,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 32,
+      "name": "Ryan Andrej Hultman",
+      "born": 2014,
+      "club": "SK Rockaden Sthlm",
+      "total": 8,
+      "memberId": 714451,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 33,
+      "name": "Harsha Arun",
+      "born": 2014,
+      "club": "SS 4 Springare",
+      "total": 8,
+      "memberId": 655051,
+      "apiClub": "SS 4 Springare",
+      "apiClubId": 38469,
+      "inStockholm": true
+    },
+    {
+      "rank": 34,
+      "name": "Tony Tran",
+      "born": 2014,
+      "club": "Kosmos SK",
+      "total": 7,
+      "memberId": 756180,
+      "apiClub": "Kosmos SK",
+      "apiClubId": 42508,
+      "inStockholm": true
+    },
+    {
+      "rank": 35,
+      "name": "Oscar Xia",
+      "born": 2014,
+      "club": "SK Passanten",
+      "total": 7,
+      "memberId": 726969,
+      "apiClub": "SK Passanten",
+      "apiClubId": 38462,
+      "inStockholm": true
+    },
+    {
+      "rank": 36,
+      "name": "Negan Sayghani",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 7,
+      "memberId": 732890,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 37,
+      "name": "Michael Nguyen",
+      "born": 2014,
+      "club": "Farsta SK",
+      "total": 6,
+      "memberId": 760482,
+      "apiClub": "Farsta SK",
+      "apiClubId": 38453,
+      "inStockholm": true
+    },
+    {
+      "rank": 38,
+      "name": "Zander Bergbäck",
+      "born": 2014,
+      "club": "Wasa SK",
+      "total": 5,
+      "memberId": 760304,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 39,
+      "name": "Matilda Svartengren",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 5,
+      "memberId": 676728,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 40,
+      "name": "Ian Mirborn",
+      "born": 2014,
+      "club": "Stockholms SS",
+      "total": 3,
+      "memberId": 686293,
+      "apiClub": "Stockholms SS",
+      "apiClubId": 38472,
+      "inStockholm": true
+    },
+    {
+      "rank": 41,
+      "name": "KyuJin Choi",
+      "born": 2014,
+      "club": "SIS Chess",
+      "total": 3,
+      "memberId": 750653,
+      "apiClub": "SIS Chess",
+      "apiClubId": 47518,
+      "inStockholm": true
+    },
+    {
+      "rank": 42,
+      "name": "Giorgio Brante",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 3,
+      "memberId": 732759,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 43,
+      "name": "Annie Saukkoriipi Af Ekenstam",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 2,
+      "memberId": 586231,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 44,
+      "name": "Kolbeinn Kristinsson",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 2,
+      "memberId": 710441,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 45,
+      "name": "Alexandra Hamilton",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 2,
+      "memberId": 622332,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 46,
+      "name": "Leo Paciello Danielsson",
+      "born": 2014,
+      "club": "Wasa SK",
+      "total": 2,
+      "memberId": 656211,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 47,
+      "name": "Mansur Issayeva",
+      "born": 2014,
+      "club": "Farsta SK",
+      "total": 2,
+      "memberId": 690592,
+      "apiClub": "Farsta SK",
+      "apiClubId": 38453,
+      "inStockholm": true
+    },
+    {
+      "rank": 48,
+      "name": "Siddharth Mareesan",
+      "born": 2014,
+      "club": "Kista SC KFUM",
+      "total": 2,
+      "memberId": 716960,
+      "apiClub": "Kista SC KFUM Schacksektion",
+      "apiClubId": 47790,
+      "inStockholm": true
+    },
+    {
+      "rank": 49,
+      "name": "Isabel Nilvebrant",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 1,
+      "memberId": 754959,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 50,
+      "name": "Gabriel Anderberg",
+      "born": 2014,
+      "club": "Trojanska Hästen",
+      "total": 1,
+      "memberId": 754931,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 51,
+      "name": "Elvira Anelli Windahl",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 1,
+      "memberId": 731842,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 52,
+      "name": "Napoleon Rubin",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 1,
+      "memberId": 685228,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 53,
+      "name": "Nekruz Salizhanov",
+      "born": 2014,
+      "club": "SS 4 Springare",
+      "total": 1,
+      "memberId": 759974,
+      "apiClub": "SS 4 Springare",
+      "apiClubId": 38469,
+      "inStockholm": true
+    },
+    {
+      "rank": 54,
+      "name": "Hektor Aho",
+      "born": 2014,
+      "club": "SK Rockaden Sthlm",
+      "total": 1,
+      "memberId": 641765,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 55,
+      "name": "Ibrahim Amari",
+      "born": 2014,
+      "club": "Kosmos SK",
+      "total": 1,
+      "memberId": 759723,
+      "apiClub": "Kosmos SK",
+      "apiClubId": 42508,
+      "inStockholm": true
+    },
+    {
+      "rank": 56,
+      "name": "Deekshita Sudhakar",
+      "born": 2014,
+      "club": "SK Rockaden Sthlm",
+      "total": 1,
+      "memberId": 759237,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 57,
+      "name": "Marcus Håkansson Nordström",
+      "born": 2014,
+      "club": "SIS Chess",
+      "total": 1,
+      "memberId": 750654,
+      "apiClub": "SIS Chess",
+      "apiClubId": 47518,
+      "inStockholm": true
+    },
+    {
+      "rank": 58,
+      "name": "Jaan Jevdjovic",
+      "born": 2014,
+      "club": "Kristallens SK",
+      "total": 1,
+      "memberId": 752654,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 59,
+      "name": "Astrid Tamm",
+      "born": 2014,
+      "club": "Solna-Sundbyberg SS",
+      "total": 1,
+      "memberId": 752666,
+      "apiClub": "Solna-Sundbyberg SS",
+      "apiClubId": 38468,
+      "inStockholm": true
+    },
+    {
+      "rank": 60,
+      "name": "Alexander Cederlöf Berger",
+      "born": 2014,
+      "club": "Tyresö SK",
+      "total": 1,
+      "memberId": 686666,
+      "apiClub": "Tyresö SK",
+      "apiClubId": 38447,
+      "inStockholm": true
+    },
+    {
+      "rank": 61,
+      "name": "William Vipman",
+      "born": 2014,
+      "club": "Tyresö SK",
+      "total": 1,
+      "memberId": 642620,
+      "apiClub": "Tyresö SK",
+      "apiClubId": 38447,
+      "inStockholm": true
+    },
+    {
+      "rank": 62,
+      "name": "Ayush Madhavan Karthik",
+      "born": 2014,
+      "club": "SS 4 Springare",
+      "total": 1,
+      "memberId": 710399,
+      "apiClub": "SS 4 Springare",
+      "apiClubId": 38469,
+      "inStockholm": true
+    },
+    {
+      "rank": 63,
+      "name": "Vrihaan Kumar",
+      "born": 2014,
+      "club": "Farsta SK",
+      "total": 1,
+      "memberId": 750642,
+      "apiClub": "Farsta SK",
+      "apiClubId": 38453,
+      "inStockholm": true
+    },
+    {
+      "rank": 64,
+      "name": "Pascal Källén",
+      "born": 2014,
+      "club": "SK Passanten",
+      "total": 1,
+      "memberId": 733415,
+      "apiClub": "SK Passanten",
+      "apiClubId": 38462,
+      "inStockholm": true
+    }
+  ]
+}

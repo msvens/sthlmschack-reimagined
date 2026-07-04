@@ -1,0 +1,928 @@
+{
+  "ageExceptions": [
+    {
+      "memberId": 546393,
+      "name": "Pratyush Tripathi",
+      "birthYear": 2010,
+      "playClassYear": 2009
+    },
+    {
+      "memberId": 516448,
+      "name": "Victor Lilliehöök",
+      "birthYear": 2012,
+      "playClassYear": 2009
+    },
+    {
+      "memberId": 541890,
+      "name": "Melvin Ral Lustig",
+      "birthYear": 2011,
+      "playClassYear": 2009
+    }
+  ],
+  "clubExceptions": [
+    {
+      "memberId": 544058,
+      "name": "Karl-Oskar Rehnberg",
+      "apiClub": "Örebro SS",
+      "apiClubId": 38592,
+      "pdfClub": "Stockholm SS"
+    }
+  ],
+  "unresolved": [],
+  "standings": [
+    {
+      "rank": 1,
+      "name": "Vidar Seiger",
+      "born": 2009,
+      "club": "SS 4 Springare",
+      "scores": [
+        25,
+        18,
+        25,
+        25,
+        18,
+        22
+      ],
+      "total": 133,
+      "memberId": 513654,
+      "apiClub": "SS 4 Springare",
+      "apiClubId": 38469,
+      "inStockholm": true
+    },
+    {
+      "rank": 2,
+      "name": "Pratyush Tripathi",
+      "born": 2010,
+      "club": "SS 4 Springare",
+      "scores": [
+        20,
+        25,
+        10,
+        20,
+        16,
+        23.5,
+        16
+      ],
+      "total": 130.5,
+      "memberId": 546393,
+      "apiClub": "SS 4 Springare",
+      "apiClubId": 38469,
+      "inStockholm": true
+    },
+    {
+      "rank": 3,
+      "name": "Lo Ljungros",
+      "born": 2009,
+      "club": "Kristallens SK",
+      "scores": [
+        15,
+        14,
+        22,
+        3,
+        16,
+        22,
+        11,
+        20
+      ],
+      "total": 123,
+      "memberId": 546353,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 4,
+      "name": "Simon Agrest",
+      "born": 2005,
+      "club": "Trojanska Hästen",
+      "scores": [
+        8.5,
+        12,
+        16,
+        22,
+        18,
+        22,
+        20
+      ],
+      "total": 118.5,
+      "memberId": 406702,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 5,
+      "name": "Gustav Dingertz",
+      "born": 2006,
+      "club": "Kristallens SK",
+      "scores": [
+        15,
+        20,
+        12,
+        12,
+        20,
+        14,
+        14
+      ],
+      "total": 107,
+      "memberId": 621123,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 6,
+      "name": "Filip Dingertz",
+      "born": 2009,
+      "club": "Kristallens SK",
+      "scores": [
+        18,
+        5.5,
+        20,
+        11,
+        14,
+        14,
+        10
+      ],
+      "total": 92.5,
+      "memberId": 514429,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 7,
+      "name": "Marek Religa",
+      "born": 2008,
+      "club": "Kristallens SK",
+      "scores": [
+        20,
+        25,
+        18,
+        25
+      ],
+      "total": 88,
+      "memberId": 505379,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 8,
+      "name": "Victor Lilliehöök",
+      "born": 2012,
+      "club": "Wasa SK",
+      "scores": [
+        22,
+        25,
+        8,
+        16,
+        16
+      ],
+      "total": 87,
+      "memberId": 516448,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 9,
+      "name": "Melvin Ral Lustig",
+      "born": 2011,
+      "club": "Kristallens SK",
+      "scores": [
+        20,
+        18,
+        22,
+        23.5
+      ],
+      "total": 83.5,
+      "memberId": 541890,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 10,
+      "name": "Elias Kingsley",
+      "born": 2009,
+      "club": "SS 4 Springare",
+      "scores": [
+        22,
+        17,
+        18,
+        11,
+        14
+      ],
+      "total": 82,
+      "memberId": 652138,
+      "apiClub": "SS 4 Springare",
+      "apiClubId": 38469,
+      "inStockholm": true
+    },
+    {
+      "rank": 11,
+      "name": "Gregory Lazovskiy",
+      "born": 2009,
+      "club": "Kristallens SK",
+      "scores": [
+        10,
+        22,
+        8,
+        1,
+        22,
+        5,
+        7,
+        2
+      ],
+      "total": 77,
+      "memberId": 513391,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 12,
+      "name": "Khaschuluu Sergelenbaatar",
+      "born": 2006,
+      "club": "SK Rockaden Sthlm",
+      "scores": [
+        12,
+        11,
+        14,
+        7,
+        9,
+        18
+      ],
+      "total": 71,
+      "memberId": 520087,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 13,
+      "name": "Stefan Kolev",
+      "born": 2009,
+      "club": "Solna-Sundbyberg SS",
+      "scores": [
+        1,
+        3.5,
+        10,
+        20,
+        6,
+        9
+      ],
+      "total": 49.5,
+      "memberId": 726121,
+      "apiClub": "Solna-Sundbyberg SS",
+      "apiClubId": 38468,
+      "inStockholm": true
+    },
+    {
+      "rank": 14,
+      "name": "Axel Larsson",
+      "born": 2009,
+      "club": "Solna-Sundbyberg SS",
+      "scores": [
+        6,
+        5.5,
+        1,
+        10,
+        7,
+        9,
+        4
+      ],
+      "total": 42.5,
+      "memberId": 727151,
+      "apiClub": "Solna-Sundbyberg SS",
+      "apiClubId": 38468,
+      "inStockholm": true
+    },
+    {
+      "rank": 15,
+      "name": "Lukas Willstedt",
+      "born": 2007,
+      "club": "SK Rockaden Sthlm",
+      "scores": [
+        16,
+        25
+      ],
+      "total": 41,
+      "memberId": 464113,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 16,
+      "name": "Roman Chornenkyi",
+      "born": 2007,
+      "club": "Farsta SK",
+      "scores": [
+        3,
+        8,
+        16,
+        6,
+        3,
+        3
+      ],
+      "total": 39,
+      "memberId": 727164,
+      "apiClub": "Farsta SK",
+      "apiClubId": 38453,
+      "inStockholm": true
+    },
+    {
+      "rank": 17,
+      "name": "Arvid Hofslagare",
+      "born": 2009,
+      "club": "Kristallens SK",
+      "scores": [
+        10,
+        1,
+        11,
+        10,
+        4
+      ],
+      "total": 36,
+      "memberId": 542095,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 18,
+      "name": "Hongjun Wang",
+      "born": 2005,
+      "club": "Tyresö SK",
+      "scores": [
+        4,
+        17,
+        4,
+        9
+      ],
+      "total": 34,
+      "memberId": 501613,
+      "apiClub": "Tyresö SK",
+      "apiClubId": 38447,
+      "inStockholm": true
+    },
+    {
+      "rank": 19,
+      "name": "Jacob Hanini",
+      "born": 2006,
+      "club": "Stockholms SS",
+      "scores": [
+        10.5,
+        2,
+        8,
+        12
+      ],
+      "total": 32.5,
+      "memberId": 643356,
+      "apiClub": "Stockholms SS",
+      "apiClubId": 38472,
+      "inStockholm": true
+    },
+    {
+      "rank": 20,
+      "name": "Nitish Kesavan",
+      "born": 2009,
+      "club": "JSCA SK",
+      "scores": [
+        1,
+        18,
+        8,
+        3
+      ],
+      "total": 30,
+      "memberId": 726915,
+      "apiClub": "JSCA SK",
+      "apiClubId": 51912,
+      "inStockholm": true
+    },
+    {
+      "rank": 21,
+      "name": "Mikael Ekbom",
+      "born": 2009,
+      "club": "Wasa SK",
+      "scores": [
+        7,
+        8,
+        11
+      ],
+      "total": 26,
+      "memberId": 678286,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 22,
+      "name": "Douglas Kärde",
+      "born": 2007,
+      "club": "SK Rockaden Sthlm",
+      "scores": [
+        25
+      ],
+      "total": 25,
+      "memberId": 525283,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 23,
+      "name": "Vidar Grahn",
+      "born": 2006,
+      "club": "Trojanska Hästen",
+      "scores": [
+        25
+      ],
+      "total": 25,
+      "memberId": 431286,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 24,
+      "name": "John Zunrong Liu",
+      "born": 2009,
+      "club": "Wasa SK",
+      "scores": [
+        12,
+        12
+      ],
+      "total": 24,
+      "memberId": 570244,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 25,
+      "name": "Nathalie Biström",
+      "born": 2009,
+      "club": "Trojanska Hästen",
+      "scores": [
+        2,
+        12,
+        8
+      ],
+      "total": 22,
+      "memberId": 663640,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 26,
+      "name": "Elis Thelin",
+      "born": 2008,
+      "club": "Farsta SK",
+      "scores": [
+        4,
+        10,
+        8
+      ],
+      "total": 22,
+      "memberId": 761326,
+      "apiClub": "Farsta SK",
+      "apiClubId": 38453,
+      "inStockholm": true
+    },
+    {
+      "rank": 27,
+      "name": "Anton Wåhl",
+      "born": 2009,
+      "club": "Wasa SK",
+      "scores": [
+        1,
+        3.5,
+        14,
+        1,
+        2
+      ],
+      "total": 21.5,
+      "memberId": 691708,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 28,
+      "name": "Elliot Evertsson Norrevik",
+      "born": 2009,
+      "club": "SK Rockaden Sthlm",
+      "scores": [
+        20
+      ],
+      "total": 20,
+      "memberId": 474298,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 29,
+      "name": "Max Lindström",
+      "born": 2008,
+      "club": "SIS Chess",
+      "scores": [
+        18
+      ],
+      "total": 18,
+      "memberId": 726004,
+      "apiClub": "SIS Chess",
+      "apiClubId": 47518,
+      "inStockholm": true
+    },
+    {
+      "rank": 30,
+      "name": "Karl-Oskar Rehnberg",
+      "born": 2008,
+      "club": "Stockholm SS",
+      "scores": [
+        5,
+        11
+      ],
+      "total": 16,
+      "memberId": 544058,
+      "apiClub": "Örebro SS",
+      "apiClubId": 38592,
+      "inStockholm": false
+    },
+    {
+      "rank": 31,
+      "name": "Emil Karlberg",
+      "born": 2008,
+      "club": "Farsta SK",
+      "scores": [
+        9,
+        7
+      ],
+      "total": 16,
+      "memberId": 572055,
+      "apiClub": "Farsta SK",
+      "apiClubId": 38453,
+      "inStockholm": true
+    },
+    {
+      "rank": 32,
+      "name": "Oscar (xuanming) Hu",
+      "born": 2009,
+      "club": "Trojanska Hästen",
+      "scores": [
+        8.5,
+        6
+      ],
+      "total": 14.5,
+      "memberId": 601257,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 33,
+      "name": "Lavinia Valcu",
+      "born": 2009,
+      "club": "Solna-Sundbyberg SS",
+      "scores": [
+        14
+      ],
+      "total": 14,
+      "memberId": 499172,
+      "apiClub": "Solna-Sundbyberg SS",
+      "apiClubId": 38468,
+      "inStockholm": true
+    },
+    {
+      "rank": 34,
+      "name": "Axel Grettve Odenfors",
+      "born": 2009,
+      "club": "Kristallens SK",
+      "scores": [
+        7,
+        5.5
+      ],
+      "total": 12.5,
+      "memberId": 560092,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 35,
+      "name": "Alfons Evertsson Norrevik",
+      "born": 2007,
+      "club": "SK Rockaden Sthlm",
+      "scores": [
+        12
+      ],
+      "total": 12,
+      "memberId": 464257,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 36,
+      "name": "Erik Dingertz",
+      "born": 2005,
+      "club": "Kristallens SK",
+      "scores": [
+        12
+      ],
+      "total": 12,
+      "memberId": 426972,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 37,
+      "name": "Oliver Nilsson",
+      "born": 2005,
+      "club": "Trojanska Hästen",
+      "scores": [
+        11
+      ],
+      "total": 11,
+      "memberId": 428344,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 38,
+      "name": "Gustav Ten Kate",
+      "born": 2009,
+      "club": "Wasa SK",
+      "scores": [
+        10.5
+      ],
+      "total": 10.5,
+      "memberId": 725942,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 39,
+      "name": "Sebastian Danielsson",
+      "born": 2009,
+      "club": "Tyresö SK",
+      "scores": [
+        9
+      ],
+      "total": 9,
+      "memberId": 688374,
+      "apiClub": "Tyresö SK",
+      "apiClubId": 38447,
+      "inStockholm": true
+    },
+    {
+      "rank": 40,
+      "name": "William Dahlberg",
+      "born": 2007,
+      "club": "Wasa SK",
+      "scores": [
+        9
+      ],
+      "total": 9,
+      "memberId": 751508,
+      "apiClub": "Wasa SK",
+      "apiClubId": 38481,
+      "inStockholm": true
+    },
+    {
+      "rank": 41,
+      "name": "Nils Bergman",
+      "born": 2007,
+      "club": "SK Rockaden Sthlm",
+      "scores": [
+        9
+      ],
+      "total": 9,
+      "memberId": 641791,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 42,
+      "name": "Vilmer Gaunitz",
+      "born": 2007,
+      "club": "Tyresö SK",
+      "scores": [
+        7
+      ],
+      "total": 7,
+      "memberId": 543857,
+      "apiClub": "Tyresö SK",
+      "apiClubId": 38447,
+      "inStockholm": true
+    },
+    {
+      "rank": 43,
+      "name": "Jakob Fahlman",
+      "born": 2005,
+      "club": "Stockholms SS",
+      "scores": [
+        7
+      ],
+      "total": 7,
+      "memberId": 435185,
+      "apiClub": "Stockholms SS",
+      "apiClubId": 38472,
+      "inStockholm": true
+    },
+    {
+      "rank": 44,
+      "name": "Carl Joelsson",
+      "born": 2008,
+      "club": "Kristallens SK",
+      "scores": [
+        2,
+        5
+      ],
+      "total": 7,
+      "memberId": 690002,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 45,
+      "name": "Loucas Shikder",
+      "born": 2007,
+      "club": "Tyresö SK",
+      "scores": [
+        2,
+        4,
+        1
+      ],
+      "total": 7,
+      "memberId": 677129,
+      "apiClub": "Tyresö SK",
+      "apiClubId": 38447,
+      "inStockholm": true
+    },
+    {
+      "rank": 46,
+      "name": "Sixten Kjellberg",
+      "born": 2007,
+      "club": "Kungstornet",
+      "scores": [
+        6
+      ],
+      "total": 6,
+      "memberId": 761922,
+      "apiClub": "Kungstornet",
+      "apiClubId": 38457,
+      "inStockholm": true
+    },
+    {
+      "rank": 47,
+      "name": "Berkay Erdogan",
+      "born": 2005,
+      "club": "Farsta SK",
+      "scores": [
+        6
+      ],
+      "total": 6,
+      "memberId": 637561,
+      "apiClub": "Farsta SK",
+      "apiClubId": 38453,
+      "inStockholm": true
+    },
+    {
+      "rank": 48,
+      "name": "David Sällström Höglund",
+      "born": 2008,
+      "club": "Mälaröarnas SS",
+      "scores": [
+        5.5
+      ],
+      "total": 5.5,
+      "memberId": 489477,
+      "apiClub": "Mälaröarnas SS",
+      "apiClubId": 38658,
+      "inStockholm": true
+    },
+    {
+      "rank": 49,
+      "name": "Fred Kjellberg",
+      "born": 2009,
+      "club": "Kungstornet",
+      "scores": [
+        5
+      ],
+      "total": 5,
+      "memberId": 714354,
+      "apiClub": "Kungstornet",
+      "apiClubId": 38457,
+      "inStockholm": true
+    },
+    {
+      "rank": 50,
+      "name": "Hampus Sommerfeld",
+      "born": 2009,
+      "club": "Trojanska Hästen",
+      "scores": [
+        5
+      ],
+      "total": 5,
+      "memberId": 691985,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 51,
+      "name": "Jonatan Gembicki",
+      "born": 2009,
+      "club": "SK Rockaden Sthlm",
+      "scores": [
+        1
+      ],
+      "total": 1,
+      "memberId": 677374,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 52,
+      "name": "Theodor Helmersson",
+      "born": 2009,
+      "club": "SK Rockaden Sthlm",
+      "scores": [
+        1
+      ],
+      "total": 1,
+      "memberId": 773867,
+      "apiClub": "SK Rockaden Sthlm",
+      "apiClubId": 38464,
+      "inStockholm": true
+    },
+    {
+      "rank": 53,
+      "name": "Rishi Suhag",
+      "born": 2009,
+      "club": "Trojanska Hästen",
+      "scores": [
+        1
+      ],
+      "total": 1,
+      "memberId": 657621,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 54,
+      "name": "Gustav Kruså",
+      "born": 2007,
+      "club": "Trojanska Hästen",
+      "scores": [
+        1
+      ],
+      "total": 1,
+      "memberId": 459679,
+      "apiClub": "Trojanska Hästen",
+      "apiClubId": 38478,
+      "inStockholm": true
+    },
+    {
+      "rank": 55,
+      "name": "Vincent Tornard",
+      "born": 2006,
+      "club": "Kristallens SK",
+      "scores": [
+        1
+      ],
+      "total": 1,
+      "memberId": 755877,
+      "apiClub": "Kristallens SK",
+      "apiClubId": 38456,
+      "inStockholm": true
+    },
+    {
+      "rank": 56,
+      "name": "Daniel Iliyaich",
+      "born": 2006,
+      "club": "Täby SK",
+      "scores": [
+        1
+      ],
+      "total": 1,
+      "memberId": 751269,
+      "apiClub": "Täby SK",
+      "apiClubId": 38479,
+      "inStockholm": true
+    }
+  ]
+}

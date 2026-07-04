@@ -9,6 +9,7 @@ export interface Translations {
       players: string;
       organizations: string;
       guide: string;
+      junior: string;
     };
     language: {
       english: string;
@@ -538,6 +539,33 @@ export interface Translations {
         autoHint: string;
       };
     };
+    junior: {
+      title: string;
+      subtitle: string;
+      officialPageLink: string;
+      demoBanner: string;
+      navigation: {
+        stockholmsJgp: string;
+      };
+      tabs: {
+        open: string;
+        girls: string;
+      };
+      year: string;
+      loading: string;
+      error: string;
+      noData: string;
+      girlsComingSoon: string;
+      disclaimer: string;
+      finalsLink: string;
+      tournamentsHeading: string;
+      table: {
+        pos: string;
+        name: string;
+        club: string;
+        total: string;
+      };
+    };
     guide: {
       navigation: {
         formats: string;
@@ -655,6 +683,7 @@ const translations: Record<Language, Translations> = {
         players: 'Players',
         organizations: 'Clubs & Districts',
         guide: 'Guide',
+        junior: 'Junior',
       },
       language: {
         english: 'English',
@@ -1191,6 +1220,34 @@ const translations: Record<Language, Translations> = {
           autoHint: 'Uses the SSF player\'s K-factor when available, otherwise estimates from rating',
         },
       },
+      junior: {
+        title: 'Stockholm Junior Grand Prix',
+        subtitle: 'Season-long standings for Stockholm\'s junior tournament series',
+        officialPageLink: 'Official JGP pages ↗',
+        demoBanner: '🚧 Under construction — this is a demo. Standings and layout are still being validated.',
+        navigation: {
+          stockholmsJgp: 'Stockholms JGP',
+        },
+        tabs: {
+          open: 'Open',
+          girls: 'Girls',
+        },
+        year: 'Season',
+        loading: 'Computing standings…',
+        error: 'Could not load standings',
+        noData: 'No standings available for this season.',
+        girlsComingSoon: 'The girls series is coming soon.',
+        disclaimer:
+          'Computed from official SSF results. Eligibility (secondary Stockholm-club membership) and age dispensations are partly deduced from the published standings, so totals can differ slightly from the official ones.',
+        finalsLink: 'View the finals →',
+        tournamentsHeading: 'Tournaments',
+        table: {
+          pos: '#',
+          name: 'Name',
+          club: 'Club',
+          total: 'Total',
+        },
+      },
       guide: {
         navigation: {
           formats: 'Tournament Formats',
@@ -1306,6 +1363,7 @@ const translations: Record<Language, Translations> = {
         players: 'Spelare',
         organizations: 'Klubbar & Distrikt',
         guide: 'Guide',
+        junior: 'Junior',
       },
       language: {
         english: 'English',
@@ -1840,6 +1898,34 @@ const translations: Record<Language, Translations> = {
           uncapped: 'Utan gräns',
           performanceRating: 'Prestation',
           autoHint: 'Använder SSF-spelarens K-faktor om tillgänglig, annars uppskattas den utifrån rating',
+        },
+      },
+      junior: {
+        title: 'Stockholms Junior Grand Prix',
+        subtitle: 'Säsongsställning för Stockholms juniortävlingsserie',
+        officialPageLink: 'Officiella JGP-sidor ↗',
+        demoBanner: '🚧 Under uppbyggnad — detta är en demo. Ställningar och layout håller fortfarande på att valideras.',
+        navigation: {
+          stockholmsJgp: 'Stockholms JGP',
+        },
+        tabs: {
+          open: 'Öppen',
+          girls: 'Tjejer',
+        },
+        year: 'Säsong',
+        loading: 'Beräknar ställning…',
+        error: 'Kunde inte ladda ställningen',
+        noData: 'Ingen ställning tillgänglig för den här säsongen.',
+        girlsComingSoon: 'Tjejserien kommer snart.',
+        disclaimer:
+          'Beräknad från officiella SSF-resultat. Behörighet (sekundärt medlemskap i Stockholmsklubb) och åldersdispenser är delvis härledda från de publicerade ställningarna, så totalerna kan skilja sig något från de officiella.',
+        finalsLink: 'Visa finalen →',
+        tournamentsHeading: 'Tävlingar',
+        table: {
+          pos: '#',
+          name: 'Namn',
+          club: 'Klubb',
+          total: 'Totalt',
         },
       },
       guide: {
