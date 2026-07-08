@@ -555,7 +555,6 @@ export interface Translations {
       loading: string;
       error: string;
       noData: string;
-      girlsComingSoon: string;
       disclaimer: string;
       finalsLink: string;
       tournamentsHeading: string;
@@ -1236,7 +1235,6 @@ const translations: Record<Language, Translations> = {
         loading: 'Computing standings…',
         error: 'Could not load standings',
         noData: 'No standings available for this season.',
-        girlsComingSoon: 'The girls series is coming soon.',
         disclaimer:
           'Computed from official SSF results. Eligibility (secondary Stockholm-club membership) and age dispensations are partly deduced from the published standings, so totals can differ slightly from the official ones.',
         finalsLink: 'View the finals →',
@@ -1916,7 +1914,6 @@ const translations: Record<Language, Translations> = {
         loading: 'Beräknar ställning…',
         error: 'Kunde inte ladda ställningen',
         noData: 'Ingen ställning tillgänglig för den här säsongen.',
-        girlsComingSoon: 'Tjejserien kommer snart.',
         disclaimer:
           'Beräknad från officiella SSF-resultat. Behörighet (sekundärt medlemskap i Stockholmsklubb) och åldersdispenser är delvis härledda från de publicerade ställningarna, så totalerna kan skilja sig något från de officiella.',
         finalsLink: 'Visa finalen →',

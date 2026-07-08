@@ -21,7 +21,7 @@ export interface JgpPlayerResult {
   lastName: string;
   /** Birth year (from `playerInfo.birthdate`). */
   birthYear: number;
-  /** Female per the SSF `sex` field (2 = female). See note in the adapter. */
+  /** Female per the SSF `sex` field (1 = female). See note in the adapter. */
   isFemale: boolean;
   clubId: number;
   clubName: string;
@@ -48,6 +48,15 @@ export interface JgpPlayerResult {
    * is dropped by the JGP rules.
    */
   realGamesPlayed: number;
+  // --- girls series only (percentile scoring); unset/ignored for the open ladder ---
+  /** Playing-class key to pool by (config `klass`); groups sharing it merge. */
+  klass?: string;
+  /** Points scaled by rounds (`points/rounds`) — the same-place tie-break. */
+  scaledPts?: number;
+  /** No-show (only walkover losses): excluded from the pool. */
+  isNoShow?: boolean;
+  /** Dropout (left early / played fewer rounds): scored a flat 4. */
+  isDropout?: boolean;
 }
 
 /** A single player's row in a computed season standings table. */
@@ -255,31 +264,52 @@ export function computeLadderTournament(
 // Girls / percentile
 // ---------------------------------------------------------------------------
 
-/** Round half up (Swedish standings round .5 up). */
-function roundHalfUp(x: number): number {
-  return Math.floor(x + 0.5);
+/** Banker's rounding (round half to even) — matches the reference script's Python `round`. */
+function roundHalfEven(x: number): number {
+  if (Math.abs(x - Math.trunc(x)) === 0.5) {
+    const f = Math.floor(x);
+    return f % 2 === 0 ? f : f + 1;
+  }
+  return Math.round(x);
 }
 
 /**
- * Percentile-scaled points for one playing-class group of N players sorted
- * best-first (0-based index i): q = (N-i)/(N-1); top half 11+28*(q-0.5)
- * (25→11), below median 5+12*q (10→5). Single player → 25.
+ * Girls percentile points for a girl at 0-based rank `i` among `n` girls in her
+ * playing class: q = (n-1-i)/(n-1), so the top girl gets q=1 and a lone girl
+ * q=0 → 5. Top half 11+28*(q-0.5) (25→11), below median 5+12*q (10→5); banker's
+ * rounding to match the reference script.
  */
-function percentilePoints(i: number, n: number): number {
-  if (n <= 1) return 25;
-  const q = (n - 1 - i) / (n - 1);
+function girlsPercentile(i: number, n: number): number {
+  const q = n > 1 ? (n - 1 - i) / (n - 1) : 0;
   const raw = q >= 0.5 ? 11 + 28 * (q - 0.5) : 5 + 12 * q;
-  return roundHalfUp(raw);
+  return roundHalfEven(raw);
 }
 
 /**
- * Compute girls-division standings points for ONE tournament.
+ * Girls ranking within a playing class: official `place` first, then round-scaled
+ * points (`scaledPts` descending), then quality (`secPoints`; negated on dropouts
+ * so they sink), then youngest first — matching the reference script's sort.
+ */
+function byGirlsRank(a: JgpPlayerResult, b: JgpPlayerResult): number {
+  return (
+    a.place - b.place ||
+    Math.trunc((b.scaledPts ?? 0) * 10) - Math.trunc((a.scaledPts ?? 0) * 10) ||
+    b.quality - a.quality ||
+    b.birthYear - a.birthYear
+  );
+}
+
+/**
+ * Compute girls-division standings points for ONE tournament — girls-only, per
+ * playing class, matching Ganesh Srinivasson's reference script:
+ *  - filter to girls, drop no-shows and zero-game players;
+ *  - group by playing `klass` (groups sharing a klass merge, e.g. two beginner
+ *    groups both "z"); rank the girls in that klass by {@link byGirlsRank};
+ *  - non-beginner: percentile over N girls, but dropouts score a flat 4;
+ *  - beginner (klass e/f/z): top-3 get 8/7/6, the rest 5.
  *
- * Points are computed per playing class over the WHOLE class (girls are ranked
- * against everyone who played it, boys included) — the percentile placement, and
- * for beginner classes the 5-baseline / top-3 8-7-6 rule, depend on the full
- * class size and ranking. Only the eligible girls are then returned; the boys and
- * ineligible girls only affect the ranking, not the output.
+ * Only Stockholm-eligible girls are returned; non-local girls stay in the pool
+ * (they affect N and ranks) but are dropped from the displayed table.
  *
  * @returns memberId → standings points for this tournament (eligible girls only).
  */
@@ -287,33 +317,39 @@ export function computePercentileTournament(
   rows: JgpPlayerResult[],
   isEligible: (row: JgpPlayerResult) => boolean,
 ): Map<number, number> {
-  // Only players who actually played a real game count toward the class ranking;
-  // walkover-only (and no-show) players are excluded, so they don't inflate N.
-  const played = rows.filter((r) => r.realGamesPlayed > 0);
+  // Girls only (filtered before grouping, per the reference `step_02`); no-shows
+  // and zero-game players are excluded so they don't inflate N.
+  const girls = rows.filter((r) => r.isFemale && !r.isNoShow && r.gamesPlayed > 0);
 
-  // Group by playing class (each class scored independently, over all players).
-  const byClass = new Map<string, JgpPlayerResult[]>();
-  for (const r of played) {
-    const list = byClass.get(r.classKey) ?? [];
+  // Group by playing class; groups configured with the same klass merge.
+  const byKlass = new Map<string, JgpPlayerResult[]>();
+  for (const r of girls) {
+    const key = r.klass ?? r.classKey;
+    const list = byKlass.get(key) ?? [];
     list.push(r);
-    byClass.set(r.classKey, list);
+    byKlass.set(key, list);
   }
 
   const allPoints = new Map<number, number>();
-  for (const list of byClass.values()) {
-    const sorted = [...list].sort(byPointsThenQuality);
+  for (const list of byKlass.values()) {
+    const sorted = [...list].sort(byGirlsRank);
     const beginner = sorted[0]?.isBeginnerClass;
-    if (beginner) {
-      const top3 = [8, 7, 6];
-      sorted.forEach((r, i) => allPoints.set(r.memberId, top3[i] ?? 5));
-    } else {
-      sorted.forEach((r, i) => allPoints.set(r.memberId, percentilePoints(i, sorted.length)));
-    }
+    sorted.forEach((r, i) => {
+      // A dropout scores a flat 4 — but only if they had points to lose: the
+      // reference negates points then scores `points < 0` as 4, so a 0-point
+      // dropout (−0 is not < 0) falls through to the percentile (last place).
+      const pts = beginner
+        ? ([8, 7, 6][i] ?? 5)
+        : r.isDropout && r.points > 0
+          ? 4
+          : girlsPercentile(i, sorted.length);
+      allPoints.set(r.memberId, pts);
+    });
   }
 
   const out = new Map<number, number>();
-  for (const r of played) {
-    if (isEligible(r) && r.isFemale) out.set(r.memberId, allPoints.get(r.memberId)!);
+  for (const r of girls) {
+    if (isEligible(r)) out.set(r.memberId, allPoints.get(r.memberId)!);
   }
   return out;
 }

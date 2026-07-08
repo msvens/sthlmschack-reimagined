@@ -79,6 +79,19 @@ export interface JgpGroupRef {
   /** Optional class label for display/debug, e.g. "A", "AB", "E". */
   label?: string;
   /**
+   * Girls series only: the class key players are pooled by (Ganesh's fixed
+   * `extract_klass`): a class letter ("a".."f", "ab"), or "y" (öppen/allmän) or
+   * "z" (nybörjar). Groups sharing a klass are scored together (e.g. two beginner
+   * groups both "z"). Omit for the open series (it re-buckets by age instead).
+   */
+  klass?: string;
+  /**
+   * Girls series only: number of rounds the group played. Used to scale points
+   * (`points / rounds`) as the same-place tie-break when pooled classes ran
+   * different round counts. Omit for the open series.
+   */
+  rounds?: number;
+  /**
    * Birth-year range the class admits (inclusive), authored from the class
    * definition — NOT parsed from the group name (combined classes like
    * "A/B (2005-2012)" and unlabelled "grupp A" defeat parsing). Used to detect

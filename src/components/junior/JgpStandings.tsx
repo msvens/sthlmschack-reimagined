@@ -118,9 +118,7 @@ export function JgpStandings() {
         ))}
       </div>
 
-      {division === 'girls' ? (
-        <p className="text-gray-600 dark:text-gray-400 py-8">{t.pages.junior.girlsComingSoon}</p>
-      ) : !season ? (
+      {!season ? (
         <p className="text-gray-600 dark:text-gray-400 py-8">{t.pages.junior.noData}</p>
       ) : (
         <>
@@ -136,8 +134,44 @@ export function JgpStandings() {
             />
           </div>
 
-          <OpenStandings season={season} />
+          {division === 'girls' ? (
+            <GirlsStandings season={season} />
+          ) : (
+            <OpenStandings season={season} />
+          )}
         </>
+      )}
+    </>
+  );
+}
+
+/** Renders the girls-division standings — one flat percentile-scored table. */
+function GirlsStandings({ season }: { season: JgpSeason }) {
+  const { language } = useLanguage();
+  const t = getTranslation(language);
+  const { tables, loading, error } = useJgpStandings(season);
+  const table = tables?.[0] ?? null;
+
+  return (
+    <>
+      <div className="mb-6 p-3 rounded border border-amber-300 dark:border-amber-700/50 bg-amber-50 dark:bg-amber-900/20 text-sm text-amber-800 dark:text-amber-200">
+        {t.pages.junior.disclaimer}
+      </div>
+
+      <div className="mb-8">
+        <JgpTournamentLegend season={season} />
+      </div>
+
+      {loading ? (
+        <p className="text-gray-600 dark:text-gray-400 py-8">{t.pages.junior.loading}</p>
+      ) : error ? (
+        <p className="text-red-600 dark:text-red-400 py-8">
+          {t.pages.junior.error}: {error}
+        </p>
+      ) : !table || table.rows.length === 0 ? (
+        <p className="text-gray-600 dark:text-gray-400 py-8">{t.pages.junior.noData}</p>
+      ) : (
+        <JgpStandingsTable table={table} tournaments={season.tournaments} />
       )}
     </>
   );
