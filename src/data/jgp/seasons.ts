@@ -76,6 +76,20 @@ const OPEN_2026: JgpSeason = {
       ],
     },
     {
+      label: 'Wasa JGP 2026',
+      shortLabel: 'Wasa',
+      date: '2026-04-25',
+      tournamentId: 6685,
+      groups: [
+        { groupId: 18319, isBeginner: false, label: 'A', fromYear: 2006, toYear: 2009 },
+        { groupId: 18318, isBeginner: false, label: 'B', fromYear: 2010, toYear: 2012 },
+        { groupId: 18320, isBeginner: false, label: 'C', fromYear: 2013, toYear: 2015 },
+        { groupId: 18321, isBeginner: false, label: 'D', fromYear: 2016, toYear: 2019 },
+        { groupId: 18322, isBeginner: true, label: 'E' },
+        { groupId: 18323, isBeginner: true, label: 'F' },
+      ],
+    },
+    {
       label: 'SS 4 Springare JGP 2026',
       shortLabel: 'SS4',
       date: '2026-05-23',

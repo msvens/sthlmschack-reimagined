@@ -417,16 +417,30 @@ function round2(x: number): number {
  * Order rows within a table and assign sequential 1-based places. The official
  * standings number every row distinctly (no shared ranks); rows with equal
  * totals are separated by the documented tie-break — higher total, then fewer
- * tournaments, then younger (higher year). Players identical on all three are
- * left in an unspecified order: the published rules define no further tie-break,
- * so their relative order cannot be reproduced from the ruleset.
+ * tournaments, then younger (higher year). The open series then adds a final
+ * recency tie-break (`recencyTiebreak`): a player whose most recent scoring
+ * tournament is later ranks first (matching the reference script). Players still
+ * identical after that are left in an unspecified (stable) order.
  */
-function placeRows(rows: JgpStandingRow[], effYearById: Map<number, number>): JgpStandingRow[] {
+function placeRows(
+  rows: JgpStandingRow[],
+  effYearById: Map<number, number>,
+  recencyTiebreak = false,
+): JgpStandingRow[] {
+  // Highest 1-based column index the player scored in (a 0 counts; null does not).
+  const recency = (r: JgpStandingRow) => {
+    let m = 0;
+    r.perTournament.forEach((v, i) => {
+      if (v != null) m = i + 1;
+    });
+    return m;
+  };
   const sorted = [...rows].sort(
     (a, b) =>
       b.total - a.total ||
       a.played - b.played ||
-      (effYearById.get(b.memberId) ?? b.birthYear) - (effYearById.get(a.memberId) ?? a.birthYear),
+      (effYearById.get(b.memberId) ?? b.birthYear) - (effYearById.get(a.memberId) ?? a.birthYear) ||
+      (recencyTiebreak ? recency(b) - recency(a) : 0),
   );
   sorted.forEach((r, i) => {
     r.place = i + 1;
@@ -479,7 +493,7 @@ export function computeOpenSeason(
       const m = meta.get(r.memberId)!;
       return findAgeClass(m.effYear, ageClasses)?.label === ac.label;
     });
-    return { ageClass: ac, rows: placeRows(rows, effYearById) };
+    return { ageClass: ac, rows: placeRows(rows, effYearById, true) };
   });
 }
 

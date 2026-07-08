@@ -20,7 +20,8 @@ export const changelog: ChangelogEntry[] = [
       {
         "type": "Added",
         "items": [
-          "Girls (Flick) Junior Grand Prix standings on the Junior page — the Girls tab now shows the live girls series (previously \"coming soon\"), reproducing the official Stockholm standings"
+          "Girls (Flick) Junior Grand Prix standings on the Junior page — the Girls tab now shows the live girls series (previously \"coming soon\"), reproducing the official Stockholm standings",
+          "Wasa JGP 2026 is now included in the open Junior Grand Prix standings (now six counting tournaments)"
         ]
       },
       {
