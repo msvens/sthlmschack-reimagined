@@ -6,6 +6,7 @@ All notable changes to msvens chess will be documented in this file.
 
 ### Added
 - Girls (Flick) Junior Grand Prix standings on the Junior page — the Girls tab now shows the live girls series (previously "coming soon"), reproducing the official Stockholm standings
+- Wasa JGP 2026 is now included in the open Junior Grand Prix standings (now six counting tournaments)
 
 ### Removed
 - The junior standings now cover the 2026 season only; the estimated 2025 open standings were removed
