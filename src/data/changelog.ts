@@ -16,7 +16,20 @@ export const changelog: ChangelogEntry[] = [
   {
     "version": "Unreleased",
     "date": null,
-    "sections": []
+    "sections": [
+      {
+        "type": "Added",
+        "items": [
+          "Girls (Flick) Junior Grand Prix standings on the Junior page — the Girls tab now shows the live girls series (previously \"coming soon\"), reproducing the official Stockholm standings"
+        ]
+      },
+      {
+        "type": "Removed",
+        "items": [
+          "The junior standings now cover the 2026 season only; the estimated 2025 open standings were removed"
+        ]
+      }
+    ]
   },
   {
     "version": "1.3.0",

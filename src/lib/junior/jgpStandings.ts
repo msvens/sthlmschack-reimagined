@@ -15,6 +15,7 @@ import {
 import type { JgpSeason } from '@/data/jgp/types';
 import { normalizeTournamentResults, type JgpGroupResults } from './jgpAdapter';
 import {
+  computeGirlsSeason,
   computeOpenSeason,
   type JgpAgeClassTable,
   type JgpPlayerResult,
@@ -29,6 +30,8 @@ interface GroupRef {
   isBeginner: boolean;
   fromYear?: number;
   toYear?: number;
+  klass?: string;
+  rounds?: number;
   results: TournamentEndResultDto[];
   roundResults: TournamentRoundResultDto[];
 }
@@ -53,6 +56,8 @@ export async function loadSeasonStandings(
         isBeginner: g.isBeginner,
         fromYear: g.fromYear,
         toYear: g.toYear,
+        klass: g.klass,
+        rounds: g.rounds,
         results: [],
         roundResults: [],
       });
@@ -83,11 +88,21 @@ export async function loadSeasonStandings(
         isBeginner: r.isBeginner,
         fromYear: r.fromYear,
         toYear: r.toYear,
+        klass: r.klass,
+        rounds: r.rounds,
         results: r.results,
         roundResults: r.roundResults,
       }));
     return normalizeTournamentResults(groups);
   });
+
+  // Girls: one flat percentile ranking (no age classes), wrapped as a single
+  // "table" so the hook's return type is shared with the open division.
+  if (season.division === 'girls') {
+    return [
+      { ageClass: { label: '', fromYear: 0, toYear: 9999 }, rows: computeGirlsSeason(tournamentsRows, isEligible) },
+    ];
+  }
 
   return computeOpenSeason(
     tournamentsRows,
