@@ -561,6 +561,7 @@ export interface Translations {
       table: {
         pos: string;
         name: string;
+        born: string;
         club: string;
         total: string;
       };
@@ -1242,6 +1243,7 @@ const translations: Record<Language, Translations> = {
         table: {
           pos: '#',
           name: 'Name',
+          born: 'Born',
           club: 'Club',
           total: 'Total',
         },
@@ -1921,6 +1923,7 @@ const translations: Record<Language, Translations> = {
         table: {
           pos: '#',
           name: 'Namn',
+          born: 'Född',
           club: 'Klubb',
           total: 'Totalt',
         },

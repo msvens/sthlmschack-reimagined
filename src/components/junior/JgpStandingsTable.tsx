@@ -45,6 +45,13 @@ export function JgpStandingsTable({ table, tournaments }: Props) {
       noWrap: true,
     },
     {
+      id: 'born',
+      header: t.pages.junior.table.born,
+      accessor: (r) => r.birthYear,
+      align: 'left',
+      cellClassName: 'tabular-nums',
+    },
+    {
       id: 'club',
       header: t.pages.junior.table.club,
       accessor: (r) => r.clubName,

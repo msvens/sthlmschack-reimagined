@@ -25,6 +25,12 @@ export const changelog: ChangelogEntry[] = [
         ]
       },
       {
+        "type": "Changed",
+        "items": [
+          "The junior standings tables now show each player's birth year (Född), after the name"
+        ]
+      },
+      {
         "type": "Removed",
         "items": [
           "The junior standings now cover the 2026 season only; the estimated 2025 open standings were removed"
