@@ -9,13 +9,13 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import {
   getOpponentKind,
-  getResultDisplayString,
   formatPlayerName,
   getPlayerRatingByAlgorithm,
   formatRatingWithType,
   type TournamentRoundResultDto,
   type PlayerInfoDto,
 } from '@/lib/api';
+import { formatIndividualRowResult, getResultLabels } from '@/lib/results/formatResult';
 import { PrintSheet } from './PrintSheet';
 import type { PrintSheetCommon } from './sheetTypes';
 
@@ -57,11 +57,10 @@ export function PairingSheet({
     const { rating, ratingType } = getPlayerRatingByAlgorithm(p.elo, rankingAlgorithm);
     return formatRatingWithType(rating, ratingType, language);
   };
-  const resultStr = (p: TournamentRoundResultDto): string => {
-    if (p.homeResult === 0 && p.awayResult === 0) return '';
-    const code = p.games?.[0]?.result;
-    return code !== undefined ? getResultDisplayString(code) : `${p.homeResult} - ${p.awayResult}`;
-  };
+  // A pairing sheet is printed to be written on, so an unplayed game stays a
+  // blank cell rather than a dash.
+  const resultStr = (p: TournamentRoundResultDto): string =>
+    formatIndividualRowResult(p, { ...getResultLabels(t), noResult: '' });
 
   const columnHeader = (
     <tr className="border-b-2 border-black text-left">

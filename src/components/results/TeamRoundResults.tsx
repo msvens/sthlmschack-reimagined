@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { TournamentRoundResultDto, GameDto, getOpponentKind, createRoundResultsTeamNameFormatter, normalizeEloLookupDate, calculatePoints, ResultCode } from '@/lib/api';
+import { TournamentRoundResultDto, GameDto, getOpponentKind, createRoundResultsTeamNameFormatter, normalizeEloLookupDate, calculatePoints, isWalkoverResultCode, isAdjudicatedResult } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
+import { formatScore, getResultLabels } from '@/lib/results/formatResult';
 import { Link } from '@/components/Link';
 import { Table, TableColumn } from '@/components/Table';
 import { PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -93,6 +94,7 @@ export function TeamRoundResults({
 }: TeamRoundResultsProps) {
   const { language } = useLanguage();
   const t = getTranslation(language);
+  const resultLabels = getResultLabels(t);
   const [selectedRound, setSelectedRound] = useState<number | null>(null);
   const [expandedMatchIndex, setExpandedMatchIndex] = useState<number | null>(null);
 
@@ -231,7 +233,10 @@ export function TeamRoundResults({
     // Handle W.O / bye cases — any non-paired slot or a result code that is itself a walkover
     const whiteKind = getOpponentKind(game.whiteId);
     const blackKind = getOpponentKind(game.blackId);
-    const isWalkover = Math.abs(game.result) === 2 || whiteKind !== 'paired' || blackKind !== 'paired';
+    // isWalkoverResultCode covers every point system (2/-2/-3, 5/-5, 25/-25);
+    // the old Math.abs(result) === 2 test missed the Schackfyran and 3-1-0
+    // codes as well as the 0-0 double forfeit.
+    const isWalkover = isWalkoverResultCode(game.result) || whiteKind !== 'paired' || blackKind !== 'paired';
 
     // Assign players based on home/away
     const homePlayerId = whiteIsHome ? game.whiteId : game.blackId;
@@ -276,29 +281,16 @@ export function TeamRoundResults({
     const { homeScore, awayScore, isWalkover, resultCode } = game;
 
     // No result yet
-    if (resultCode == null) return '-';
+    if (resultCode == null) return resultLabels.noResult;
 
-    // Format the score part
-    const formatScore = (score: number): string => {
-      if (score === 0.5) return '½';
-      return String(score);
-    };
-
-    // Check for special adjudicated results (both players get 0 or both get 1)
-    const isAdjudicated = resultCode === ResultCode.BOTH_NO_RESULT ||
-                          resultCode === ResultCode.BOTH_WIN ||
-                          resultCode === ResultCode.SCHACK4AN_BOTH_NO_RESULT ||
-                          resultCode === ResultCode.SCHACK4AN_BOTH_WIN ||
-                          resultCode === ResultCode.POINT310_BOTH_NO_RESULT ||
-                          resultCode === ResultCode.POINT310_BOTH_WIN;
-
-    // Build result string from home team's perspective
+    // Scores are computed from the home team's perspective (colours alternate
+    // by board), so only the suffix comes from the result code.
     const scoreStr = `${formatScore(homeScore)} - ${formatScore(awayScore)}`;
 
     if (isWalkover) {
       return `${scoreStr} w.o`;
-    } else if (isAdjudicated) {
-      return `${scoreStr} adj`;
+    } else if (isAdjudicatedResult(resultCode)) {
+      return `${scoreStr} ${resultLabels.adjudicated}`;
     }
 
     return scoreStr;
@@ -370,7 +362,9 @@ export function TeamRoundResults({
                   </div>
                   <div className="ml-4 flex items-center gap-2">
                     <span className="font-medium text-gray-900 dark:text-gray-200">
-                      {match.homeScore === 0 && match.awayScore === 0 ? '-' : `${match.homeScore} - ${match.awayScore}`}
+                      {match.homeScore === 0 && match.awayScore === 0
+                        ? resultLabels.noResult
+                        : `${formatScore(match.homeScore)} - ${formatScore(match.awayScore)}`}
                     </span>
                     <svg
                       className={`w-4 h-4 text-gray-400 transition-transform ${
