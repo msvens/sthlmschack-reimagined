@@ -55,18 +55,6 @@ export function indexWomen(rows: readonly StandingsRowLike[]): WomenIndex {
 }
 
 /**
- * Keep contender rows whose id is in `ids`, preserving order and object identity
- * (so React keys and downstream memos stay stable). Official `place` values are
- * left untouched and will therefore be gappy — 1, 4, 7 — which is intended.
- */
-export function filterContenders<T extends { contenderId: number }>(
-  rows: readonly T[],
-  ids: ReadonlySet<number>
-): T[] {
-  return rows.filter((row) => ids.has(row.contenderId));
-}
-
-/**
  * Keep pairings where at least one named side is in `ids`.
  *
  * Showing the opponent too is deliberate: an admin checking a player's games
@@ -81,33 +69,3 @@ export function filterPairings<T extends PairingRowLike>(
   return rows.filter((row) => ids.has(row.homeId) || ids.has(row.awayId));
 }
 
-/**
- * 1-based rank within an already-ordered subset, keyed by id.
- *
- * A map rather than an array index because the shared `Table` re-sorts rows
- * internally — an index would silently renumber when the user sorts by name.
- *
- * Pass `placeOf` to use standard competition ranking, where rows sharing an
- * official place share a rank and the next one skips (1, 2, 2, 4). Round-standings
- * snapshots genuinely tie; final standings generally do not.
- */
-export function rankSubset<T>(
-  rows: readonly T[],
-  idOf: (row: T) => number,
-  placeOf?: (row: T) => number | undefined
-): Map<number, number> {
-  const ranks = new Map<number, number>();
-  let lastPlace: number | undefined;
-  let lastRank = 0;
-  rows.forEach((row, index) => {
-    let rank = index + 1;
-    if (placeOf) {
-      const place = placeOf(row);
-      if (place != null && place === lastPlace) rank = lastRank;
-      lastPlace = place;
-      lastRank = rank;
-    }
-    ranks.set(idOf(row), rank);
-  });
-  return ranks;
-}

@@ -427,6 +427,14 @@ export interface Translations {
         /** Shown when a round has no games involving the filtered players. */
         noRoundResults: string;
       };
+      /** Side prizes attached to a group (rating bands, age classes, women). */
+      prizeCategories: {
+        ratingPrizes: string;
+        agePrizes: string;
+        womenPrizes: string;
+        /** Clear-selection entry in each dropdown. */
+        all: string;
+      };
       print: {
         standings: string;
         rank: string;
@@ -1114,6 +1122,12 @@ const translations: Record<Language, Translations> = {
           toggleLabel: 'Women',
           noRoundResults: 'No games with women in this round',
         },
+        prizeCategories: {
+          ratingPrizes: 'Rating prizes',
+          agePrizes: 'Age prizes',
+          womenPrizes: "Women's prizes",
+          all: 'All',
+        },
         print: {
           standings: 'Standings',
           rank: '#',
@@ -1799,6 +1813,12 @@ const translations: Record<Language, Translations> = {
         womenFilter: {
           toggleLabel: 'Damer',
           noRoundResults: 'Inga partier med damer i denna rond',
+        },
+        prizeCategories: {
+          ratingPrizes: 'Rankingpriser',
+          agePrizes: 'Ålderspriser',
+          womenPrizes: 'Dampriser',
+          all: 'Alla',
         },
         print: {
           standings: 'Ställning',
