@@ -361,6 +361,10 @@ export interface Translations {
       statusOngoing: string;
       statusFinished: string;
       bye: string;
+      /** Standalone label for a postponed game (it has no score). */
+      postponed: string;
+      /** Suffix for an adjudicated result, e.g. "0 - 0 avbruten". */
+      adjudicated: string;
       externalNotice: {
         individuallyPairedTeam: { prefix: string; linkLabel: string; suffix: string };
         looseTeam: { prefix: string; linkLabel: string; suffix: string };
@@ -1035,6 +1039,8 @@ const translations: Record<Language, Translations> = {
         statusOngoing: 'Ongoing',
         statusFinished: 'Finished',
         bye: 'Bye',
+        postponed: 'Postponed',
+        adjudicated: 'adj',
         externalNotice: {
           individuallyPairedTeam: {
             prefix: 'This is a team tournament with individual pairings. The team standings aren\'t available from the data source for this format — see the official results at',
@@ -1715,6 +1721,8 @@ const translations: Record<Language, Translations> = {
         statusOngoing: 'Pågående',
         statusFinished: 'Avslutad',
         bye: 'Frirond',
+        postponed: 'Uppskjutet',
+        adjudicated: 'domslut',
         externalNotice: {
           individuallyPairedTeam: {
             prefix: 'Detta är en lagturnering med individuell lottning. Lagtabellen är inte tillgänglig från datakällan för detta format — se de officiella resultaten på',

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { TournamentRoundResultDto, GameDto, getOpponentKind, createRoundResultsTeamNameFormatter, normalizeEloLookupDate, calculatePoints, ResultCode } from '@/lib/api';
+import { TournamentRoundResultDto, GameDto, getOpponentKind, createRoundResultsTeamNameFormatter, normalizeEloLookupDate, calculatePoints, isWalkoverResultCode, isAdjudicatedResult } from '@/lib/api';
+import { formatScore, getResultLabels } from '@/lib/results/formatResult';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { Link } from '@/components/Link';
@@ -90,6 +91,7 @@ export function TeamDetailMatches({
 }: TeamDetailMatchesProps) {
   const { language } = useLanguage();
   const t = getTranslation(language);
+  const resultLabels = getResultLabels(t);
 
   // Group matches by round and aggregate board results
   const matchesByRound = useMemo(() => {
@@ -165,7 +167,10 @@ export function TeamDetailMatches({
 
     const whiteKind = getOpponentKind(game.whiteId);
     const blackKind = getOpponentKind(game.blackId);
-    const isWalkover = Math.abs(game.result) === 2 || whiteKind !== 'paired' || blackKind !== 'paired';
+    // isWalkoverResultCode covers every point system (2/-2/-3, 5/-5, 25/-25);
+    // the old Math.abs(result) === 2 test missed the Schackfyran and 3-1-0
+    // codes as well as the 0-0 double forfeit.
+    const isWalkover = isWalkoverResultCode(game.result) || whiteKind !== 'paired' || blackKind !== 'paired';
 
     // Assign players based on home/away
     const homePlayerId = whiteIsHome ? game.whiteId : game.blackId;
@@ -220,29 +225,16 @@ export function TeamDetailMatches({
     const { selectedScore, opponentScore, isWalkover, resultCode } = game;
 
     // No result yet
-    if (resultCode == null) return '-';
+    if (resultCode == null) return resultLabels.noResult;
 
-    // Format the score part
-    const formatScore = (score: number): string => {
-      if (score === 0.5) return '½';
-      return String(score);
-    };
-
-    // Check for special adjudicated results (both players get 0 or both get 1)
-    const isAdjudicated = resultCode === ResultCode.BOTH_NO_RESULT ||
-                          resultCode === ResultCode.BOTH_WIN ||
-                          resultCode === ResultCode.SCHACK4AN_BOTH_NO_RESULT ||
-                          resultCode === ResultCode.SCHACK4AN_BOTH_WIN ||
-                          resultCode === ResultCode.POINT310_BOTH_NO_RESULT ||
-                          resultCode === ResultCode.POINT310_BOTH_WIN;
-
-    // Build result string from selected team's perspective
+    // Scores are computed from the selected team's perspective (colours
+    // alternate by board), so only the suffix comes from the result code.
     const scoreStr = `${formatScore(selectedScore)} - ${formatScore(opponentScore)}`;
 
     if (isWalkover) {
       return `${scoreStr} w.o`;
-    } else if (isAdjudicated) {
-      return `${scoreStr} adj`;
+    } else if (isAdjudicatedResult(resultCode)) {
+      return `${scoreStr} ${resultLabels.adjudicated}`;
     }
 
     return scoreStr;

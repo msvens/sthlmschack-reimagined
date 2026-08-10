@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, ResultsService, getResultDisplayString, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, createTeamNameFormatter, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, RoundStandings, RoundStandingRow, getTournamentStatus } from '@/lib/api';
+import { TournamentService, ResultsService, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, createTeamNameFormatter, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, RoundStandings, RoundStandingRow, getTournamentStatus } from '@/lib/api';
+import { formatIndividualRowResult, getResultLabels } from '@/lib/results/formatResult';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -81,6 +82,7 @@ export default function GroupResultsPage() {
   const router = useRouter();
   const { language } = useLanguage();
   const t = getTranslation(language);
+  const resultLabels = getResultLabels(t);
 
   // Get group-level data from context
   const {
@@ -945,20 +947,7 @@ export default function GroupResultsPage() {
                                       {
                                         id: 'result',
                                         header: t.pages.tournamentResults.roundByRound.result,
-                                        accessor: (row) => {
-                                          // Show "-" for unplayed games (both results are 0)
-                                          if (row.homeResult === 0 && row.awayResult === 0) {
-                                            return '-';
-                                          }
-                                          // Use the underlying game's result code so walkovers,
-                                          // byes, adjudications, and alternate point systems all
-                                          // render with their proper suffix (e.g. "1 - 0 w.o").
-                                          const gameResultCode = row.games?.[0]?.result;
-                                          if (gameResultCode !== undefined) {
-                                            return getResultDisplayString(gameResultCode);
-                                          }
-                                          return `${row.homeResult} - ${row.awayResult}`;
-                                        },
+                                        accessor: (row) => formatIndividualRowResult(row, resultLabels),
                                         align: 'center',
                                         noWrap: true,
                                         cellStyle: { fontWeight: 'medium' }

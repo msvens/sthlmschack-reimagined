@@ -7,7 +7,8 @@ import { PlayerInfo } from '@/components/player/PlayerInfo';
 import { EloRatingChart } from '@/components/player/EloRatingChart';
 import { Table, TableColumn } from '@/components/Table';
 import { Link } from '@/components/Link';
-import { TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, getResultDisplayString, getPlayerOutcome, getPlayerPoints, calculatePoints, formatPlayerName, RoundRatedType, PlayerInfoDto, TournamentDto } from '@/lib/api';
+import { TournamentService, formatRatingWithType, getPlayerRatingStrict, getPlayerRatingByRoundType, getKFactorForRating, calculateRatingChange, isWalkoverResultCode, isCountableResult, isResultCodeInformative, getPlayerOutcome, getPlayerPoints, calculatePoints, formatPlayerName, RoundRatedType, PlayerInfoDto, TournamentDto } from '@/lib/api';
+import { formatResultCode, formatScore, getResultLabels } from '@/lib/results/formatResult';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults } from '@/context/GroupResultsContext';
@@ -32,6 +33,7 @@ export default function TournamentPlayerDetailPage() {
   const router = useRouter();
   const { language } = useLanguage();
   const t = getTranslation(language);
+  const resultLabels = getResultLabels(t);
 
   // Get group-level data from context
   const {
@@ -510,11 +512,13 @@ export default function TournamentPlayerDetailPage() {
       id: 'result',
       header: t.pages.tournamentResults.roundByRound.result,
       accessor: (row) => {
-        // Use the display string from gameResultCode if available, otherwise format manually
-        if (row.gameResultCode !== undefined) {
-          return getResultDisplayString(row.gameResultCode);
+        // Prefer the game's own code; NOT_SET / unknown carries no information,
+        // so fall back to the row's points the same way the round table does.
+        if (row.gameResultCode !== undefined && isResultCodeInformative(row.gameResultCode)) {
+          return formatResultCode(row.gameResultCode, resultLabels);
         }
-        return `${row.homeResult} - ${row.awayResult}`;
+        if (row.homeResult === 0 && row.awayResult === 0) return resultLabels.noResult;
+        return `${formatScore(row.homeResult)} - ${formatScore(row.awayResult)}`;
       },
       align: 'center',
       noWrap: true,
