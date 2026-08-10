@@ -27,6 +27,14 @@ export interface FinalResultsTableProps {
    * Default: comfortable <= 10 rows, normal <= 20 rows, compact > 20 rows
    */
   densityThresholds?: DensityThresholds;
+  /**
+   * Contender id -> 1-based rank within the currently-shown subset. When the
+   * results have been filtered (e.g. to women only), the placement column shows
+   * that rank with the official overall place in parentheses — "1 (6)" — so a
+   * prize list reads top-down while the true standing stays visible. A map
+   * rather than a row index because the table re-sorts internally.
+   */
+  subsetRank?: ReadonlyMap<number, number>;
 }
 
 export function FinalResultsTable({
@@ -36,19 +44,25 @@ export function FinalResultsTable({
   error,
   onRowClick,
   density,
-  densityThresholds
+  densityThresholds,
+  subsetRank
 }: FinalResultsTableProps) {
   const { language } = useLanguage();
   const t = getTranslation(language);
+
+  const rankOf = (row: TournamentEndResultDto) => subsetRank?.get(row.playerInfo?.id ?? row.contenderId);
 
   const columns: TableColumn<TournamentEndResultDto>[] = [
     {
       id: 'pos',
       header: t.pages.tournamentResults.finalResultsTable.pos,
-      accessor: 'place',
+      accessor: (row) => {
+        const rank = rankOf(row);
+        return rank == null ? row.place : `${rank} (${row.place})`;
+      },
       align: 'left',
       noWrap: true,
-      sortValue: (row) => row.place
+      sortValue: (row) => rankOf(row) ?? row.place
     },
     {
       id: 'name',
