@@ -230,12 +230,25 @@ export function SelectableList({
           {/* Expanded items list - absolutely positioned overlay */}
           {isOpen && (
             <div className={`absolute z-50 left-0 top-full min-w-full w-max max-w-[min(24rem,calc(100vw-1.5rem))] rounded-b-lg border border-t-0 shadow-lg overflow-hidden ${listBg} border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-200`}>
-              <div className="max-h-80 overflow-y-auto">
+              {/* flex-col, not a plain block: <button> is inline-block by
+                  default, and under the panel's `w-max` the items' `w-full`
+                  percentage is treated as auto — so they all sat on one line for
+                  intrinsic sizing and the panel's max-content became the SUM of
+                  every item's width, pinning it to the max-w cap. Laying them out
+                  as a column makes max-content the widest item, as intended.
+                  (The vertical variant below already does this.) */}
+              {/* px-2 insets the items from the panel edge. With w-max the panel
+                  hugs its widest item exactly, so without this the longest label
+                  sits flush against the border — and an overlay scrollbar lands
+                  on top of it while scrolling. */}
+              <div className="flex flex-col max-h-80 overflow-y-auto px-2 py-1">
                 {items.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => handleItemSelect(item.id)}
-                    className={`w-full text-left ${itemPadding} ${lineHeight} transition-colors ${itemHoverBg} ${
+                    // shrink-0: the column has a max-height, so without it a long
+                    // list could compress its items instead of scrolling.
+                    className={`w-full shrink-0 text-left rounded ${itemPadding} ${lineHeight} transition-colors ${itemHoverBg} ${
                       selectedId === item.id
                         ? `${itemSelectedBg} font-medium text-gray-900 dark:text-gray-200`
                         : 'text-gray-600 dark:text-gray-400'
