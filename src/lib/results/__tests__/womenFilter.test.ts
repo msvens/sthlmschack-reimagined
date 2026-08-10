@@ -1,12 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Sex, type SexType } from '@/lib/api';
-import {
-  indexWomen,
-  filterContenders,
-  filterPairings,
-  rankSubset,
-  type StandingsRowLike,
-} from '../womenFilter';
+import { indexWomen, filterPairings, type StandingsRowLike } from '../womenFilter';
 
 /** Standings row: id, sex, and the official place. */
 const row = (id: number, sex: SexType | undefined, place = id): StandingsRowLike & { place: number } => ({
@@ -54,20 +48,6 @@ describe('indexWomen', () => {
   });
 });
 
-describe('filterContenders', () => {
-  it('keeps order, identity, and the gappy official place', () => {
-    const { ids } = indexWomen(mixed);
-    const out = filterContenders(mixed, ids);
-    expect(out).toHaveLength(2);
-    expect(out[0]).toBe(mixed[0]); // same object reference
-    // Places stay 1 and 3 — deliberately not renumbered.
-    expect(out.map((r) => r.place)).toEqual([1, 3]);
-  });
-
-  it('returns nothing for an empty id set', () => {
-    expect(filterContenders(mixed, new Set())).toEqual([]);
-  });
-});
 
 describe('filterPairings', () => {
   const ids = new Set([1, 3]); // women
@@ -99,32 +79,3 @@ describe('filterPairings', () => {
   });
 });
 
-describe('rankSubset', () => {
-  const id = (r: { contenderId: number }) => r.contenderId;
-
-  it('numbers an ordered subset 1..N', () => {
-    const out = rankSubset([row(7, Sex.FEMALE), row(3, Sex.FEMALE), row(9, Sex.FEMALE)], id);
-    expect([...out.entries()]).toEqual([[7, 1], [3, 2], [9, 3]]);
-  });
-
-  it('ranks by position, independent of the ids themselves', () => {
-    const out = rankSubset([row(9, Sex.FEMALE), row(7, Sex.FEMALE)], id);
-    expect(out.get(9)).toBe(1);
-    expect(out.get(7)).toBe(2);
-  });
-
-  it('shares a rank for tied places and skips the next (1,2,2,4)', () => {
-    const rows = [row(1, Sex.FEMALE, 1), row(2, Sex.FEMALE, 5), row(3, Sex.FEMALE, 5), row(4, Sex.FEMALE, 8)];
-    const out = rankSubset(rows, id, (r) => r.place);
-    expect([out.get(1), out.get(2), out.get(3), out.get(4)]).toEqual([1, 2, 2, 4]);
-  });
-
-  it('ignores ties when no placeOf is given', () => {
-    const rows = [row(1, Sex.FEMALE, 5), row(2, Sex.FEMALE, 5)];
-    expect([...rankSubset(rows, id).values()]).toEqual([1, 2]);
-  });
-
-  it('handles an empty subset', () => {
-    expect(rankSubset([], id).size).toBe(0);
-  });
-});

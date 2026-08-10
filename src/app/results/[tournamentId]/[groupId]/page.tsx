@@ -5,7 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { TournamentService, ResultsService, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, createTeamNameFormatter, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, RoundStandings, RoundStandingRow, getTournamentStatus } from '@/lib/api';
 import { formatIndividualRowResult, getResultLabels } from '@/lib/results/formatResult';
-import { indexWomen, filterContenders, filterPairings, rankSubset } from '@/lib/results/womenFilter';
+import { indexWomen, filterPairings } from '@/lib/results/womenFilter';
+import { filterContenders, rankSubset } from '@/lib/results/subsetRanking';
+import { availablePrizeTypes, eligibleForPrize, prizeCategoriesOfType, prizeCategoryLabel, PrizeType } from '@/lib/results/prizeCategories';
+import { PrizeCategoryFilter } from '@/components/results/PrizeCategoryFilter';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -78,6 +81,12 @@ function ExternalResultsNotice({
   );
 }
 
+/**
+ * Sidebar selector heading. Matches the standings <h3> it shares a line with, so
+ * the two align instead of sitting at different sizes and offsets.
+ */
+const SIDEBAR_HEADING = 'text-lg font-semibold mb-2 text-gray-900 dark:text-gray-200';
+
 export default function GroupResultsPage() {
   const params = useParams();
   const router = useRouter();
@@ -137,9 +146,11 @@ export default function GroupResultsPage() {
   const [playbackLoading, setPlaybackLoading] = useState(false);
   const [playbackError, setPlaybackError] = useState(false);
 
-  // Opt-in "women only" view — a prize-giving aid, never the default. Eligibility
-  // is decided further down (it needs isNotStarted); this holds the raw intent.
+  // Opt-in "women only" view — a prize-giving aid, never the default.
   const [womenOnly, setWomenOnly] = useState(false);
+  // Selected side-prize category (rating band / age class / women's prize), or
+  // null for the whole field. Only one prize is ever active at a time.
+  const [selectedPrizeId, setSelectedPrizeId] = useState<number | null>(null);
 
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
@@ -341,17 +352,69 @@ export default function GroupResultsPage() {
     [teamResults, getClubName]
   );
 
-  // --- Women-only filter -------------------------------------------------
-  // All of this sits above the early returns to keep hook order stable, so it
-  // keys off the raw `womenOnly` state; eligibility is applied at render via
-  // `showWomenOnly`. Gender is read once, from the official standings — round
-  // rows and playback snapshots carry ids only. Built from `individualResults`
-  // rather than `groupResults`, since the latter is a fresh [] each render for
-  // team events and would thrash the memo.
+  // Tournament/group status. Derived via the SDK helper (the same one the
+  // results/calendar lists use): group dates take precedence over the
+  // tournament's, `tournament` supplies the (weak) state hint, and a non-empty
+  // roundResults array proves the event has started — so a stale "registration"
+  // state can't mislabel it. Declared here, above the early returns, because the
+  // standings filters below need `isNotStarted` to decide their eligibility.
+  const roundResultsForStatus = isTeamTournament ? teamRoundResults : individualRoundResults;
+  const status = group
+    ? getTournamentStatus({ group, tournament: tournament ?? undefined, roundResults: roundResultsForStatus })
+    : tournament
+      ? getTournamentStatus({ tournament, roundResults: roundResultsForStatus })
+      : 'unknown';
+  const isNotStarted = status === 'upcoming';
+  const isFinished = status === 'finished';
+
+  // --- Standings filters (women-only + prize categories) -------------------
+  // Both narrow the standings to a subset and re-rank within it. They compose:
+  // "top woman in R3" is a real question. Everything here sits above the early
+  // returns to keep hook order stable.
+  //
+  // Gender is read once, from the official standings — round rows and playback
+  // snapshots carry ids only. Built from `individualResults` rather than
+  // `groupResults`, since the latter is a fresh [] each render for team events
+  // and would thrash the memo.
   const womenIndex = useMemo(() => indexWomen(individualResults), [individualResults]);
 
-  // The snapshot for the round being viewed. Hoisted above the early returns so
-  // the filtered version below can be memoized alongside the others.
+  // Hidden rather than disabled: ~45% of groups have no women at all, and both
+  // degenerate cases (nobody, everybody) make the filter pointless.
+  const womenFilterEligible =
+    !isTeamTournament && !isNotStarted && womenIndex.count > 0 && womenIndex.count < womenIndex.total;
+  // Also guards a stale `womenOnly` when switching to a group without the toggle
+  // (this component stays mounted across groupId changes).
+  const showWomenOnly = womenFilterEligible && womenOnly;
+
+  // Age bands are expressed as `tournamentYear - birthYear`, so the tournament's
+  // calendar year is what every age prize is measured against.
+  const tournamentYear = useMemo(() => {
+    const year = Number.parseInt(String(tournament?.start ?? '').slice(0, 4), 10);
+    return Number.isFinite(year) ? year : new Date().getFullYear();
+  }, [tournament?.start]);
+
+  const prizeTypes = useMemo(() => availablePrizeTypes(group), [group]);
+  const selectedPrize = useMemo(
+    () => (group?.prizeCategories ?? []).find((c) => c.id === selectedPrizeId) ?? null,
+    [group, selectedPrizeId]
+  );
+  const prizeIds = useMemo(
+    () =>
+      selectedPrize && !isTeamTournament
+        ? eligibleForPrize(individualResults, selectedPrize, { tournamentYear, rankingAlgorithm })
+        : null,
+    [selectedPrize, isTeamTournament, individualResults, tournamentYear, rankingAlgorithm]
+  );
+
+  // The composed subset, or null when nothing is filtering.
+  const subsetIds = useMemo(() => {
+    const womenIds = showWomenOnly ? womenIndex.ids : null;
+    if (womenIds && prizeIds) return new Set([...prizeIds].filter((id) => womenIds.has(id)));
+    return womenIds ?? prizeIds;
+  }, [showWomenOnly, womenIndex, prizeIds]);
+
+  // The snapshot for the round being viewed. Above the early returns so the
+  // filtered version can be memoized alongside the others.
   const activeSnapshot =
     playbackEnabled && roundStandings?.groupId === groupId && activeRound != null
       ? roundStandings.byRound.get(activeRound) ?? null
@@ -360,27 +423,29 @@ export default function GroupResultsPage() {
   // Filtered arrays are memoized rather than built inline: Table runs a
   // render-phase state update whenever its `data` identity changes, so a fresh
   // array each render would reset pagination on every live-update tick.
-  const womenResults = useMemo(
-    () => (womenOnly ? filterContenders(individualResults, womenIndex.ids) : individualResults),
-    [womenOnly, individualResults, womenIndex]
+  const displayedResults = useMemo(
+    () => (subsetIds ? filterContenders(individualResults, subsetIds) : individualResults),
+    [subsetIds, individualResults]
   );
-  const womenResultsRank = useMemo(
-    () => (womenOnly ? rankSubset(womenResults, (r) => r.playerInfo?.id ?? r.contenderId) : undefined),
-    [womenOnly, womenResults]
+  const displayedRank = useMemo(
+    () => (subsetIds ? rankSubset(displayedResults, (r) => r.playerInfo?.id ?? r.contenderId) : undefined),
+    [subsetIds, displayedResults]
   );
-  const womenSnapshotRows = useMemo(
-    () => (womenOnly && activeSnapshot ? filterContenders(activeSnapshot.rows, womenIndex.ids) : null),
-    [womenOnly, activeSnapshot, womenIndex]
+  const displayedSnapshotRows = useMemo(
+    () => (subsetIds && activeSnapshot ? filterContenders(activeSnapshot.rows, subsetIds) : null),
+    [subsetIds, activeSnapshot]
   );
-  const womenSnapshotRank = useMemo(
+  const displayedSnapshotRank = useMemo(
     // Snapshot ranks legitimately tie, so rank by place: 1, 2, 2, 4.
-    () => (womenSnapshotRows ? rankSubset(womenSnapshotRows, (r) => r.contenderId, (r) => r.rank) : undefined),
-    [womenSnapshotRows]
+    () => (displayedSnapshotRows ? rankSubset(displayedSnapshotRows, (r) => r.contenderId, (r) => r.rank) : undefined),
+    [displayedSnapshotRows]
   );
+  // Round pairings follow the women filter only — a rating band says nothing
+  // about which games are interesting to see.
   const womenRoundRows = useMemo(() => {
-    if (!womenOnly || activeRound == null) return null;
+    if (!showWomenOnly || activeRound == null) return null;
     return filterPairings(resultsByRound[activeRound] ?? [], womenIndex.ids);
-  }, [womenOnly, activeRound, resultsByRound, womenIndex]);
+  }, [showWomenOnly, activeRound, resultsByRound, womenIndex]);
 
   // Don't show loading message - it causes a brief flash on navigation
   // The content will appear once tournament data is loaded
@@ -420,22 +485,6 @@ export default function GroupResultsPage() {
   const hasMultipleClasses = allClasses.length > 1;
   const hasMultipleGroups = selectedClass?.groups ? selectedClass.groups.length > 1 : false;
   const isSingleGroup = !hasMultipleClasses && !hasMultipleGroups;
-
-  // Determine tournament/group state for display
-  // These are only used when resultsLoading is false (guarded in JSX)
-  //
-  // Derive status via the SDK helper (the same one the results/calendar lists
-  // use). Group dates take precedence over the tournament's; `tournament`
-  // supplies the (weak) state hint; a non-empty roundResults array proves the
-  // event has started — so a stale "registration" state can't mislabel it.
-  const roundResultsForStatus = isTeamTournament ? teamRoundResults : individualRoundResults;
-  const status = group
-    ? getTournamentStatus({ group, tournament: tournament ?? undefined, roundResults: roundResultsForStatus })
-    : tournament
-      ? getTournamentStatus({ tournament, roundResults: roundResultsForStatus })
-      : 'unknown';
-  const isNotStarted = status === 'upcoming';
-  const isFinished = status === 'finished';
 
   // Special-format detection — see the tournament-formats reference notes.
   //
@@ -482,19 +531,6 @@ export default function GroupResultsPage() {
 
   const showPlayback = playbackEligible && playbackEnabled;
 
-  // Women-only filter: hidden rather than disabled, because ~45% of groups have
-  // no women at all and a dead control on half the site is worse than none.
-  // Both degenerate cases (nobody, everybody) make the filter pointless.
-  // Schackfyran needs no clause — it is a team type AND its whole branch renders
-  // only the external notice.
-  const womenFilterEligible =
-    !isTeamTournament &&
-    !isNotStarted &&
-    womenIndex.count > 0 &&
-    womenIndex.count < womenIndex.total;
-  // Also guards a stale `womenOnly` when switching to a group that has no toggle
-  // (this component stays mounted across groupId changes).
-  const showWomenOnly = womenFilterEligible && womenOnly;
   // Status badge for the viewed round, driven ENTIRELY by the SDK's per-snapshot
   // flags — no team/individual or tie-break logic, and copy is contender-neutral
   // (team can be estimated too). estimated → amber "uppskattad"; verified → green
@@ -593,26 +629,39 @@ export default function GroupResultsPage() {
             {/* Class & Group Selection - Desktop: Left sidebar - only shown if needed */}
             {(hasMultipleClasses || hasMultipleGroups) && (
               <div className="hidden lg:block w-56 flex-shrink-0 space-y-4">
+                {/* Headings are rendered here rather than via SelectableList's
+                    own `title`, because the vertical variant wraps its contents
+                    in p-2 — which pushed the title 8px down and out of line with
+                    the standings heading beside it. They carry the same type as
+                    that <h3>, plus px matching each variant's inner padding so
+                    the heading still lines up with the items below it. */}
                 {/* Class Selector - only shown if multiple classes - always dropdown */}
                 {hasMultipleClasses && (
-                  <SelectableList
-                    items={selectableClasses}
-                    selectedId={selectedClass?.classID || null}
-                    onSelect={handleClassSelect}
-                    title="Class"
-                    variant="dropdown"
-                  />
+                  <div>
+                    <h3 className={SIDEBAR_HEADING}>Class</h3>
+                    <SelectableList
+                      items={selectableClasses}
+                      selectedId={selectedClass?.classID || null}
+                      onSelect={handleClassSelect}
+                      variant="dropdown"
+                      showTitle={false}
+                    />
+                  </div>
                 )}
 
                 {/* Group Selector - only shown if multiple groups - vertical list */}
                 {hasMultipleGroups && (
-                  <SelectableList
-                    items={selectableGroups}
-                    selectedId={groupId}
-                    onSelect={handleGroupSelect}
-                    title={t.pages.tournamentResults.groups}
-                    variant="vertical"
-                  />
+                  <div>
+                    <h3 className={`${SIDEBAR_HEADING} px-2`}>{t.pages.tournamentResults.groups}</h3>
+                    <SelectableList
+                      items={selectableGroups}
+                      selectedId={groupId}
+                      onSelect={handleGroupSelect}
+                      variant="vertical"
+                      showTitle={false}
+                      className="-mt-2"
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -678,6 +727,11 @@ export default function GroupResultsPage() {
                   ) : (
                   <div className="mb-6">
                     <div className="mb-4">
+                      {/* Top-aligned, NOT centred: the left block can carry extra
+                          lines under the heading (thinking time, start date), and
+                          centring would drop the controls between them. The
+                          controls' first row matches the heading's line height
+                          instead, so the two sit on the same line. */}
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
@@ -694,6 +748,13 @@ export default function GroupResultsPage() {
                             {showPlayback && playbackStatus && (
                               <Badge color={playbackStatus.color} tooltip={playbackStatus.tooltip} className="ml-2">
                                 {playbackStatus.label}
+                              </Badge>
+                            )}
+                            {/* Name the active prize, so a shortened table is never
+                                mistaken for the full standings. */}
+                            {selectedPrize && prizeIds && (
+                              <Badge color="purple" className="ml-2">
+                                {prizeCategoryLabel(selectedPrize)}
                               </Badge>
                             )}
                           </h3>
@@ -720,9 +781,12 @@ export default function GroupResultsPage() {
                                 onManualRefresh={manualRefresh}
                               />
                             )}
-                            {/* Both view toggles share a row; they wrap on narrow screens. */}
+                            {/* Both view toggles share a row; they wrap on narrow
+                                screens. min-h matches the heading's line box
+                                (text-lg = 1.75rem) so a single row of toggles
+                                centres on the heading rather than sitting high. */}
                             {(playbackEligible || womenFilterEligible) && (
-                              <div className="flex flex-wrap items-center justify-start sm:justify-end gap-x-5 gap-y-2">
+                              <div className="flex flex-wrap items-center justify-start sm:justify-end gap-x-5 gap-y-2 sm:min-h-7">
                                 {playbackEligible && (
                                   <Toggle
                                     checked={playbackEnabled}
@@ -762,6 +826,32 @@ export default function GroupResultsPage() {
                         </p>
                       );
                     })()}
+
+                    {/* Side-prize category filters — one dropdown per prize type
+                        the group actually offers. Absent for ~86% of tournaments. */}
+                    {!isTeamTournament && !isNotStarted && prizeTypes.length > 0 && (
+                      <div className="mb-4 flex flex-wrap items-end gap-3">
+                        {prizeTypes.map((type) => (
+                          <PrizeCategoryFilter
+                            key={type}
+                            categories={prizeCategoriesOfType(group, type)}
+                            selectedId={selectedPrize?.type === type ? selectedPrize.id : null}
+                            // Only one prize is active at a time: picking in one
+                            // dropdown clears any selection in the others.
+                            onSelect={setSelectedPrizeId}
+                            title={
+                              type === PrizeType.RATING
+                                ? t.pages.tournamentResults.prizeCategories.ratingPrizes
+                                : type === PrizeType.AGE
+                                  ? t.pages.tournamentResults.prizeCategories.agePrizes
+                                  : t.pages.tournamentResults.prizeCategories.womenPrizes
+                            }
+                            allLabel={t.pages.tournamentResults.prizeCategories.all}
+                            compact
+                          />
+                        ))}
+                      </div>
+                    )}
 
                     {/* Show status messages only for started tournaments with no results */}
                     {!isNotStarted && !resultsLoading && !resultsError && groupStartDate && (
@@ -827,11 +917,11 @@ export default function GroupResultsPage() {
                           />
                         ) : (
                           <RoundStandingsTable
-                            rows={(showWomenOnly ? womenSnapshotRows : activeSnapshot?.rows) ?? []}
+                            rows={(displayedSnapshotRows ?? activeSnapshot?.rows) ?? []}
                             playerMap={playerMap}
                             rankingAlgorithm={rankingAlgorithm}
                             onRowClick={handleSnapshotPlayerClick}
-                            subsetRank={showWomenOnly ? womenSnapshotRank : undefined}
+                            subsetRank={displayedSnapshotRank}
                           />
                         )}
                       </div>
@@ -864,12 +954,12 @@ export default function GroupResultsPage() {
                         ) : (
                           (groupResults.length > 0 || resultsError) && (
                             <FinalResultsTable
-                              results={showWomenOnly ? womenResults : groupResults}
+                              results={isTeamTournament ? groupResults : displayedResults}
                               rankingAlgorithm={rankingAlgorithm}
                               loading={false}
                               error={resultsError || undefined}
                               onRowClick={handlePlayerClick}
-                              subsetRank={showWomenOnly ? womenResultsRank : undefined}
+                              subsetRank={displayedRank}
                             />
                           )
                         )}
