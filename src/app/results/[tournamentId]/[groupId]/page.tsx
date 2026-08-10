@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { TournamentService, ResultsService, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, createTeamNameFormatter, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, RoundStandings, RoundStandingRow, getTournamentStatus } from '@/lib/api';
 import { formatIndividualRowResult, getResultLabels } from '@/lib/results/formatResult';
+import { indexWomen, filterContenders, filterPairings, rankSubset } from '@/lib/results/womenFilter';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
 import { useGroupResults, PlayerDateRequest } from '@/context/GroupResultsContext';
@@ -135,6 +136,10 @@ export default function GroupResultsPage() {
   const [roundStandings, setRoundStandings] = useState<{ groupId: number; byRound: Map<number, RoundStandings> } | null>(null);
   const [playbackLoading, setPlaybackLoading] = useState(false);
   const [playbackError, setPlaybackError] = useState(false);
+
+  // Opt-in "women only" view — a prize-giving aid, never the default. Eligibility
+  // is decided further down (it needs isNotStarted); this holds the raw intent.
+  const [womenOnly, setWomenOnly] = useState(false);
 
   const tournamentId = params.tournamentId ? parseInt(params.tournamentId as string) : null;
   const groupId = params.groupId ? parseInt(params.groupId as string) : null;
@@ -336,6 +341,47 @@ export default function GroupResultsPage() {
     [teamResults, getClubName]
   );
 
+  // --- Women-only filter -------------------------------------------------
+  // All of this sits above the early returns to keep hook order stable, so it
+  // keys off the raw `womenOnly` state; eligibility is applied at render via
+  // `showWomenOnly`. Gender is read once, from the official standings — round
+  // rows and playback snapshots carry ids only. Built from `individualResults`
+  // rather than `groupResults`, since the latter is a fresh [] each render for
+  // team events and would thrash the memo.
+  const womenIndex = useMemo(() => indexWomen(individualResults), [individualResults]);
+
+  // The snapshot for the round being viewed. Hoisted above the early returns so
+  // the filtered version below can be memoized alongside the others.
+  const activeSnapshot =
+    playbackEnabled && roundStandings?.groupId === groupId && activeRound != null
+      ? roundStandings.byRound.get(activeRound) ?? null
+      : null;
+
+  // Filtered arrays are memoized rather than built inline: Table runs a
+  // render-phase state update whenever its `data` identity changes, so a fresh
+  // array each render would reset pagination on every live-update tick.
+  const womenResults = useMemo(
+    () => (womenOnly ? filterContenders(individualResults, womenIndex.ids) : individualResults),
+    [womenOnly, individualResults, womenIndex]
+  );
+  const womenResultsRank = useMemo(
+    () => (womenOnly ? rankSubset(womenResults, (r) => r.playerInfo?.id ?? r.contenderId) : undefined),
+    [womenOnly, womenResults]
+  );
+  const womenSnapshotRows = useMemo(
+    () => (womenOnly && activeSnapshot ? filterContenders(activeSnapshot.rows, womenIndex.ids) : null),
+    [womenOnly, activeSnapshot, womenIndex]
+  );
+  const womenSnapshotRank = useMemo(
+    // Snapshot ranks legitimately tie, so rank by place: 1, 2, 2, 4.
+    () => (womenSnapshotRows ? rankSubset(womenSnapshotRows, (r) => r.contenderId, (r) => r.rank) : undefined),
+    [womenSnapshotRows]
+  );
+  const womenRoundRows = useMemo(() => {
+    if (!womenOnly || activeRound == null) return null;
+    return filterPairings(resultsByRound[activeRound] ?? [], womenIndex.ids);
+  }, [womenOnly, activeRound, resultsByRound, womenIndex]);
+
   // Don't show loading message - it causes a brief flash on navigation
   // The content will appear once tournament data is loaded
   if (loading) {
@@ -434,12 +480,21 @@ export default function GroupResultsPage() {
     hasStandings &&
     sortedRounds.length >= 2;
 
-  // The estimated snapshot for the round currently being viewed (playback on).
-  const activeSnapshot =
-    playbackEnabled && roundStandings?.groupId === groupId && activeRound != null
-      ? roundStandings.byRound.get(activeRound) ?? null
-      : null;
   const showPlayback = playbackEligible && playbackEnabled;
+
+  // Women-only filter: hidden rather than disabled, because ~45% of groups have
+  // no women at all and a dead control on half the site is worse than none.
+  // Both degenerate cases (nobody, everybody) make the filter pointless.
+  // Schackfyran needs no clause — it is a team type AND its whole branch renders
+  // only the external notice.
+  const womenFilterEligible =
+    !isTeamTournament &&
+    !isNotStarted &&
+    womenIndex.count > 0 &&
+    womenIndex.count < womenIndex.total;
+  // Also guards a stale `womenOnly` when switching to a group that has no toggle
+  // (this component stays mounted across groupId changes).
+  const showWomenOnly = womenFilterEligible && womenOnly;
   // Status badge for the viewed round, driven ENTIRELY by the SDK's per-snapshot
   // flags — no team/individual or tie-break logic, and copy is contender-neutral
   // (team can be estimated too). estimated → amber "uppskattad"; verified → green
@@ -653,8 +708,8 @@ export default function GroupResultsPage() {
                             </p>
                           )}
                         </div>
-                        {/* Right-side controls: live updates (non-finished) + standings playback (opt-in) */}
-                        {(!isFinished || playbackEligible) && (
+                        {/* Right-side controls: live updates (non-finished) + standings playback + women filter (both opt-in) */}
+                        {(!isFinished || playbackEligible || womenFilterEligible) && (
                           <div className="sm:flex-shrink-0 flex flex-col items-start sm:items-end gap-2">
                             {!isFinished && (
                               <LiveUpdatesToggle
@@ -665,12 +720,24 @@ export default function GroupResultsPage() {
                                 onManualRefresh={manualRefresh}
                               />
                             )}
-                            {playbackEligible && (
-                              <Toggle
-                                checked={playbackEnabled}
-                                onChange={handlePlaybackToggle}
-                                label={t.pages.tournamentResults.standingsPlayback.toggleLabel}
-                              />
+                            {/* Both view toggles share a row; they wrap on narrow screens. */}
+                            {(playbackEligible || womenFilterEligible) && (
+                              <div className="flex flex-wrap items-center justify-start sm:justify-end gap-x-5 gap-y-2">
+                                {playbackEligible && (
+                                  <Toggle
+                                    checked={playbackEnabled}
+                                    onChange={handlePlaybackToggle}
+                                    label={t.pages.tournamentResults.standingsPlayback.toggleLabel}
+                                  />
+                                )}
+                                {womenFilterEligible && (
+                                  <Toggle
+                                    checked={womenOnly}
+                                    onChange={setWomenOnly}
+                                    label={`${t.pages.tournamentResults.womenFilter.toggleLabel} (${womenIndex.count})`}
+                                  />
+                                )}
+                              </div>
                             )}
                           </div>
                         )}
@@ -760,10 +827,11 @@ export default function GroupResultsPage() {
                           />
                         ) : (
                           <RoundStandingsTable
-                            rows={activeSnapshot?.rows ?? []}
+                            rows={(showWomenOnly ? womenSnapshotRows : activeSnapshot?.rows) ?? []}
                             playerMap={playerMap}
                             rankingAlgorithm={rankingAlgorithm}
                             onRowClick={handleSnapshotPlayerClick}
+                            subsetRank={showWomenOnly ? womenSnapshotRank : undefined}
                           />
                         )}
                       </div>
@@ -796,11 +864,12 @@ export default function GroupResultsPage() {
                         ) : (
                           (groupResults.length > 0 || resultsError) && (
                             <FinalResultsTable
-                              results={groupResults}
+                              results={showWomenOnly ? womenResults : groupResults}
                               rankingAlgorithm={rankingAlgorithm}
                               loading={false}
                               error={resultsError || undefined}
                               onRowClick={handlePlayerClick}
+                              subsetRank={showWomenOnly ? womenResultsRank : undefined}
                             />
                           )
                         )}
@@ -830,6 +899,13 @@ export default function GroupResultsPage() {
                       <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
                           {t.pages.tournamentResults.roundByRound.title}
+                          {/* The toggle lives up by the standings, often scrolled
+                              out of view — say why pairings are missing. */}
+                          {showWomenOnly && (
+                            <Badge color="blue" className="ml-2">
+                              {t.pages.tournamentResults.womenFilter.toggleLabel}
+                            </Badge>
+                          )}
                         </h3>
                       </div>
 
@@ -956,9 +1032,10 @@ export default function GroupResultsPage() {
 
                                     return (
                                       <Table
-                                        data={resultsByRound[activeRound]}
+                                        data={(showWomenOnly ? womenRoundRows : resultsByRound[activeRound]) ?? []}
                                         columns={roundColumns}
                                         getRowKey={(row, index) => `${row.homeId}-${row.awayId}-${index}`}
+                                        emptyMessage={showWomenOnly ? t.pages.tournamentResults.womenFilter.noRoundResults : undefined}
                                       />
                                     );
                                   })()}

@@ -23,6 +23,13 @@ export interface RoundStandingsTableProps {
   onRowClick?: (row: RoundStandingRow) => void;
   density?: TableDensity;
   densityThresholds?: DensityThresholds;
+  /**
+   * Contender id -> 1-based rank within the currently-shown subset, rendered as
+   * "1 (6)" in the placement column. See {@link FinalResultsTable}; snapshot
+   * ranks legitimately tie, so the supplied map uses standard competition
+   * ranking.
+   */
+  subsetRank?: ReadonlyMap<number, number>;
 }
 
 /**
@@ -38,6 +45,7 @@ export function RoundStandingsTable({
   onRowClick,
   density,
   densityThresholds,
+  subsetRank,
 }: RoundStandingsTableProps) {
   const { language } = useLanguage();
   const t = getTranslation(language);
@@ -48,10 +56,13 @@ export function RoundStandingsTable({
     {
       id: 'pos',
       header: ft.pos,
-      accessor: (row) => row.rank,
+      accessor: (row) => {
+        const rank = subsetRank?.get(row.contenderId);
+        return rank == null ? row.rank : `${rank} (${row.rank})`;
+      },
       align: 'left',
       noWrap: true,
-      sortValue: (row) => row.rank,
+      sortValue: (row) => subsetRank?.get(row.contenderId) ?? row.rank,
     },
     {
       id: 'name',

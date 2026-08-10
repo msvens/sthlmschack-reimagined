@@ -421,6 +421,12 @@ export interface Translations {
         prevRound: string;
         nextRound: string;
       };
+      womenFilter: {
+        /** Toggle label; the group's number of women is appended in the UI. */
+        toggleLabel: string;
+        /** Shown when a round has no games involving the filtered players. */
+        noRoundResults: string;
+      };
       print: {
         standings: string;
         rank: string;
@@ -1104,6 +1110,10 @@ const translations: Record<Language, Translations> = {
           prevRound: 'Previous round',
           nextRound: 'Next round',
         },
+        womenFilter: {
+          toggleLabel: 'Women',
+          noRoundResults: 'No games with women in this round',
+        },
         print: {
           standings: 'Standings',
           rank: '#',
@@ -1785,6 +1795,10 @@ const translations: Record<Language, Translations> = {
           loadError: 'Det gick inte att ladda ställning per rond.',
           prevRound: 'Föregående rond',
           nextRound: 'Nästa rond',
+        },
+        womenFilter: {
+          toggleLabel: 'Damer',
+          noRoundResults: 'Inga partier med damer i denna rond',
         },
         print: {
           standings: 'Ställning',

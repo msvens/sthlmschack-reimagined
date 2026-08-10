@@ -8,9 +8,10 @@
  * exist only to generate that config offline at authoring time.
  */
 
-import type {
-  TournamentEndResultDto,
-  TournamentRoundResultDto,
+import {
+  isFemale,
+  type TournamentEndResultDto,
+  type TournamentRoundResultDto,
 } from '@msvens/schack-se-sdk';
 import type { JgpPlayerResult } from './jgpEngine';
 
@@ -119,9 +120,8 @@ function birthYearOf(birthdate: string): number {
 /**
  * Flatten a tournament's counting class-groups into normalized engine rows.
  *
- * Note on `isFemale`: derived from the SSF `sex` field, where **1 = female**
- * and 0 = male (verified against the girls-only Tjejträffen roster). The girls
- * series relies on it.
+ * `isFemale` comes from the SSF `sex` field via the SDK's `isFemale`, which owns
+ * the encoding (`2` means "unrecorded", not female). The girls series relies on it.
  */
 export function normalizeTournamentResults(groups: JgpGroupResults[]): JgpPlayerResult[] {
   const rows: JgpPlayerResult[] = [];
@@ -140,7 +140,7 @@ export function normalizeTournamentResults(groups: JgpGroupResults[]): JgpPlayer
         firstName: p.firstName,
         lastName: p.lastName,
         birthYear: birthYearOf(p.birthdate),
-        isFemale: p.sex === 1,
+        isFemale: isFemale(p),
         clubId: p.clubId,
         clubName: p.club,
         points: r.points,
