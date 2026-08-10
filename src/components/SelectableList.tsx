@@ -115,28 +115,44 @@ export function SelectableList({
 
   const effectiveDensity = getEffectiveDensity();
 
-  // Map density to classes
+  // Map density to classes.
+  //
+  // `dropdownMaxHeight` is deliberately sized to end on HALF a row, so an
+  // overflowing list always shows a sliced item — the cheapest, most reliable
+  // "there's more below" cue, and one that survives macOS overlay scrollbars
+  // being invisible until you actually scroll.
+  //
+  // Row height = vertical item padding + line-height at text-sm (14px), and the
+  // container adds py-1 (8px):
+  //   compact      2*4  + 14*1.25  = 25.5px  -> 12.5 rows + 8 = 327
+  //   normal       2*6  + 14*1.5   = 33px    ->  9.5 rows + 8 = 322
+  //   comfortable  2*12 + 14*1.625 = 46.75px ->  6.5 rows + 8 = 312
+  // Approximate by nature: an item with a `subtitle` is taller, so the slice
+  // won't land as neatly there. Keep these in step with the padding above.
   const densityClasses = {
     compact: {
       triggerPadding: 'px-3 py-1.5',
       itemPadding: 'px-3 py-1',
       fontSize: 'text-sm',
       subtitleSize: 'text-xs',
-      lineHeight: 'leading-tight'
+      lineHeight: 'leading-tight',
+      dropdownMaxHeight: 'max-h-[327px]'
     },
     normal: {
       triggerPadding: 'px-3 py-2',
       itemPadding: 'px-3 py-1.5',
       fontSize: 'text-sm',
       subtitleSize: 'text-xs',
-      lineHeight: 'leading-normal'
+      lineHeight: 'leading-normal',
+      dropdownMaxHeight: 'max-h-[322px]'
     },
     comfortable: {
       triggerPadding: 'px-4 py-3',
       itemPadding: 'px-4 py-3',
       fontSize: 'text-sm',
       subtitleSize: 'text-xs',
-      lineHeight: 'leading-relaxed'
+      lineHeight: 'leading-relaxed',
+      dropdownMaxHeight: 'max-h-[312px]'
     }
   };
 
@@ -145,6 +161,7 @@ export function SelectableList({
   const fontSize = densityClasses[effectiveDensity].fontSize;
   const subtitleSize = densityClasses[effectiveDensity].subtitleSize;
   const lineHeight = densityClasses[effectiveDensity].lineHeight;
+  const dropdownMaxHeight = densityClasses[effectiveDensity].dropdownMaxHeight;
 
   // Get selected item
   const selectedItem = items.find((item) => item.id === selectedId);
@@ -241,7 +258,13 @@ export function SelectableList({
                   hugs its widest item exactly, so without this the longest label
                   sits flush against the border — and an overlay scrollbar lands
                   on top of it while scrolling. */}
-              <div className="flex flex-col max-h-80 overflow-y-auto px-2 py-1">
+              {/* A thin, always-present scrollbar adds the "how much more"
+                  dimension the sliced row can't convey. macOS overlay scrollbars
+                  stay invisible until you scroll, so setting scrollbar-color is
+                  what forces one to show at all. */}
+              <div
+                className={`flex flex-col ${dropdownMaxHeight} overflow-y-auto px-2 py-1 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] dark:[scrollbar-color:#475569_transparent]`}
+              >
                 {items.map((item) => (
                   <button
                     key={item.id}
