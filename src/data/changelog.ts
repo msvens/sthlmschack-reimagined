@@ -16,12 +16,17 @@ export const changelog: ChangelogEntry[] = [
   {
     "version": "Unreleased",
     "date": null,
+    "sections": []
+  },
+  {
+    "version": "1.4.0",
+    "date": "2026-08-10",
     "sections": [
       {
         "type": "Added",
         "items": [
           "Girls (Flick) Junior Grand Prix standings on the Junior page — the Girls tab now shows the live girls series (previously \"coming soon\"), reproducing the official Stockholm standings",
-          "Wasa JGP 2026 is now included in the open Junior Grand Prix standings (now six counting tournaments)"
+          "Wasa JGP 2026 is now included in the open Junior Grand Prix standings (now five counting tournaments)"
         ]
       },
       {
@@ -34,6 +39,14 @@ export const changelog: ChangelogEntry[] = [
         "type": "Removed",
         "items": [
           "The junior standings now cover the 2026 season only; the estimated 2025 open standings were removed"
+        ]
+      },
+      {
+        "type": "Fixed",
+        "items": [
+          "Games that ended without a normal score now show what actually happened instead of a dash — a double forfeit as \"0 - 0 w.o\", an arbiter's ruling as \"0 - 0 domslut\", and a rescheduled game as \"Uppskjutet\". Previously any 0-0 game was displayed as if it had never been played",
+          "A player's round-by-round view now agrees with the group's round table; the two could previously show different results for the same game",
+          "Walkovers on team boards are now marked \"w.o\" in every point system (some Schackfyran and 3-1-0 forfeits were missed)"
         ]
       }
     ]
