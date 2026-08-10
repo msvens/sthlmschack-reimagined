@@ -54,6 +54,22 @@ function withinBand(value: number | null | undefined, category: PrizeCategoryDto
   return value != null && value >= category.start && value <= category.end;
 }
 
+/**
+ * Whether an unrated player belongs in this rating band.
+ *
+ * SSF reports an unrated player as `rating: 0`, which the SDK's rating helpers
+ * surface as `null` — correct for display (a dash), but it means "no rating"
+ * rather than a number we can compare. A band starting at 0 is the organiser's
+ * catch-all for exactly these players: no real SSF rating sits between 1 and
+ * 1000, so a bound like `R3 (0–1000)` can only mean "unrated and beginners".
+ *
+ * Anywhere else, an unrated player is not eligible — they must not be swept
+ * into a band they simply have no rating for.
+ */
+function bandIncludesUnrated(category: PrizeCategoryDto): boolean {
+  return category.start === 0;
+}
+
 /** Birth year from an SSF birthdate string ("2014" or "2014-05-01"). */
 function birthYearOf(birthdate: string | undefined): number | null {
   if (!birthdate) return null;
@@ -94,8 +110,9 @@ export interface PrizeEligibilityContext {
  *
  * Ratings come from `getPlayerRatingByAlgorithm` — the same call the standings
  * table uses — so a player's displayed rating and their band membership can never
- * disagree. A player with no rating (or no birthdate, for an age band) is not
- * eligible rather than being silently placed in the lowest band.
+ * disagree. Unrated players count only towards a band starting at 0; see
+ * {@link bandIncludesUnrated}. A player with no birthdate is never eligible for
+ * an age band, rather than being silently placed in the youngest one.
  */
 export function eligibleForPrize(
   rows: readonly TournamentEndResultDto[],
@@ -110,13 +127,15 @@ export function eligibleForPrize(
     const player = row.playerInfo;
     if (!player) continue;
 
+    const inRatingBand = () => {
+      const rating = getPlayerRatingByAlgorithm(player.elo, rankingAlgorithm).rating;
+      return rating == null ? bandIncludesUnrated(category) : withinBand(rating, category);
+    };
+
     let eligible = false;
     switch (category.type) {
       case PrizeType.RATING:
-        eligible = withinBand(
-          getPlayerRatingByAlgorithm(player.elo, rankingAlgorithm).rating,
-          category
-        );
+        eligible = inRatingBand();
         break;
       case PrizeType.AGE: {
         const birthYear = birthYearOf(player.birthdate);
@@ -126,10 +145,7 @@ export function eligibleForPrize(
       case PrizeType.WOMEN:
         // Bounds are usually unset; when present they narrow the prize to a
         // rating band on top of being a woman (live example: "Dampris 1400-2500").
-        eligible =
-          isFemale(player) &&
-          (!hasUsableBounds(category) ||
-            withinBand(getPlayerRatingByAlgorithm(player.elo, rankingAlgorithm).rating, category));
+        eligible = isFemale(player) && (!hasUsableBounds(category) || inRatingBand());
         break;
       default:
         eligible = false; // unsupported type — never matches
