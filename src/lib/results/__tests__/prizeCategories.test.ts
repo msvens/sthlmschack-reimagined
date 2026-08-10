@@ -75,9 +75,57 @@ describe('eligibleForPrize — rating bands', () => {
     expect([...eligibleForPrize(rows, band, ctx)].sort()).toEqual([2, 3]);
   });
 
-  it('excludes a player with no rating rather than treating them as 0', () => {
+  it('excludes an unrated player from a band that does not start at 0', () => {
     const rows = [player(1, { rating: null }), player(2, { rating: 1550 })];
     expect([...eligibleForPrize(rows, band, ctx)]).toEqual([2]);
+  });
+});
+
+describe('eligibleForPrize — unrated players and the bottom band', () => {
+  // SSF reports unrated as `rating: 0`, which the SDK surfaces as null. A band
+  // starting at 0 is the organiser's catch-all for them: no real SSF rating sits
+  // between 1 and 1000, so "R3 (0-1000)" can only mean unrated and beginners.
+  // Regression: this band matched nobody, because unrated was treated as
+  // ineligible everywhere. Live case — group 16643 had 12 such players.
+  const bottom = cat({ type: PrizeType.RATING, start: 0, end: 1000, name: 'R3' });
+
+  it('includes unrated players in a band starting at 0', () => {
+    const rows = [
+      player(1, { rating: 0 }),
+      player(2, { rating: null }),
+      player(3, { rating: 1500 }),
+    ];
+    expect([...eligibleForPrize(rows, bottom, ctx)].sort()).toEqual([1, 2]);
+  });
+
+  it('still respects the upper bound for rated players', () => {
+    const rows = [player(1, { rating: 999 }), player(2, { rating: 1001 })];
+    expect([...eligibleForPrize(rows, bottom, ctx)]).toEqual([1]);
+  });
+
+  it('sweeps unrated players into a wide bottom band too', () => {
+    // Västerås Open's "R8 (0-1783)" — same catch-all intent, wider range.
+    const r8 = cat({ type: PrizeType.RATING, start: 0, end: 1783 });
+    expect([...eligibleForPrize([player(1, { rating: null })], r8, ctx)]).toEqual([1]);
+  });
+
+  it('does not sweep unrated players into a women\'s prize with a rating band', () => {
+    // "Dampris 1400-2500" starts above 0, so unrated women are not eligible.
+    const dampris = cat({ type: PrizeType.WOMEN, start: 1400, end: 2500 });
+    const rows = [
+      player(1, { sex: Sex.FEMALE, rating: null }),
+      player(2, { sex: Sex.FEMALE, rating: 1500 }),
+    ];
+    expect([...eligibleForPrize(rows, dampris, ctx)]).toEqual([2]);
+  });
+
+  it('includes unrated women in a women\'s prize whose band starts at 0', () => {
+    const dam = cat({ type: PrizeType.WOMEN, start: 0, end: 1200 });
+    const rows = [
+      player(1, { sex: Sex.FEMALE, rating: null }),
+      player(2, { sex: Sex.MALE, rating: null }),
+    ];
+    expect([...eligibleForPrize(rows, dam, ctx)]).toEqual([1]);
   });
 });
 
