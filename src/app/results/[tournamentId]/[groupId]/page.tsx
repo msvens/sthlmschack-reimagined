@@ -440,12 +440,13 @@ export default function GroupResultsPage() {
     () => (displayedSnapshotRows ? rankSubset(displayedSnapshotRows, (r) => r.contenderId, (r) => r.rank) : undefined),
     [displayedSnapshotRows]
   );
-  // Round pairings follow the women filter only — a rating band says nothing
-  // about which games are interesting to see.
-  const womenRoundRows = useMemo(() => {
-    if (!showWomenOnly || activeRound == null) return null;
-    return filterPairings(resultsByRound[activeRound] ?? [], womenIndex.ids);
-  }, [showWomenOnly, activeRound, resultsByRound, womenIndex]);
+  // Round pairings follow whatever is filtering the standings — if you are
+  // looking at who won R3, their games are the ones you want to see. A pairing
+  // is kept when either side is in the subset, so the opponent stays visible.
+  const filteredRoundRows = useMemo(() => {
+    if (!subsetIds || activeRound == null) return null;
+    return filterPairings(resultsByRound[activeRound] ?? [], subsetIds);
+  }, [subsetIds, activeRound, resultsByRound]);
 
   // Don't show loading message - it causes a brief flash on navigation
   // The content will appear once tournament data is loaded
@@ -989,11 +990,17 @@ export default function GroupResultsPage() {
                       <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
                           {t.pages.tournamentResults.roundByRound.title}
-                          {/* The toggle lives up by the standings, often scrolled
-                              out of view — say why pairings are missing. */}
+                          {/* The controls live up by the standings, often scrolled
+                              out of view — name every active filter so missing
+                              pairings are never a mystery. */}
                           {showWomenOnly && (
                             <Badge color="blue" className="ml-2">
                               {t.pages.tournamentResults.womenFilter.toggleLabel}
+                            </Badge>
+                          )}
+                          {selectedPrize && prizeIds && (
+                            <Badge color="purple" className="ml-2">
+                              {prizeCategoryLabel(selectedPrize)}
                             </Badge>
                           )}
                         </h3>
@@ -1122,10 +1129,10 @@ export default function GroupResultsPage() {
 
                                     return (
                                       <Table
-                                        data={(showWomenOnly ? womenRoundRows : resultsByRound[activeRound]) ?? []}
+                                        data={(filteredRoundRows ?? resultsByRound[activeRound]) ?? []}
                                         columns={roundColumns}
                                         getRowKey={(row, index) => `${row.homeId}-${row.awayId}-${index}`}
-                                        emptyMessage={showWomenOnly ? t.pages.tournamentResults.womenFilter.noRoundResults : undefined}
+                                        emptyMessage={filteredRoundRows ? t.pages.tournamentResults.roundByRound.noFilteredResults : undefined}
                                       />
                                     );
                                   })()}

@@ -404,6 +404,8 @@ export interface Translations {
         result: string;
         noResults: string;
         round: string;
+        /** Shown when a round has no games involving the filtered players. */
+        noFilteredResults: string;
       };
       standingsPlayback: {
         toggleLabel: string;
@@ -424,8 +426,6 @@ export interface Translations {
       womenFilter: {
         /** Toggle label; the group's number of women is appended in the UI. */
         toggleLabel: string;
-        /** Shown when a round has no games involving the filtered players. */
-        noRoundResults: string;
       };
       /** Side prizes attached to a group (rating bands, age classes, women). */
       prizeCategories: {
@@ -1102,6 +1102,7 @@ const translations: Record<Language, Translations> = {
           result: 'Result',
           noResults: 'No round results available for this group',
           round: 'Round',
+          noFilteredResults: 'No games with the selected players in this round',
         },
         standingsPlayback: {
           toggleLabel: 'Round-by-round standings',
@@ -1120,7 +1121,6 @@ const translations: Record<Language, Translations> = {
         },
         womenFilter: {
           toggleLabel: 'Women',
-          noRoundResults: 'No games with women in this round',
         },
         prizeCategories: {
           ratingPrizes: 'Rating prizes',
@@ -1794,6 +1794,7 @@ const translations: Record<Language, Translations> = {
           result: 'Resultat',
           noResults: 'Inga rondresultat tillgängliga för denna grupp',
           round: 'Rond',
+          noFilteredResults: 'Inga partier med de valda spelarna i denna rond',
         },
         standingsPlayback: {
           toggleLabel: 'Ställning per rond',
@@ -1812,7 +1813,6 @@ const translations: Record<Language, Translations> = {
         },
         womenFilter: {
           toggleLabel: 'Damer',
-          noRoundResults: 'Inga partier med damer i denna rond',
         },
         prizeCategories: {
           ratingPrizes: 'Rankingpriser',
