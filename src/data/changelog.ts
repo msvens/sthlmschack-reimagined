@@ -16,7 +16,21 @@ export const changelog: ChangelogEntry[] = [
   {
     "version": "Unreleased",
     "date": null,
-    "sections": []
+    "sections": [
+      {
+        "type": "Added",
+        "items": [
+          "Side prizes on a tournament group's results — pick a rating band, age class, women's or veteran prize and the standings filter to the players eligible for it, with the placement showing their rank among them and their overall place in parentheses",
+          "Veteran prizes are now included; previously they were left out because the federation's data didn't say what the age limit was"
+        ]
+      },
+      {
+        "type": "Changed",
+        "items": [
+          "A women's prize now lists every woman in the group. Some are registered with a rating range, but the official results don't apply it, so neither do we — and the range is no longer shown on the filter, since it isn't what decides who's eligible"
+        ]
+      }
+    ]
   },
   {
     "version": "1.4.0",
