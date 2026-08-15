@@ -432,6 +432,8 @@ export interface Translations {
         ratingPrizes: string;
         agePrizes: string;
         womenPrizes: string;
+        /** Key keeps the SDK's `senior` name; the value is the federation's word. */
+        seniorPrizes: string;
         /** Clear-selection entry in each dropdown. */
         all: string;
       };
@@ -1126,6 +1128,7 @@ const translations: Record<Language, Translations> = {
           ratingPrizes: 'Rating prizes',
           agePrizes: 'Age prizes',
           womenPrizes: "Women's prizes",
+          seniorPrizes: 'Veteran prizes',
           all: 'All',
         },
         print: {
@@ -1818,6 +1821,7 @@ const translations: Record<Language, Translations> = {
           ratingPrizes: 'Rankingpriser',
           agePrizes: 'Ålderspriser',
           womenPrizes: 'Dampriser',
+          seniorPrizes: 'Veteranpriser',
           all: 'Alla',
         },
         print: {

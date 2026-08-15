@@ -19,7 +19,33 @@ npm). Club/district data is static JSON in `public/data/`, loaded at startup (sy
 - SDK methods return `ApiResponse<T>` (`{ data?, error?, status }`) and never throw — check
   `response.data` / `response.status`.
 - Tournament status: derive via the SDK's `getTournamentStatus` — the API `state` field is unreliable.
+- Prize categories: the encoding and player matching live in the SDK (`parsePrizeCategory`,
+  `resolvePrizeMembers`). `src/lib/results/prizeCategories.ts` holds only presentation —
+  which types get a dropdown, their order, headings and labels.
 - Deeper, evolving project notes and decisions accumulate in the auto-memory (`MEMORY.md`).
+
+## SDK test-data corpus
+
+The SDK ships a curated catalogue of **real** SSF tournaments and groups that illustrate
+specific data shapes and anomalies — a blitz rating-chain event, a `0 - 0` double forfeit,
+`sex = 2` (unrecorded), the senior 59-year-old boundary. Use it to find a real example to
+verify a feature against, rather than hunting for one.
+
+```ts
+import { findCorpusEntries, getCorpusEntry } from '@msvens/schack-se-sdk/corpus';
+
+findCorpusEntries({ tags: ['prize-senior'] });   // match ANY tag
+findCorpusEntries({ anomaly: true });            // documented upstream weirdness
+getCorpusEntry('vasteras-open-2025-senior-boundary');
+```
+
+It's a catalogue of **ids and notes, not fixtures** — entries point at live data, so it
+gives you targets to check by hand, not offline payloads. Every entry carries an `observed`
+date because SSF data drifts.
+
+**Dev-only.** Import it from `@msvens/schack-se-sdk/corpus` directly — never via
+`@/lib/api`. It's on its own subpath to stay out of the production bundle, and an ESLint
+`no-restricted-imports` rule blocks it under `src/**` outside `__tests__`.
 
 # Behavior Rules
 

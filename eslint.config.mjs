@@ -16,6 +16,28 @@ const eslintConfig = [
     },
   },
   {
+    // The SDK's test-data corpus is a catalogue of tournament ids and notes for
+    // discovery and manual verification — dev-only. It ships on its own subpath
+    // precisely so it stays out of a consumer's bundle; importing it from app
+    // code would drag ~20KB of JSON into production for no runtime purpose.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/**/__tests__/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@msvens/schack-se-sdk/corpus",
+              message:
+                "The corpus is dev-only. Use it in tests or scripts/, not in app code — it would be bundled for production.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",

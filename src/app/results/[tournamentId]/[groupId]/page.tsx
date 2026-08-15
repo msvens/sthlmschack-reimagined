@@ -3,11 +3,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { TournamentService, ResultsService, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, createTeamNameFormatter, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, RoundStandings, RoundStandingRow, getTournamentStatus } from '@/lib/api';
+import { TournamentService, ResultsService, normalizeEloLookupDate, parseLocalDate, getOpponentKind, isTeamPairing, isLooseTeamTournament, createTeamNameFormatter, resolvePrizeMembers, TournamentDto, TournamentClassDto, TournamentClassGroupDto, TournamentEndResultDto, TournamentRoundResultDto, TeamTournamentEndResultDto, RoundStandings, RoundStandingRow, getTournamentStatus } from '@/lib/api';
 import { formatIndividualRowResult, getResultLabels } from '@/lib/results/formatResult';
 import { indexWomen, filterPairings } from '@/lib/results/womenFilter';
 import { filterContenders, rankSubset } from '@/lib/results/subsetRanking';
-import { availablePrizeTypes, eligibleForPrize, prizeCategoriesOfType, prizeCategoryLabel, PrizeType } from '@/lib/results/prizeCategories';
+import { availablePrizeTypes, findPrizeCategory, prizeCategoriesOfType, prizeCategoryLabel, PRIZE_TYPE_TITLE_KEY } from '@/lib/results/prizeCategories';
 import { PrizeCategoryFilter } from '@/components/results/PrizeCategoryFilter';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslation } from '@/lib/translations';
@@ -394,14 +394,24 @@ export default function GroupResultsPage() {
   }, [tournament?.start]);
 
   const prizeTypes = useMemo(() => availablePrizeTypes(group), [group]);
+  // Via findPrizeCategory, not the raw list: this component stays mounted across
+  // groupId changes, so a stale selection must not resolve against a new group.
   const selectedPrize = useMemo(
-    () => (group?.prizeCategories ?? []).find((c) => c.id === selectedPrizeId) ?? null,
+    () => findPrizeCategory(group, selectedPrizeId),
     [group, selectedPrizeId]
   );
+  // resolvePrizeMembers returns an array; convert here rather than downstream,
+  // since subsetIds passes prizeIds through unchanged when the women filter is
+  // off and filterContenders takes a ReadonlySet.
   const prizeIds = useMemo(
     () =>
       selectedPrize && !isTeamTournament
-        ? eligibleForPrize(individualResults, selectedPrize, { tournamentYear, rankingAlgorithm })
+        ? new Set(
+            resolvePrizeMembers(selectedPrize, individualResults, {
+              tournamentYear,
+              rankingAlgorithm,
+            })
+          )
         : null,
     [selectedPrize, isTeamTournament, individualResults, tournamentYear, rankingAlgorithm]
   );
@@ -840,13 +850,7 @@ export default function GroupResultsPage() {
                             // Only one prize is active at a time: picking in one
                             // dropdown clears any selection in the others.
                             onSelect={setSelectedPrizeId}
-                            title={
-                              type === PrizeType.RATING
-                                ? t.pages.tournamentResults.prizeCategories.ratingPrizes
-                                : type === PrizeType.AGE
-                                  ? t.pages.tournamentResults.prizeCategories.agePrizes
-                                  : t.pages.tournamentResults.prizeCategories.womenPrizes
-                            }
+                            title={t.pages.tournamentResults.prizeCategories[PRIZE_TYPE_TITLE_KEY[type]]}
                             allLabel={t.pages.tournamentResults.prizeCategories.all}
                             compact
                           />
