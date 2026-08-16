@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { PlayerInfoDto } from '@/lib/api';
+import { birthYearOf, PlayerInfoDto } from '@/lib/api';
 import { Link } from '@/components/Link';
 
 export interface PlayerInfoProps {
@@ -42,11 +42,10 @@ export function PlayerInfo({ player, t }: PlayerInfoProps) {
     return rating && rating > 0 ? rating.toString() : '-';
   };
 
-  const extractYear = (dateString: string | null | undefined): string => {
-    if (!dateString) return '-';
-    // Extract just the year (first 4 characters for YYYY format)
-    return dateString.substring(0, 4);
-  };
+  // birthYearOf reads the first four characters rather than parsing a Date,
+  // which would shift a year-only value back a year in negative-UTC timezones.
+  const extractYear = (dateString: string | null | undefined): string =>
+    birthYearOf(dateString)?.toString() ?? '-';
 
   const photoUrl = `https://resultat.schack.se/getPlayerPhoto?id=${player.id}`;
 

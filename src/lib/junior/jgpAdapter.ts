@@ -9,6 +9,7 @@
  */
 
 import {
+  birthYearOf,
   isFemale,
   type TournamentEndResultDto,
   type TournamentRoundResultDto,
@@ -112,11 +113,6 @@ function girlsRoundStatus(
   return out;
 }
 
-/** Birth year from an SSF birthdate string ("2009" or "2009-05-01"). */
-function birthYearOf(birthdate: string): number {
-  return Number.parseInt(String(birthdate).slice(0, 4), 10);
-}
-
 /**
  * Flatten a tournament's counting class-groups into normalized engine rows.
  *
@@ -133,13 +129,19 @@ export function normalizeTournamentResults(groups: JgpGroupResults[]): JgpPlayer
       klass != null && rounds != null ? girlsRoundStatus(roundResults, rounds) : undefined;
     for (const r of results) {
       const p = r.playerInfo;
+      // A JGP standing is age-class based, so a player whose birth year we can't
+      // read has nowhere to be placed — drop them rather than carry a NaN into
+      // the bucketing and sort comparators, where it silently compares "equal".
+      // Defensive: no such row exists in any counting group today.
+      const birthYear = birthYearOf(p.birthdate);
+      if (birthYear === null) continue;
       const status = girlStatus?.get(r.contenderId);
       const isDropout = status?.dropout ?? false;
       rows.push({
         memberId: p.id,
         firstName: p.firstName,
         lastName: p.lastName,
-        birthYear: birthYearOf(p.birthdate),
+        birthYear,
         isFemale: isFemale(p),
         clubId: p.clubId,
         clubName: p.club,
