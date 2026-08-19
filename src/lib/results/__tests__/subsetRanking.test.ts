@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterContenders, rankSubset } from '../subsetRanking';
+import { filterContenders, filterPairings, rankSubset } from '../subsetRanking';
 
 /** Contender row: id plus the official place. */
 const row = (id: number, place = id) => ({ contenderId: id, place });
@@ -50,5 +50,35 @@ describe('rankSubset', () => {
 
   it('handles an empty subset', () => {
     expect(rankSubset([], id).size).toBe(0);
+  });
+});
+
+describe('filterPairings', () => {
+  const ids = new Set([1, 3]); // the subset in view
+
+  it('keeps a game where either side is in the subset, in either colour', () => {
+    expect(filterPairings([{ homeId: 1, awayId: 2 }], ids)).toHaveLength(1);
+    expect(filterPairings([{ homeId: 2, awayId: 1 }], ids)).toHaveLength(1);
+  });
+
+  it('keeps a game between two subject players exactly once', () => {
+    expect(filterPairings([{ homeId: 1, awayId: 3 }], ids)).toHaveLength(1);
+  });
+
+  it('drops a game between two players outside the subset', () => {
+    expect(filterPairings([{ homeId: 2, awayId: 5 }], ids)).toEqual([]);
+  });
+
+  it("keeps a subject's bye and walkover, drops someone else's", () => {
+    // -100 is the bye/Frirond slot; other negatives are walkovers. Neither is
+    // ever in the id set, so the row survives purely on the real player's side.
+    expect(filterPairings([{ homeId: 1, awayId: -100 }], ids)).toHaveLength(1);
+    expect(filterPairings([{ homeId: 3, awayId: -1 }], ids)).toHaveLength(1);
+    expect(filterPairings([{ homeId: 2, awayId: -100 }], ids)).toEqual([]);
+  });
+
+  it('preserves order', () => {
+    const rows = [{ homeId: 1, awayId: 2 }, { homeId: 4, awayId: 5 }, { homeId: 3, awayId: 2 }];
+    expect(filterPairings(rows, ids)).toEqual([rows[0], rows[2]]);
   });
 });

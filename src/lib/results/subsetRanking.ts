@@ -48,3 +48,26 @@ export function rankSubset<T>(
   });
   return ranks;
 }
+
+/** Minimal shape of a pairing row (round results carry ids only). */
+export interface PairingRowLike {
+  homeId: number;
+  awayId: number;
+}
+
+/**
+ * Keep pairings where at least one named side is in `ids`.
+ *
+ * Showing the opponent too is deliberate: whoever is looking at a subset — the
+ * women in a group, or the players in a rating band — wants to see who they
+ * played, and the opponent is usually outside the subset. Negative opponent ids
+ * (`-100` bye, other negatives walkover) are never in `ids`, so they neither
+ * match on their own nor suppress a row: a subject's bye survives via their own
+ * id, someone else's does not.
+ */
+export function filterPairings<T extends PairingRowLike>(
+  rows: readonly T[],
+  ids: ReadonlySet<number>
+): T[] {
+  return rows.filter((row) => ids.has(row.homeId) || ids.has(row.awayId));
+}
