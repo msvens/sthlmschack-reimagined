@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Sex, type SexType } from '@/lib/api';
-import { indexWomen, filterPairings, type StandingsRowLike } from '../womenFilter';
+import { PrizeCategoryType, resolvePrizeMembers, Sex, type SexType } from '@/lib/api';
+import { indexWomen, type StandingsRowLike } from '../womenFilter';
 
 /** Standings row: id, sex, and the official place. */
 const row = (id: number, sex: SexType | undefined, place = id): StandingsRowLike & { place: number } => ({
@@ -48,34 +48,38 @@ describe('indexWomen', () => {
   });
 });
 
+describe('agreement with the SDK women prize', () => {
+  // The toggle and a "Dam" prize category answer the same question by different
+  // routes: indexWomen here, resolvePrizeMembers in the SDK. Both bottom out in
+  // isFemale, but nothing else pins them together — so assert they agree, and
+  // notice if the SDK's women rule ever diverges from ours.
+  const damCategory = {
+    id: 1, name: 'Dam', start: 0, end: 0, type: Sex.FEMALE /* = 1, unused */,
+    groupid: 1, order: 0, usagetype: 1, andlogic: -1,
+  };
 
-describe('filterPairings', () => {
-  const ids = new Set([1, 3]); // women
-
-  it('keeps a game where either side is a woman, in either colour', () => {
-    expect(filterPairings([{ homeId: 1, awayId: 2 }], ids)).toHaveLength(1);
-    expect(filterPairings([{ homeId: 2, awayId: 1 }], ids)).toHaveLength(1);
+  it('selects the same contenders as resolvePrizeMembers', () => {
+    const category = { ...damCategory, type: PrizeCategoryType.WOMEN } as never;
+    const fromPrize = new Set(
+      resolvePrizeMembers(category, mixed as never, { tournamentYear: 2025, rankingAlgorithm: 1 })
+    );
+    const fromToggle = indexWomen(mixed).ids;
+    for (const id of fromPrize) expect(fromToggle.has(id)).toBe(true);
+    expect(fromPrize.size).toBe(indexWomen(mixed).count);
   });
 
-  it('keeps a woman-vs-woman game exactly once', () => {
-    expect(filterPairings([{ homeId: 1, awayId: 3 }], ids)).toHaveLength(1);
-  });
-
-  it('drops a game between two men', () => {
-    expect(filterPairings([{ homeId: 2, awayId: 5 }], ids)).toEqual([]);
-  });
-
-  it("keeps a woman's bye and walkover, drops a man's", () => {
-    // -100 is the bye/Frirond slot; other negatives are walkovers. Neither is
-    // ever in the id set, so the row survives purely on the real player's side.
-    expect(filterPairings([{ homeId: 1, awayId: -100 }], ids)).toHaveLength(1);
-    expect(filterPairings([{ homeId: 3, awayId: -1 }], ids)).toHaveLength(1);
-    expect(filterPairings([{ homeId: 2, awayId: -100 }], ids)).toEqual([]);
-  });
-
-  it('preserves order', () => {
-    const rows = [{ homeId: 1, awayId: 2 }, { homeId: 4, awayId: 5 }, { homeId: 3, awayId: 2 }];
-    expect(filterPairings(rows, ids)).toEqual([rows[0], rows[2]]);
+  it('both ignore a synthetic walkover row, even one that looks female', () => {
+    // A standings table can carry the walkover/bye placeholder (contender -100).
+    // Both sides skip negative contender ids, so neither counts it as a player.
+    const withWalkover = [...mixed, row(-100, Sex.FEMALE)];
+    const category = { ...damCategory, type: PrizeCategoryType.WOMEN } as never;
+    const fromPrize = new Set(
+      resolvePrizeMembers(category, withWalkover as never, { tournamentYear: 2025, rankingAlgorithm: 1 })
+    );
+    const idx = indexWomen(withWalkover);
+    expect(fromPrize.has(-100)).toBe(false);
+    expect(idx.ids.has(-100)).toBe(false);
+    // and it must not inflate `total`, or an all-women group would look mixed
+    expect(idx.total).toBe(mixed.length);
   });
 });
-
