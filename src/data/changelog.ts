@@ -16,10 +16,16 @@ export const changelog: ChangelogEntry[] = [
   {
     "version": "Unreleased",
     "date": null,
+    "sections": []
+  },
+  {
+    "version": "1.5.0",
+    "date": "2026-08-19",
     "sections": [
       {
         "type": "Added",
         "items": [
+          "A \"Damer\" toggle on a tournament group's results — one click gives you the women in a mixed field, ranked, with their overall placement alongside, and the round-by-round pairings narrowed to their games. Shown only where it has something to do",
           "Side prizes on a tournament group's results — pick a rating band, age class, women's or veteran prize and the standings filter to the players eligible for it, with the placement showing their rank among them and their overall place in parentheses",
           "Veteran prizes are now included; previously they were left out because the federation's data didn't say what the age limit was"
         ]
@@ -27,7 +33,14 @@ export const changelog: ChangelogEntry[] = [
       {
         "type": "Changed",
         "items": [
-          "A women's prize now lists every woman in the group. Some are registered with a rating range, but the official results don't apply it, so neither do we — and the range is no longer shown on the filter, since it isn't what decides who's eligible"
+          "A women's prize now lists every woman in the group. Some are registered with a rating range, but the official results don't apply it, so neither do we — and the range is no longer shown on the filter, since it isn't what decides who's eligible",
+          "Dropdown lists that don't fit now cut the last row in half, so it's obvious the list continues rather than ending where the box does"
+        ]
+      },
+      {
+        "type": "Fixed",
+        "items": [
+          "Dropdown lists no longer open far wider than the control that opened them"
         ]
       }
     ]
