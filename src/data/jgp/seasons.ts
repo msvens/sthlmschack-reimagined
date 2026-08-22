@@ -117,6 +117,22 @@ const OPEN_2026: JgpSeason = {
         { groupId: 18595, isBeginner: false, label: 'E', fromYear: 2017, toYear: 9999 },
       ],
     },
+    {
+      label: 'Skärgårdens JGP 2026',
+      shortLabel: 'Skärgården',
+      date: '2026-08-22',
+      tournamentId: 6987,
+      groups: [
+        { groupId: 18928, isBeginner: false, label: 'A/B', fromYear: 2006, toYear: 2012 },
+        { groupId: 18929, isBeginner: false, label: 'C', fromYear: 2013, toYear: 2015 },
+        { groupId: 18930, isBeginner: false, label: 'D', fromYear: 2016, toYear: 9999 },
+        // E is "Allmän, med klocka" (2014-2016) and F "Nybörjare, utan klocka" —
+        // both cut across the age classes, so neither counts on the open ladder.
+        // Same treatment as Trojanska Hästen's E/F.
+        { groupId: 18931, isBeginner: true, label: 'E' },
+        { groupId: 18932, isBeginner: true, label: 'F' },
+      ],
+    },
   ],
   // Filled in during verification, age group by age group (cross-checked
   // afterwards against the official 2026 Spelardispenser document).
@@ -264,6 +280,20 @@ const GIRLS_2026: JgpSeason = {
         { groupId: 18594, isBeginner: false, klass: 'd', rounds: 6, label: 'D' },
         // JDM has no beginner scoring ⇒ class E is a normal percentile klass.
         { groupId: 18595, isBeginner: false, klass: 'e', rounds: 6, label: 'E' },
+      ],
+    },
+    {
+      label: 'Skärgårdens JGP 2026',
+      shortLabel: 'Skärgården',
+      date: '2026-08-22',
+      tournamentId: 6987,
+      groups: [
+        { groupId: 18928, isBeginner: false, klass: 'ab', rounds: 7, label: 'A/B' },
+        { groupId: 18929, isBeginner: false, klass: 'c', rounds: 7, label: 'C' },
+        { groupId: 18930, isBeginner: false, klass: 'd', rounds: 7, label: 'D' },
+        // "Klass E (Allmän, med klocka)" → öppen/allmän ⇒ klass "y".
+        { groupId: 18931, isBeginner: false, klass: 'y', rounds: 6, label: 'E' },
+        { groupId: 18932, isBeginner: true, klass: 'z', rounds: 5, label: 'F' },
       ],
     },
   ],
