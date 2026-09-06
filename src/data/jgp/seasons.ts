@@ -133,6 +133,20 @@ const OPEN_2026: JgpSeason = {
         { groupId: 18932, isBeginner: true, label: 'F' },
       ],
     },
+    {
+      label: 'Junior-DM i Blixt 2026',
+      shortLabel: 'JDM Blixt',
+      date: '2026-09-06',
+      tournamentId: 7106,
+      // Like JDM Snabb: no beginner groups, class E is a counted youngest age class.
+      groups: [
+        { groupId: 19132, isBeginner: false, label: 'A', fromYear: 2006, toYear: 2009 },
+        { groupId: 19133, isBeginner: false, label: 'B', fromYear: 2010, toYear: 2012 },
+        { groupId: 19134, isBeginner: false, label: 'C', fromYear: 2013, toYear: 2014 },
+        { groupId: 19135, isBeginner: false, label: 'D', fromYear: 2015, toYear: 2016 },
+        { groupId: 19136, isBeginner: false, label: 'E', fromYear: 2017, toYear: 9999 },
+      ],
+    },
   ],
   // Filled in during verification, age group by age group (cross-checked
   // afterwards against the official 2026 Spelardispenser document).
@@ -294,6 +308,20 @@ const GIRLS_2026: JgpSeason = {
         // "Klass E (Allmän, med klocka)" → öppen/allmän ⇒ klass "y".
         { groupId: 18931, isBeginner: false, klass: 'y', rounds: 6, label: 'E' },
         { groupId: 18932, isBeginner: true, klass: 'z', rounds: 5, label: 'F' },
+      ],
+    },
+    {
+      label: 'Junior-DM i Blixt 2026',
+      shortLabel: 'JDM Blixt',
+      date: '2026-09-06',
+      tournamentId: 7106,
+      groups: [
+        { groupId: 19132, isBeginner: false, klass: 'a', rounds: 9, label: 'A' },
+        { groupId: 19133, isBeginner: false, klass: 'b', rounds: 9, label: 'B' },
+        { groupId: 19134, isBeginner: false, klass: 'c', rounds: 9, label: 'C' },
+        { groupId: 19135, isBeginner: false, klass: 'd', rounds: 9, label: 'D' },
+        // JDM has no beginner scoring => class E is a normal percentile klass.
+        { groupId: 19136, isBeginner: false, klass: 'e', rounds: 9, label: 'E' },
       ],
     },
   ],
