@@ -147,6 +147,21 @@ const OPEN_2026: JgpSeason = {
         { groupId: 19136, isBeginner: false, label: 'E', fromYear: 2017, toYear: 9999 },
       ],
     },
+    {
+      label: 'Kristallens JGP 2026',
+      shortLabel: 'Kristallen',
+      date: '2026-09-19',
+      tournamentId: 7057,
+      groups: [
+        { groupId: 19044, isBeginner: false, label: 'A', fromYear: 2006, toYear: 2009 },
+        { groupId: 19045, isBeginner: false, label: 'B', fromYear: 2010, toYear: 2012 },
+        { groupId: 19046, isBeginner: false, label: 'C', fromYear: 2013, toYear: 2015 },
+        { groupId: 19047, isBeginner: false, label: 'D', fromYear: 2016, toYear: 9999 },
+        // E "Nybörjare med klocka" and F "Nybörjare utan klocka" — both beginner.
+        { groupId: 19048, isBeginner: true, label: 'E' },
+        { groupId: 19110, isBeginner: true, label: 'F' },
+      ],
+    },
   ],
   // Filled in during verification, age group by age group (cross-checked
   // afterwards against the official 2026 Spelardispenser document).
@@ -322,6 +337,21 @@ const GIRLS_2026: JgpSeason = {
         { groupId: 19135, isBeginner: false, klass: 'd', rounds: 9, label: 'D' },
         // JDM has no beginner scoring => class E is a normal percentile klass.
         { groupId: 19136, isBeginner: false, klass: 'e', rounds: 9, label: 'E' },
+      ],
+    },
+    {
+      label: 'Kristallens JGP 2026',
+      shortLabel: 'Kristallen',
+      date: '2026-09-19',
+      tournamentId: 7057,
+      groups: [
+        { groupId: 19044, isBeginner: false, klass: 'a', rounds: 7, label: 'A' },
+        { groupId: 19045, isBeginner: false, klass: 'b', rounds: 7, label: 'B' },
+        { groupId: 19046, isBeginner: false, klass: 'c', rounds: 8, label: 'C' },
+        { groupId: 19047, isBeginner: false, klass: 'd', rounds: 7, label: 'D' },
+        // Two beginner groups, both "Nybörjare" => both "z", merged into one pool.
+        { groupId: 19048, isBeginner: true, klass: 'z', rounds: 7, label: 'E' },
+        { groupId: 19110, isBeginner: true, klass: 'z', rounds: 7, label: 'F' },
       ],
     },
   ],
